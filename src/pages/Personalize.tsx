@@ -15,6 +15,7 @@ import { ArrowLeft, Upload, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
+import { supabase } from "@/integrations/supabase/client";
 
 const Personalize = () => {
   const navigate = useNavigate();
@@ -36,7 +37,18 @@ const Personalize = () => {
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFormData((prev) => ({ ...prev, photo: e.target.files![0] }));
+      const file = e.target.files[0];
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please choose a photo smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setFormData((prev) => ({ ...prev, photo: file }));
       toast({
         title: "Photo uploaded! ✨",
         description: "Your child's photo has been added to the magic.",
@@ -44,7 +56,7 @@ const Personalize = () => {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!formData.childName || !formData.gender) {
       toast({
         title: "Missing information",
@@ -54,9 +66,65 @@ const Personalize = () => {
       return;
     }
     
-    // Store in localStorage for now
-    localStorage.setItem("personalizationData", JSON.stringify(formData));
-    navigate("/stories");
+    try {
+      let photoUrl = "";
+      
+      // Upload photo to Supabase Storage if provided
+      if (formData.photo) {
+        const fileExt = formData.photo.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('hero-photos')
+          .upload(filePath, formData.photo);
+        
+        if (uploadError) {
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload photo. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('hero-photos')
+          .getPublicUrl(filePath);
+        
+        photoUrl = publicUrl;
+      }
+      
+      // Prepare personalization data
+      const personalizationData = {
+        childName: formData.childName,
+        gender: formData.gender,
+        petSpecies: formData.petSpecies,
+        petName: formData.petName,
+        city: formData.city,
+        favoriteColor: formData.favoriteColor,
+        favoriteFood: formData.favoriteFood,
+        photoUrl,
+      };
+      
+      // Store in localStorage
+      localStorage.setItem("personalizationData", JSON.stringify(personalizationData));
+      
+      toast({
+        title: "Magic saved! ✨",
+        description: "Let's choose your adventure!",
+      });
+      
+      navigate("/stories");
+    } catch (error) {
+      console.error("Error saving personalization:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
