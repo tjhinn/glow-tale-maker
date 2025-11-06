@@ -4,43 +4,48 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Share2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PageWrapper } from "@/components/layout/PageWrapper";
+import { Confetti } from "@/components/animations/Confetti";
 import sample1 from "@/assets/sample-story-1.jpg";
 
 const Preview = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [discountApplied, setDiscountApplied] = useState(false);
+  const [discountApplied, setDiscountApplied] = useState(
+    localStorage.getItem("shareDiscount") === "true"
+  );
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleShare = async () => {
     if (navigator.share) {
+      const shareDiscount = true;
       try {
         await navigator.share({
-          title: "Check out my child's personalized fairy tale!",
-          text: "I just created an amazing personalized storybook with YourFairyTale.ai! ✨",
+          title: "Check out my child's fairy tale!",
+          text: "I just created an amazing personalized storybook! ✨",
           url: window.location.origin,
         });
         
-        // Apply discount on successful share
-        setDiscountApplied(true);
+      if (shareDiscount) {
         localStorage.setItem("shareDiscount", "true");
-        
-        // Show confetti-like success
+        setDiscountApplied(true);
+        setShowConfetti(true);
         toast({
           title: "🎉 Discount unlocked!",
-          description: "You've earned 10% off for sharing the magic!",
+          description: "10% off applied to your order.",
           className: "bg-success text-success-foreground",
         });
+      }
       } catch (err) {
-        // User cancelled share
         toast({
-          title: "No worries!",
-          description: "You can share later to get your discount.",
+          title: "Share cancelled",
+          description: "You can still share later to unlock the discount.",
         });
       }
     } else {
       toast({
-        title: "Share not supported",
-        description: "Sharing is not available on this device, but you can still continue!",
+        title: "Share not available",
+        description: "Sharing is not supported on this device.",
       });
     }
   };
@@ -50,107 +55,107 @@ const Preview = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-secondary/80 backdrop-blur-md border-b border-primary/20">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-center">
-            YourFairyTale.ai
-          </h1>
-        </div>
-      </header>
-
+    <PageWrapper>
+      <Confetti active={showConfetti} count={100} />
+      
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
-        <Card className="shadow-2xl border-2 border-primary/20 mb-8">
-          <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-bold">
+        <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-accent/30 to-primary/20">
+            <CardTitle className="text-3xl md:text-4xl text-center font-playfair">
               ✨ See the Magic
             </CardTitle>
+            <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
+              Here's a peek at your personalized storybook
+            </p>
           </CardHeader>
         </Card>
 
         <div className="grid md:grid-cols-2 gap-8 mb-8">
-          {/* Preview Image */}
-          <Card className="border-2 border-secondary shadow-xl bg-secondary/20">
+          {/* Story Preview */}
+          <Card className="border-2 border-primary shadow-xl bg-secondary/20 hover:glow-primary transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-xl font-poppins">Storybook Preview</CardTitle>
+            </CardHeader>
             <CardContent className="p-6">
               <div className="relative">
                 <img
                   src={sample1}
-                  alt="Story preview"
+                  alt="Watermarked preview of your personalized storybook"
                   className="w-full rounded-lg shadow-lg"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-background/80 backdrop-blur-sm px-6 py-3 rounded-lg border-2 border-primary/30 rotate-[-5deg]">
-                    <p className="text-xl font-bold text-muted-foreground">PREVIEW</p>
+                    <p className="text-lg font-bold text-muted-foreground">PREVIEW</p>
                   </div>
                 </div>
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                Watermarked preview - full storybook unlocked after purchase
+              <p className="text-sm text-muted-foreground text-center mt-4 font-poppins">
+                Full storybook without watermark delivered after purchase
               </p>
             </CardContent>
           </Card>
 
-          {/* Share for Discount */}
-          <Card className="border-2 border-secondary shadow-xl bg-gradient-to-br from-secondary/30 to-accent/10">
-            <CardContent className="p-8 space-y-6">
-              <div className="text-center space-y-4">
-                <Sparkles className="w-16 h-16 text-primary mx-auto animate-sparkle" />
-                <h3 className="text-2xl font-bold">Share the Magic!</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Share your preview with friends and family to unlock an instant{" "}
-                  <span className="text-accent font-bold text-xl">10% discount</span> on your purchase!
-                </p>
-              </div>
-
+          {/* Share Card */}
+          <Card className="border-2 border-secondary shadow-xl bg-gradient-to-br from-secondary/30 to-primary/10 hover:glow-accent transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-xl font-poppins flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-accent" />
+                Share & Save
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {discountApplied ? (
-                <div className="p-6 rounded-xl bg-success/10 border-2 border-success text-center space-y-2">
-                  <p className="text-2xl font-bold text-success">🎉 Discount Active!</p>
-                  <p className="text-sm text-success-foreground">
-                    Your 10% discount will be applied at checkout
+                <div className="p-6 rounded-xl bg-success/10 border-2 border-success text-center">
+                  <Sparkles className="w-12 h-12 text-success mx-auto mb-3 animate-sparkle" />
+                  <p className="text-success font-bold text-lg mb-2 font-poppins">
+                    🎉 Discount Active!
+                  </p>
+                  <p className="text-sm text-success-foreground font-poppins">
+                    10% off will be applied at checkout
                   </p>
                 </div>
               ) : (
-                <Button
-                  variant="magic"
-                  size="xl"
-                  onClick={handleShare}
-                  className="w-full"
-                >
-                  <Share2 className="w-5 h-5" />
-                  Share & Get 10% Off!
-                </Button>
+                <>
+                  <p className="text-muted-foreground font-poppins">
+                    Share your story preview and unlock a special 10% discount!
+                  </p>
+                  <Button
+                    variant="magical"
+                    size="lg"
+                    onClick={handleShare}
+                    className="w-full group"
+                  >
+                    <Share2 className="w-4 h-4 group-hover:animate-sparkle" />
+                    Share & Get 10% Off!
+                  </Button>
+                </>
               )}
-
-              <div className="pt-6 border-t border-border text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Ready to continue without discount?
-                </p>
-                <Button
-                  variant="hero"
-                  size="lg"
-                  onClick={handleContinue}
-                  className="w-full"
-                >
-                  Continue to Checkout
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Back Button */}
-        <div className="text-center">
+        {/* Continue Button */}
+        <div className="flex flex-col sm:flex-row gap-4">
           <Button
             variant="outline"
+            size="lg"
             onClick={() => navigate("/stories")}
-            className="border-2 border-muted"
+            className="flex-1"
           >
             ← Choose Different Story
           </Button>
+          <Button
+            variant="magical"
+            size="xl"
+            onClick={handleContinue}
+            className="flex-1 group"
+          >
+            <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
+            Continue to Checkout
+          </Button>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 

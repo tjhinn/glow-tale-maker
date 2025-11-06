@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Upload, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PageWrapper } from "@/components/layout/PageWrapper";
+import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 
 const Personalize = () => {
   const navigate = useNavigate();
@@ -58,29 +60,24 @@ const Personalize = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-secondary/80 backdrop-blur-md border-b border-primary/20">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-center">
-            YourFairyTale.ai
-          </h1>
-        </div>
-      </header>
-
+    <PageWrapper>
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
-        <Card className="shadow-2xl border-2 border-primary/20">
-          <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-bold">
-              ✨ Personalization Form
+        <Card className="shadow-2xl border-2 border-primary/20 relative overflow-hidden">
+          <SparklesAnimation count={5} className="opacity-40" />
+          <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20 relative">
+            <CardTitle className="text-3xl md:text-4xl text-center font-playfair">
+              Who's our brave little hero?
             </CardTitle>
+            <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
+              Tell us about your child to create their magical adventure
+            </p>
           </CardHeader>
           
           <CardContent className="p-6 md:p-8 space-y-6">
             {/* Child Details Section */}
-            <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-secondary/30 to-accent/10 border border-primary/10">
-              <h3 className="text-xl font-semibold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
+            <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-secondary/30 to-accent/10 border border-primary/10 hover:glow-soft transition-all duration-300">
+              <h3 className="text-xl font-semibold font-poppins flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Meet Your Hero
               </h3>
               
@@ -111,9 +108,9 @@ const Personalize = () => {
             </div>
 
             {/* Pet Details Section */}
-            <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-accent/10 to-secondary/20 border border-accent/10">
-              <h3 className="text-xl font-semibold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent" />
+            <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-accent/10 to-secondary/20 border border-accent/10 hover:glow-soft transition-all duration-300">
+              <h3 className="text-xl font-semibold font-poppins flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-accent animate-sparkle" />
                 Magical Companion
               </h3>
               
@@ -143,9 +140,9 @@ const Personalize = () => {
             </div>
 
             {/* Additional Details Section */}
-            <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/20 border border-primary/10">
-              <h3 className="text-xl font-semibold flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
+            <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/20 border border-primary/10 hover:glow-soft transition-all duration-300">
+              <h3 className="text-xl font-semibold font-poppins flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Story Magic
               </h3>
               
@@ -188,13 +185,13 @@ const Personalize = () => {
             </div>
 
             {/* Photo Upload Section */}
-            <div className="p-6 rounded-xl bg-gradient-to-br from-secondary/40 to-primary/10 border-2 border-dashed border-primary/30">
-              <Label htmlFor="photo" className="block text-center mb-4">
+            <div className="p-6 rounded-xl bg-gradient-to-br from-secondary/40 to-primary/10 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:glow-primary transition-all duration-300">
+              <Label htmlFor="photo" className="block text-center mb-4 font-poppins">
                 <div className="flex flex-col items-center gap-2">
                   <Upload className="w-8 h-8 text-primary" />
                   <span className="text-lg font-semibold">Upload Photo of Child</span>
                   <span className="text-sm text-muted-foreground">
-                    {formData.photo ? formData.photo.name : "Optional - helps bring the magic alive!"}
+                    {formData.photo ? `✨ ${formData.photo.name}` : "Optional - helps bring the magic alive!"}
                   </span>
                 </div>
               </Label>
@@ -221,24 +218,25 @@ const Personalize = () => {
                 variant="outline"
                 size="lg"
                 onClick={() => navigate("/")}
-                className="flex-1 border-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+                className="flex-1"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back
               </Button>
               <Button
-                variant="hero"
+                variant="magical"
                 size="lg"
                 onClick={handleContinue}
-                className="flex-1"
+                className="flex-1 group"
               >
-                Continue to Next Step
+                <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
+                Continue Your Story
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 

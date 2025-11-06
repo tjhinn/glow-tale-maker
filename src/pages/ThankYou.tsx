@@ -1,138 +1,121 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Download, Mail } from "lucide-react";
+import { Download, Sparkles, Mail } from "lucide-react";
+import { PageWrapper } from "@/components/layout/PageWrapper";
+import { Confetti } from "@/components/animations/Confetti";
+import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import sample1 from "@/assets/sample-story-1.jpg";
 
 const ThankYou = () => {
   const navigate = useNavigate();
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  const handleDownload = () => {
-    // In a real implementation, this would trigger the actual PDF download
-    alert("Download functionality would be implemented here!");
+  useEffect(() => {
+    setShowConfetti(true);
+  }, []);
+
+  const handleBackHome = () => {
+    localStorage.clear();
+    navigate("/");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-secondary/20 to-accent/10">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-secondary/80 backdrop-blur-md border-b border-primary/20">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-center">
-            YourFairyTale.ai
-          </h1>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8 md:py-16 max-w-4xl">
-        {/* Success Header */}
-        <Card className="shadow-2xl border-2 border-accent/30 mb-8 overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-accent/30 via-primary/20 to-success/20">
-            <CardTitle className="text-3xl md:text-5xl text-center font-bold space-y-4">
-              <div className="flex justify-center">
-                <Sparkles className="w-16 h-16 text-primary animate-sparkle" />
-              </div>
-              <div>Thank You for Purchasing!</div>
+    <PageWrapper>
+      <Confetti active={showConfetti} count={150} />
+      <SparklesAnimation count={12} className="opacity-40" />
+      
+      <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+        {/* Success Message */}
+        <Card className="shadow-2xl border-4 border-success mb-8 bg-gradient-to-br from-success/5 to-primary/5 relative overflow-hidden glow-soft">
+          <SparklesAnimation count={8} className="opacity-30" />
+          <CardHeader className="text-center space-y-4 pt-8 relative">
+            <div className="flex justify-center">
+              <Sparkles className="w-16 h-16 text-success animate-sparkle" />
+            </div>
+            <CardTitle className="text-4xl md:text-5xl font-playfair text-success">
+              The magic is complete!
             </CardTitle>
+            <p className="text-xl text-muted-foreground font-poppins">
+              Your fairy tale is ready to enchant
+            </p>
           </CardHeader>
         </Card>
 
-        {/* Main Content */}
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          {/* Storybook Preview */}
-          <Card className="border-2 border-primary/20 shadow-xl bg-gradient-to-br from-secondary/30 to-primary/10">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-xl font-bold text-center">Your Magical Storybook</h3>
+        {/* Storybook Preview & Download */}
+        <Card className="shadow-xl border-2 border-primary/30 mb-8 hover:glow-primary transition-all duration-300">
+          <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20">
+            <CardTitle className="text-2xl text-center font-playfair">
+              Your Personalized Storybook
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8 text-center space-y-6">
+            <div className="mb-6 relative group">
               <img
                 src={sample1}
-                alt="Complete storybook cover"
-                className="w-full rounded-lg shadow-lg"
+                alt="Your completed personalized storybook cover featuring your child as the hero"
+                className="w-full max-w-md mx-auto rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500"
               />
-              <p className="text-center text-sm text-muted-foreground">
-                24 beautifully illustrated pages, personalized just for you
-              </p>
-              <Button
-                variant="hero"
-                size="lg"
-                onClick={handleDownload}
-                className="w-full"
-              >
-                <Download className="w-5 h-5" />
-                Download High-Res File
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Email Confirmation */}
-          <Card className="border-2 border-accent/20 shadow-xl bg-gradient-to-br from-accent/10 to-secondary/20">
-            <CardContent className="p-8 space-y-6">
-              <div className="text-center space-y-4">
-                <Mail className="w-16 h-16 text-accent mx-auto" />
-                <h3 className="text-2xl font-bold">Check Your Email!</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  A download link to your personalized artbook has been sent to your email address.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-secondary/40 border border-primary/10 space-y-2">
-                <p className="text-sm font-semibold">What's included:</p>
-                <ul className="text-sm space-y-1 text-muted-foreground">
-                  <li>✓ Full 24-page storybook (PDF)</li>
-                  <li>✓ High-resolution download</li>
-                  <li>✓ No watermarks</li>
-                  <li>✓ Ready to print or read digitally</li>
-                </ul>
-              </div>
-
-              <div className="pt-4 border-t border-border">
-                <p className="text-xs text-center text-muted-foreground mb-4">
-                  Want to order a printed keepsake edition? (Coming soon!)
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Email Input Section */}
-        <Card className="border-2 border-secondary shadow-xl bg-gradient-to-br from-secondary/40 to-accent/10 mb-8">
-          <CardContent className="p-8 text-center space-y-4">
-            <h3 className="text-xl font-bold">Didn't receive the email?</h3>
-            <p className="text-sm text-muted-foreground">
-              Check your spam folder, or enter your email below to resend
-            </p>
-            <div className="flex gap-2 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="your@email.com"
-                className="flex-1 px-4 py-2 rounded-lg border border-input bg-background"
-              />
-              <Button variant="magic">Resend</Button>
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
             </div>
+            
+            <Button
+              variant="magical"
+              size="xl"
+              onClick={() => alert("Download started!")}
+              className="w-full sm:w-auto group"
+            >
+              <Download className="w-5 h-5 group-hover:animate-sparkle" />
+              Download High-Res File
+            </Button>
+            
+            <p className="text-sm text-muted-foreground font-poppins mt-4">
+              ✨ Your storybook has also been sent to your email!
+            </p>
           </CardContent>
         </Card>
 
-        {/* Back Home Button */}
+        {/* Email Resend Section */}
+        <Card className="shadow-lg border-2 border-secondary/50 mb-8 bg-secondary/10 hover:glow-accent transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="text-lg font-poppins flex items-center gap-2">
+              <Mail className="w-5 h-5 text-accent" />
+              Didn't receive the email?
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground font-poppins">
+              Check your spam folder or click below to resend the download link.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => alert("Email resent!")}
+              className="w-full sm:w-auto"
+            >
+              <Mail className="w-4 h-4" />
+              Resend Email
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Back to Home */}
         <div className="text-center">
           <Button
-            variant="hero"
-            size="xl"
-            onClick={() => {
-              localStorage.clear();
-              navigate("/");
-            }}
-            className="animate-glow-pulse"
+            variant="magical"
+            size="lg"
+            onClick={handleBackHome}
+            className="group"
           >
-            <Sparkles className="w-5 h-5" />
-            Back Home
+            <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
+            Create Another Fairy Tale
           </Button>
+          <p className="text-xs text-muted-foreground font-poppins mt-4">
+            ✨ Ready to craft more magical memories?
+          </p>
         </div>
-
-        {/* Footer Note */}
-        <p className="text-center text-sm text-muted-foreground mt-8">
-          Thank you for choosing YourFairyTale.ai ✨<br />
-          Creating magical memories, one story at a time
-        </p>
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 

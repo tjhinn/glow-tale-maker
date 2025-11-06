@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PageWrapper } from "@/components/layout/PageWrapper";
 import sample1 from "@/assets/sample-story-1.jpg";
 
 const Checkout = () => {
@@ -53,30 +54,24 @@ const Checkout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-accent/10">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-secondary/80 backdrop-blur-md border-b border-primary/20">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-center">
-            YourFairyTale.ai
-          </h1>
-        </div>
-      </header>
-
+    <PageWrapper>
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
-        <Card className="shadow-2xl border-2 border-accent/30 mb-8">
+        <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-accent/30 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-bold">
-              Finalize Purchase
+            <CardTitle className="text-3xl md:text-4xl text-center font-playfair">
+              Almost there — your story's about to come alive
             </CardTitle>
+            <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
+              Complete your purchase and receive your magical storybook
+            </p>
           </CardHeader>
         </Card>
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Preview */}
-          <Card className="border-2 border-secondary shadow-xl bg-secondary/20">
+          <Card className="border-2 border-secondary shadow-xl bg-secondary/20 hover:glow-soft transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-xl">Your Storybook Preview</CardTitle>
+              <CardTitle className="text-xl font-poppins">Your Storybook Preview</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="relative mb-4">
@@ -98,19 +93,20 @@ const Checkout = () => {
           </Card>
 
           {/* Payment Form */}
-          <Card className="border-2 border-secondary shadow-xl bg-gradient-to-br from-secondary/30 to-primary/10">
+          <Card className="border-2 border-secondary shadow-xl bg-gradient-to-br from-secondary/30 to-primary/10 hover:glow-primary transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-primary" />
+              <CardTitle className="text-xl font-poppins flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-primary animate-sparkle" />
                 Payment Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Discount Badge */}
               {hasDiscount && (
-                <div className="p-4 rounded-xl bg-success/10 border-2 border-success text-center animate-sparkle">
-                  <p className="text-success font-bold">🎉 10% Discount Applied!</p>
-                  <p className="text-sm text-success-foreground mt-1">
+                <div className="p-4 rounded-xl bg-success/10 border-2 border-success text-center glow-soft">
+                  <Sparkles className="w-8 h-8 text-success mx-auto mb-2 animate-sparkle" />
+                  <p className="text-success font-bold font-poppins">🎉 10% Discount Applied!</p>
+                  <p className="text-sm text-success-foreground mt-1 font-poppins">
                     You saved ${discount.toFixed(2)}
                   </p>
                 </div>
@@ -185,23 +181,23 @@ const Checkout = () => {
 
               {/* Pay Button */}
               <Button
-                variant="hero"
+                variant="magical"
                 size="xl"
                 onClick={handlePayment}
                 disabled={processing}
-                className="w-full animate-glow-pulse"
+                className="w-full animate-glow-pulse group"
               >
                 {processing ? (
-                  <>Processing...</>
+                  <>✨ Processing your magic...</>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5" />
+                    <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
                     Pay Securely ${finalPrice.toFixed(2)}
                   </>
                 )}
               </Button>
 
-              <p className="text-xs text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground font-poppins">
                 🔒 Secure payment processing • Your data is protected
               </p>
             </CardContent>
@@ -213,13 +209,12 @@ const Checkout = () => {
           <Button
             variant="outline"
             onClick={() => navigate("/preview")}
-            className="border-2 border-muted"
           >
             ← Back to Preview
           </Button>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 
