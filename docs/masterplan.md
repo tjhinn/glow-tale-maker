@@ -1,6 +1,6 @@
 🧚‍♀️ masterplan.md
 🎬 30-Second Elevator Pitch
-YourFairyTale.ai is a mobile-first web app that turns a child’s name, photo, and favorite things into a personalized, 24-page illustrated fairy-tale book in minutes. Parents feel the magic of creation without the tech friction — just joy, wonder, and a glowing digital keepsake ready to download or gift.
+YourFairyTale.ai is a mobile-first web app that turns a child's name, photo, and favorite things into a personalized, 24-page illustrated fairy-tale book in minutes. Parents feel the magic of creation without the tech friction — just joy, wonder, and a glowing digital keepsake ready to download or gift.
 
 💡 Problem & Mission
 Problem:
@@ -82,7 +82,7 @@ Order → includes 1 Personalization + 1 StoryTemplate
 Personalization → {name, gender, pet_species, pet_name, city, fav_color, fav_food, photo_url}
 
 
-StoryTemplate → {id, title, moral, pages[], illustration_assets[]}
+StoryTemplate → {id, title, moral, pages[], image_prompts[]}
 
 
 PDFAsset → generated output; linked to order
@@ -92,8 +92,23 @@ AdminUser → manages stories, illustrations, and pricing
 
 
 
-🎨 UI Design Principles (per Krug’s Laws + Lovable ethos)
-Don’t make me think: every page has one clear next step (large bottom CTA).
+### 🎨 Image Generation Strategy
+
+**AI-Powered Illustrations:**
+- Each story contains 24 pages of text and 12 image prompts (one per spread)
+- The `image_prompts[]` field in `stories` table stores detailed text descriptions
+- During PDF generation, these prompts are sent to AI image generation APIs
+- Images are generated on-demand per order with personalized details injected
+- This ensures every storybook is unique and tailored to the child
+
+**Why AI Generation vs Pre-Made Assets:**
+- ✨ **Personalization**: Child's name, appearance, pet, and preferences are woven into each illustration
+- 📦 **Scalability**: No need to store thousands of static images
+- 🎨 **Consistency**: Single prompt per spread ensures cohesive visual storytelling
+- 💾 **Efficiency**: Generated images are temporary; only final PDFs are stored
+
+🎨 UI Design Principles (per Krug's Laws + Lovable ethos)
+Don't make me think: every page has one clear next step (large bottom CTA).
 
 
 Feels like magic: glowing transitions, subtle sparkles, warm palette.
@@ -102,7 +117,7 @@ Feels like magic: glowing transitions, subtle sparkles, warm palette.
 Design for scanning: single-column layout, short labels, visual rhythm.
 
 
-Kind by default: empty states and error messages are encouraging (“We’ll fix that sparkle!”).
+Kind by default: empty states and error messages are encouraging ("We'll fix that sparkle!").
 
 
 Mobile-first simplicity: every component finger-friendly; no nested menus.
@@ -187,12 +202,11 @@ Seasonal fairy-tale packs (e.g., Winter Wonders, Birthday Edition).
 Parent dashboard for tracking purchased stories.
 
 
-Narrated audiobook mode (voiceover using child’s name).
+Narrated audiobook mode (voiceover using child's name).
 
 
 
 ✨ Emotional Thesis
-YourFairyTale.ai feels like opening a glowing bedtime story — gentle, kind, and full of wonder — where every parent becomes the author of their child’s imagination.
+YourFairyTale.ai feels like opening a glowing bedtime story — gentle, kind, and full of wonder — where every parent becomes the author of their child's imagination.
 
 ✅ End of masterplan.md
-
