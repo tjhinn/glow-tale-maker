@@ -87,9 +87,9 @@ Child’s Name
 “Who’s our brave hero?”
 2
 Gender
-“Boy, Girl, or Magical Mix?”
+“Boy or Girl?”
 3
-Pet Type & Name
+Pet Name
 “Who’s the loyal sidekick?”
 4
 City
