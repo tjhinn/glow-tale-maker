@@ -402,11 +402,11 @@ const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => 
 
 ---
 
-## Task 1.2: Update StorySelection.tsx ⏳
+## Task 1.2: Update StorySelection.tsx ✅
 
 **Prerequisites:**
-- Task 0.2 completed (stories table)
-- Task 1.1 completed (personalization saved)
+- Task 0.2 completed (stories table) ✅
+- Task 1.1 completed (personalization saved) ✅
 
 **Changes Required:**
 
@@ -452,17 +452,23 @@ const handleContinue = () => {
 - ✅ Navigation to /preview works
 
 **Testing:**
-1. Complete personalization with gender = "boy"
-2. Verify only boy stories shown
-3. Select a story
-4. Navigate to preview
+1. Complete personalization with gender = "boy" ✅
+2. Verify only boy stories shown ✅
+3. Select a story ✅
+4. Navigate to preview ✅
+
+**Completed:** 2025-11-06
+- Added personalization header with hero photo and name
+- Implemented database query filtering stories by gender
+- Added loading states and error handling
+- Sample stories added for testing (2 boy + 2 girl stories)
 
 ---
 
-## Task 1.3: Enable Stripe Integration ⏳
+## Task 1.3: Enable Stripe Integration 🚧
 
 **Prerequisites:**
-- Lovable Cloud enabled
+- Lovable Cloud enabled ✅
 
 **Implementation:**
 
