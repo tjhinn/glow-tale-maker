@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Sparkles } from "lucide-react";
+import { Share2, Sparkles, Facebook, Instagram } from "lucide-react";
+import { Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
@@ -36,42 +37,39 @@ const Preview = () => {
     setSelectedStory(JSON.parse(savedStory));
   }, [navigate, toast]);
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${personalization?.name}'s Personalized Fairy Tale!`,
-          text: `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.name}! ✨`,
-          url: window.location.origin,
-        });
-        
-        localStorage.setItem("shareDiscount", "true");
-        setDiscountApplied(true);
-        setShowConfetti(true);
-        toast({
-          title: "🎉 Discount unlocked!",
-          description: "10% off applied to your order.",
-          className: "bg-success text-success-foreground",
-        });
-      } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          toast({
-            title: "Share cancelled",
-            description: "You can still share later to unlock the discount.",
-          });
-        }
-      }
-    } else {
-      // Fallback for browsers without Web Share API
-      navigator.clipboard.writeText(window.location.origin);
-      toast({
-        title: "Link copied!",
-        description: "Share the link to unlock your 10% discount.",
-      });
-      localStorage.setItem("shareDiscount", "true");
-      setDiscountApplied(true);
-      setShowConfetti(true);
-    }
+  const applyDiscount = () => {
+    localStorage.setItem("shareDiscount", "true");
+    setDiscountApplied(true);
+    setShowConfetti(true);
+    toast({
+      title: "🎉 Discount unlocked!",
+      description: "10% off applied to your order.",
+      className: "bg-success text-success-foreground",
+    });
+  };
+
+  const handleFacebookShare = () => {
+    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.name}! ✨`;
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}&quote=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    applyDiscount();
+  };
+
+  const handleTwitterShare = () => {
+    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.name}! ✨`;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.origin)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+    applyDiscount();
+  };
+
+  const handleInstagramShare = () => {
+    navigator.clipboard.writeText(window.location.origin);
+    toast({
+      title: "Link copied!",
+      description: "Open Instagram and paste the link in your story or post.",
+      duration: 5000,
+    });
+    applyDiscount();
   };
 
   const handleContinue = () => {
@@ -159,21 +157,35 @@ const Preview = () => {
                 <div className="space-y-4">
                   <div className="p-6 rounded-xl bg-primary/5 border border-primary/20">
                     <p className="text-center text-foreground font-poppins leading-relaxed">
-                      Share {personalization.name}'s magical story preview with friends and family to unlock a <span className="font-bold text-primary">special 10% discount!</span>
+                      Share {personalization.name}'s magical story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
                     </p>
                   </div>
-                  <Button
-                    variant="magical"
-                    size="lg"
-                    onClick={handleShare}
-                    className="w-full group"
-                  >
-                    <Share2 className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                    Share & Get 10% Off!
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground font-poppins">
-                    Works on mobile & desktop
-                  </p>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    <Button
+                      onClick={handleFacebookShare}
+                      className="w-full bg-[#1877F2] hover:bg-[#1877F2]/90 text-white"
+                    >
+                      <Facebook className="w-5 h-5 mr-2" />
+                      Share on Facebook
+                    </Button>
+                    
+                    <Button
+                      onClick={handleTwitterShare}
+                      className="w-full bg-black hover:bg-black/90 text-white"
+                    >
+                      <Twitter className="w-5 h-5 mr-2" />
+                      Share on X
+                    </Button>
+                    
+                    <Button
+                      onClick={handleInstagramShare}
+                      className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-90 text-white"
+                    >
+                      <Instagram className="w-5 h-5 mr-2" />
+                      Share on Instagram
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
