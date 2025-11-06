@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +8,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Star, Sparkles } from "lucide-react";
+import { Star, Sparkles, Heart, BookOpen } from "lucide-react";
+import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import heroImage from "@/assets/hero-illustration.jpg";
 import sample1 from "@/assets/sample-story-1.jpg";
 import sample2 from "@/assets/sample-story-2.jpg";
@@ -43,108 +43,137 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-secondary/80 backdrop-blur-md border-b border-primary/20">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-primary/20 shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-center">
+          <h1 className="text-2xl md:text-3xl font-bold font-playfair text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             YourFairyTale.ai
           </h1>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-gradient-to-b from-accent/5 via-background to-background">
+        <SparklesAnimation count={8} />
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
+          className="absolute inset-0 bg-cover bg-center opacity-10"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
-        <div className="relative container mx-auto px-4 py-16 md:py-24">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 rounded-full border border-accent/20">
-              <Sparkles className="w-4 h-4 text-accent animate-sparkle" />
-              <span className="text-sm font-medium text-accent">Create Magic in Minutes</span>
+        <div className="relative container mx-auto px-4 py-20 md:py-32">
+          <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent/10 rounded-full border-2 border-accent/30 backdrop-blur-sm">
+              <Sparkles className="w-5 h-5 text-accent animate-sparkle" />
+              <span className="text-sm font-semibold font-poppins text-accent">Create Magic in Minutes</span>
             </div>
             
-            <h2 className="text-4xl md:text-6xl font-bold leading-tight">
+            <h2 className="text-5xl md:text-7xl font-bold font-playfair leading-tight">
               Every Child Deserves to Be{" "}
-              <span className="text-primary animate-sparkle">The Hero</span>
+              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-sparkle">
+                The Hero
+              </span>
             </h2>
             
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto font-poppins leading-relaxed">
               Create a personalized 24-page illustrated storybook starring your child.
               A magical keepsake they'll treasure forever.
             </p>
 
-            <Button
-              variant="hero"
-              size="xl"
-              onClick={() => navigate("/create")}
-              className="mt-8 animate-glow-pulse"
-            >
-              <Sparkles className="w-5 h-5" />
-              Start Your Fairy Tale
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              <Button
+                variant="magical"
+                size="xl"
+                onClick={() => navigate("/create")}
+                className="group"
+              >
+                <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
+                Begin Your Story
+              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Heart className="w-4 h-4 text-success fill-success" />
+                <span className="font-poppins">Loved by 10,000+ families</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Story Samples Carousel */}
-      <section className="py-16 bg-gradient-to-b from-background to-secondary/20">
+      <section className="py-20 bg-gradient-to-b from-background via-secondary/10 to-background">
         <div className="container mx-auto px-4">
-          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            ✨ Magical Illustrations
-          </h3>
+          <div className="text-center mb-12 space-y-3 animate-fade-up">
+            <div className="inline-flex items-center gap-2">
+              <BookOpen className="w-6 h-6 text-primary" />
+              <h3 className="text-4xl md:text-5xl font-bold font-playfair">
+                Magical Illustrations
+              </h3>
+              <BookOpen className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-muted-foreground font-poppins">
+              Every page is a masterpiece, personalized just for your child
+            </p>
+          </div>
           
           <Carousel className="max-w-5xl mx-auto">
             <CarouselContent>
               <CarouselItem className="md:basis-1/2">
-                <Card className="border-2 border-primary/20 shadow-xl">
-                  <CardContent className="p-0">
+                <Card className="border-2 border-primary/30 shadow-2xl hover:shadow-primary/20 transition-all duration-300 page-turn overflow-hidden group">
+                  <CardContent className="p-0 relative">
                     <img
                       src={sample1}
-                      alt="Story illustration sample 1"
-                      className="w-full h-auto rounded-lg"
+                      alt="Whimsical storybook illustration showing a child on a magical adventure"
+                      className="w-full h-auto rounded-lg group-hover:scale-105 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </CardContent>
                 </Card>
               </CarouselItem>
               <CarouselItem className="md:basis-1/2">
-                <Card className="border-2 border-accent/20 shadow-xl">
-                  <CardContent className="p-0">
+                <Card className="border-2 border-accent/30 shadow-2xl hover:shadow-accent/20 transition-all duration-300 page-turn overflow-hidden group">
+                  <CardContent className="p-0 relative">
                     <img
                       src={sample2}
-                      alt="Story illustration sample 2"
-                      className="w-full h-auto rounded-lg"
+                      alt="Beautiful personalized storybook scene with vibrant colors"
+                      className="w-full h-auto rounded-lg group-hover:scale-105 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </CardContent>
                 </Card>
               </CarouselItem>
             </CarouselContent>
-            <CarouselPrevious className="hidden md:flex" />
-            <CarouselNext className="hidden md:flex" />
+            <CarouselPrevious className="hidden md:flex hover:glow-primary" />
+            <CarouselNext className="hidden md:flex hover:glow-primary" />
           </Carousel>
         </div>
       </section>
 
       {/* Reviews Carousel */}
-      <section className="py-16 bg-secondary/30">
+      <section className="py-20 bg-secondary/20">
         <div className="container mx-auto px-4">
-          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            💛 Loved by Parents Everywhere
-          </h3>
+          <div className="text-center mb-12 space-y-3 animate-fade-up">
+            <h3 className="text-4xl md:text-5xl font-bold font-playfair flex items-center justify-center gap-3">
+              <Heart className="w-8 h-8 text-success fill-success animate-float" />
+              Loved by Parents Everywhere
+              <Heart className="w-8 h-8 text-success fill-success animate-float" />
+            </h3>
+            <p className="text-muted-foreground font-poppins">
+              Join thousands of families creating magical memories
+            </p>
+          </div>
           
-          <Carousel className="max-w-4xl mx-auto">
+          <Carousel className="max-w-6xl mx-auto">
             <CarouselContent>
               {reviews.map((review, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                  <Card className="h-full bg-card/80 backdrop-blur border-primary/10">
+                  <Card className="h-full bg-gradient-to-br from-card to-secondary/5 backdrop-blur border-2 border-primary/10 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300">
                     <CardContent className="p-6 space-y-4">
                       <div className="flex gap-1">
                         {[...Array(review.rating)].map((_, i) => (
                           <Star key={i} className="w-5 h-5 fill-primary text-primary" />
                         ))}
                       </div>
-                      <p className="text-sm leading-relaxed">"{review.text}"</p>
-                      <p className="text-sm font-semibold text-muted-foreground">
+                      <p className="text-sm leading-relaxed font-poppins italic text-foreground/90">
+                        "{review.text}"
+                      </p>
+                      <p className="text-sm font-semibold font-poppins text-muted-foreground">
                         — {review.name}
                       </p>
                     </CardContent>
@@ -152,30 +181,47 @@ const Home = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="hidden md:flex" />
-            <CarouselNext className="hidden md:flex" />
+            <CarouselPrevious className="hidden md:flex hover:glow-accent" />
+            <CarouselNext className="hidden md:flex hover:glow-accent" />
           </Carousel>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-t from-primary/5 to-background">
-        <div className="container mx-auto px-4 text-center">
+      <section className="relative py-24 bg-gradient-to-br from-primary/10 via-accent/5 to-background overflow-hidden">
+        <SparklesAnimation count={6} />
+        <div className="container mx-auto px-4 text-center space-y-6">
+          <h3 className="text-3xl md:text-4xl font-bold font-playfair">
+            Ready to Create Magic?
+          </h3>
+          <p className="text-lg text-muted-foreground font-poppins max-w-xl mx-auto">
+            Start your child's personalized adventure today
+          </p>
           <Button
-            variant="hero"
+            variant="magical"
             size="xl"
             onClick={() => navigate("/create")}
-            className="animate-glow-pulse"
+            className="group"
           >
-            Get Yours Now!
+            <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
+            Create Your Story Now
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 border-t border-border">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2025 YourFairyTale.ai • Creating magical memories, one story at a time</p>
+      <footer className="py-12 border-t border-border/50 bg-secondary/10">
+        <div className="container mx-auto px-4 text-center space-y-4">
+          <div className="flex justify-center items-center gap-2">
+            <Sparkles className="w-5 h-5 text-accent" />
+            <p className="text-lg font-semibold font-playfair">YourFairyTale.ai</p>
+          </div>
+          <p className="text-sm text-muted-foreground font-poppins">
+            Creating magical memories, one story at a time
+          </p>
+          <p className="text-xs text-muted-foreground">
+            © 2025 YourFairyTale.ai • All rights reserved
+          </p>
         </div>
       </footer>
     </div>
