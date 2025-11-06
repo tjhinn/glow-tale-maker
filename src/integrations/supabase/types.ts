@@ -14,16 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          admin_approved_at: string | null
+          amount_paid: number | null
+          created_at: string
+          currency: string | null
+          discount_applied: boolean | null
+          discount_code: string | null
+          email_sent_at: string | null
+          id: string
+          pdf_generated_at: string | null
+          pdf_url: string | null
+          personalization_data: Json
+          status: Database["public"]["Enums"]["order_status"]
+          story_id: string
+          stripe_charge_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_email: string
+        }
+        Insert: {
+          admin_approved_at?: string | null
+          amount_paid?: number | null
+          created_at?: string
+          currency?: string | null
+          discount_applied?: boolean | null
+          discount_code?: string | null
+          email_sent_at?: string | null
+          id?: string
+          pdf_generated_at?: string | null
+          pdf_url?: string | null
+          personalization_data: Json
+          status?: Database["public"]["Enums"]["order_status"]
+          story_id: string
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_email: string
+        }
+        Update: {
+          admin_approved_at?: string | null
+          amount_paid?: number | null
+          created_at?: string
+          currency?: string | null
+          discount_applied?: boolean | null
+          discount_code?: string | null
+          email_sent_at?: string | null
+          id?: string
+          pdf_generated_at?: string | null
+          pdf_url?: string | null
+          personalization_data?: Json
+          status?: Database["public"]["Enums"]["order_status"]
+          story_id?: string
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stories: {
+        Row: {
+          created_at: string
+          hero_gender: string
+          id: string
+          illustration_style: string
+          image_prompts: Json
+          is_active: boolean
+          moral: string
+          pages: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hero_gender: string
+          id?: string
+          illustration_style?: string
+          image_prompts?: Json
+          is_active?: boolean
+          moral: string
+          pages?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hero_gender?: string
+          id?: string
+          illustration_style?: string
+          image_prompts?: Json
+          is_active?: boolean
+          moral?: string
+          pages?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      order_status:
+        | "payment_received"
+        | "generating_images"
+        | "pending_admin_review"
+        | "approved"
+        | "email_sent"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +290,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      order_status: [
+        "payment_received",
+        "generating_images",
+        "pending_admin_review",
+        "approved",
+        "email_sent",
+        "cancelled",
+      ],
+    },
   },
 } as const
