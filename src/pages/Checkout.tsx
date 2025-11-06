@@ -1,36 +1,53 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, CreditCard } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
+import { supabase } from "@/integrations/supabase/client";
 import sample1 from "@/assets/sample-story-1.jpg";
+
+// Declare Midtrans Snap on window object
+declare global {
+  interface Window {
+    snap: any;
+  }
+}
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [processing, setProcessing] = useState(false);
+  const [email, setEmail] = useState("");
   const hasDiscount = localStorage.getItem("shareDiscount") === "true";
   
-  const basePrice = 29.99;
+  const basePrice = 149000; // IDR 149,000 (~$10 USD)
   const discount = hasDiscount ? basePrice * 0.1 : 0;
   const finalPrice = basePrice - discount;
 
-  const [formData, setFormData] = useState({
-    email: "",
-    cardNumber: "",
-    expiry: "",
-    cvc: "",
-  });
+  useEffect(() => {
+    // Load Midtrans Snap script
+    const script = document.createElement("script");
+    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
+    script.setAttribute("data-client-key", "SB-Mid-client-YOUR_CLIENT_KEY");
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
 
   const handlePayment = async () => {
-    if (!formData.email || !formData.cardNumber) {
+    if (!email) {
       toast({
         title: "Missing information",
-        description: "Please fill in all payment details.",
+        description: "Please enter your email address.",
         variant: "destructive",
       });
       return;
@@ -38,19 +55,76 @@ const Checkout = () => {
 
     setProcessing(true);
     
-    // Simulate payment processing
-    setTimeout(() => {
-      setProcessing(false);
-      
-      // Success confetti effect
-      toast({
-        title: "🎉 Payment Successful!",
-        description: "Your magical storybook is being prepared!",
-        className: "bg-success text-success-foreground",
+    try {
+      const personalizationData = JSON.parse(localStorage.getItem("personalizationData") || "{}");
+      const selectedStory = JSON.parse(localStorage.getItem("selectedStory") || "{}");
+
+      // Call edge function to create Midtrans payment
+      const { data, error } = await supabase.functions.invoke("create-midtrans-payment", {
+        body: {
+          userEmail: email,
+          amount: Math.round(finalPrice),
+          discountApplied: hasDiscount,
+          discountCode: hasDiscount ? "SHARE10" : undefined,
+          personalizationData,
+          storyId: selectedStory.id,
+        },
       });
-      
-      navigate("/thank-you");
-    }, 2000);
+
+      if (error) {
+        console.error("Error creating payment:", error);
+        throw error;
+      }
+
+      console.log("Payment data received:", data);
+
+      // Open Midtrans Snap payment page
+      if (window.snap) {
+        window.snap.pay(data.snapToken, {
+          onSuccess: function (result: any) {
+            console.log("Payment success:", result);
+            localStorage.setItem("orderId", data.orderId);
+            toast({
+              title: "🎉 Payment Successful!",
+              description: "Your magical storybook is being prepared!",
+              className: "bg-success text-success-foreground",
+            });
+            navigate("/thank-you");
+          },
+          onPending: function (result: any) {
+            console.log("Payment pending:", result);
+            toast({
+              title: "Payment Pending",
+              description: "We're waiting for your payment confirmation.",
+            });
+            setProcessing(false);
+          },
+          onError: function (result: any) {
+            console.error("Payment error:", result);
+            toast({
+              title: "Payment Failed",
+              description: "Please try again or contact support.",
+              variant: "destructive",
+            });
+            setProcessing(false);
+          },
+          onClose: function () {
+            console.log("Payment popup closed");
+            setProcessing(false);
+          },
+        });
+      } else {
+        throw new Error("Midtrans Snap is not loaded");
+      }
+    } catch (error: any) {
+      console.error("Error processing payment:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to process payment. Please try again.",
+        variant: "destructive",
+      });
+      setProcessing(false);
+    }
   };
 
   return (
@@ -96,7 +170,7 @@ const Checkout = () => {
           <Card className="border-2 border-secondary shadow-xl bg-gradient-to-br from-secondary/30 to-primary/10 hover:glow-primary transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-xl font-poppins flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-primary animate-sparkle" />
+                <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Payment Details
               </CardTitle>
             </CardHeader>
@@ -107,7 +181,7 @@ const Checkout = () => {
                   <Sparkles className="w-8 h-8 text-success mx-auto mb-2 animate-sparkle" />
                   <p className="text-success font-bold font-poppins">🎉 10% Discount Applied!</p>
                   <p className="text-sm text-success-foreground mt-1 font-poppins">
-                    You saved ${discount.toFixed(2)}
+                    You saved Rp {discount.toLocaleString("id-ID")}
                   </p>
                 </div>
               )}
@@ -117,18 +191,18 @@ const Checkout = () => {
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-muted-foreground">Base Price:</span>
                   <span className={hasDiscount ? "line-through text-muted-foreground" : "font-bold"}>
-                    ${basePrice.toFixed(2)}
+                    Rp {basePrice.toLocaleString("id-ID")}
                   </span>
                 </div>
                 {hasDiscount && (
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-success">Discount:</span>
-                    <span className="text-success font-semibold">-${discount.toFixed(2)}</span>
+                    <span className="text-success font-semibold">-Rp {discount.toLocaleString("id-ID")}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pt-2 border-t border-border">
                   <span className="font-bold text-lg">Total:</span>
-                  <span className="font-bold text-2xl text-primary">${finalPrice.toFixed(2)}</span>
+                  <span className="font-bold text-2xl text-primary">Rp {finalPrice.toLocaleString("id-ID")}</span>
                 </div>
               </div>
 
@@ -139,44 +213,12 @@ const Checkout = () => {
                   id="email"
                   type="email"
                   placeholder="your@email.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
                   Your storybook will be sent here
                 </p>
-              </div>
-
-              {/* Card Details */}
-              <div className="space-y-2">
-                <Label htmlFor="cardNumber">Card Number</Label>
-                <Input
-                  id="cardNumber"
-                  placeholder="1234 5678 9012 3456"
-                  value={formData.cardNumber}
-                  onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="expiry">Expiry</Label>
-                  <Input
-                    id="expiry"
-                    placeholder="MM/YY"
-                    value={formData.expiry}
-                    onChange={(e) => setFormData({ ...formData, expiry: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="cvc">CVC</Label>
-                  <Input
-                    id="cvc"
-                    placeholder="123"
-                    value={formData.cvc}
-                    onChange={(e) => setFormData({ ...formData, cvc: e.target.value })}
-                  />
-                </div>
               </div>
 
               {/* Pay Button */}
@@ -184,7 +226,7 @@ const Checkout = () => {
                 variant="magical"
                 size="xl"
                 onClick={handlePayment}
-                disabled={processing}
+                disabled={processing || !email}
                 className="w-full animate-glow-pulse group"
               >
                 {processing ? (
@@ -192,13 +234,13 @@ const Checkout = () => {
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
-                    Pay Securely ${finalPrice.toFixed(2)}
+                    Pay Securely Rp {finalPrice.toLocaleString("id-ID")}
                   </>
                 )}
               </Button>
 
               <p className="text-xs text-center text-muted-foreground font-poppins">
-                🔒 Secure payment processing • Your data is protected
+                🔒 Powered by Midtrans • Secure payment processing
               </p>
             </CardContent>
           </Card>
