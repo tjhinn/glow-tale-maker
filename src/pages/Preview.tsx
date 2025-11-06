@@ -19,7 +19,7 @@ const Preview = () => {
   const [selectedStory, setSelectedStory] = useState<any>(null);
 
   useEffect(() => {
-    const savedPersonalization = localStorage.getItem("personalization");
+    const savedPersonalization = localStorage.getItem("personalizationData");
     const savedStory = localStorage.getItem("selectedStory");
 
     if (!savedPersonalization || !savedStory) {
