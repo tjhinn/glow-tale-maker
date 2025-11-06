@@ -32,7 +32,9 @@ const Checkout = () => {
     // Load Midtrans Snap script
     const script = document.createElement("script");
     script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-    script.setAttribute("data-client-key", "SB-Mid-client-YOUR_CLIENT_KEY");
+    // Get client key from environment variable
+    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || "SB-Mid-client-REPLACE_WITH_YOUR_KEY";
+    script.setAttribute("data-client-key", clientKey);
     script.async = true;
     document.body.appendChild(script);
 
