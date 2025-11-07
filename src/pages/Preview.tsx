@@ -224,67 +224,64 @@ const Preview = () => {
           </CardContent>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-
-          {/* Share Card */}
-          <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-xl font-playfair flex items-center gap-2">
-                <Share2 className="w-5 h-5 text-accent" />
-                Share & Save
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {discountApplied ? (
-                <div className="p-8 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 border-2 border-success text-center space-y-3">
-                  <Sparkles className="w-16 h-16 text-success mx-auto animate-pulse" />
-                  <div>
-                    <p className="text-success font-bold text-xl mb-2 font-playfair">
-                      🎉 Discount Unlocked!
-                    </p>
-                    <p className="text-sm text-muted-foreground font-poppins">
-                      10% off will be applied at checkout
-                    </p>
-                  </div>
+        {/* Share Card - Full Width */}
+        <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300 mb-8">
+          <CardHeader>
+            <CardTitle className="text-xl font-playfair flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-accent" />
+              Share & Save
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {discountApplied ? (
+              <div className="p-8 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 border-2 border-success text-center space-y-3">
+                <Sparkles className="w-16 h-16 text-success mx-auto animate-pulse" />
+                <div>
+                  <p className="text-success font-bold text-xl mb-2 font-playfair">
+                    🎉 Discount Unlocked!
+                  </p>
+                  <p className="text-sm text-muted-foreground font-poppins">
+                    10% off will be applied at checkout
+                  </p>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="p-6 rounded-xl bg-primary/5 border border-primary/20">
-                    <p className="text-center text-foreground font-poppins leading-relaxed">
-                      Share {personalization.childName}'s magical story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
-                    </p>
-                  </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-6 rounded-xl bg-primary/5 border border-primary/20">
+                  <p className="text-center text-foreground font-poppins leading-relaxed">
+                    Share {personalization.childName}'s magical story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button
+                    onClick={handleFacebookShare}
+                    className="w-full bg-[#1877F2] hover:bg-[#1877F2]/90 text-white"
+                  >
+                    <Facebook className="w-5 h-5 mr-2" />
+                    Share on Facebook
+                  </Button>
                   
-                  <div className="grid grid-cols-1 gap-3">
-                    <Button
-                      onClick={handleFacebookShare}
-                      className="w-full bg-[#1877F2] hover:bg-[#1877F2]/90 text-white"
-                    >
-                      <Facebook className="w-5 h-5 mr-2" />
-                      Share on Facebook
-                    </Button>
-                    
-                    <Button
-                      onClick={handleTwitterShare}
-                      className="w-full bg-black hover:bg-black/90 text-white"
-                    >
-                      <Twitter className="w-5 h-5 mr-2" />
-                      Share on X
-                    </Button>
-                    
-                    <Button
-                      onClick={handleInstagramShare}
-                      className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-90 text-white"
-                    >
-                      <Instagram className="w-5 h-5 mr-2" />
-                      Share on Instagram
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={handleTwitterShare}
+                    className="w-full bg-black hover:bg-black/90 text-white"
+                  >
+                    <Twitter className="w-5 h-5 mr-2" />
+                    Share on X
+                  </Button>
+                  
+                  <Button
+                    onClick={handleInstagramShare}
+                    className="w-full bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-90 text-white"
+                  >
+                    <Instagram className="w-5 h-5 mr-2" />
+                    Share on Instagram
+                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Continue Button */}
         <div className="flex flex-col sm:flex-row gap-4">
