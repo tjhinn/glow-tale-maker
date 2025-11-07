@@ -468,26 +468,37 @@ const handleContinue = () => {
 
 ---
 
-## Task 1.3: Enable Stripe Integration 🚧
+## Task 1.3: Configure Payment Integration ⏳
+
+**Note:** Currently using Midtrans for Indonesia market. Stripe integration deferred.
 
 **Prerequisites:**
 - Lovable Cloud enabled ✅
+- MIDTRANS_SERVER_KEY configured ✅
+- RESEND_API_KEY configured ✅
 
-**Implementation:**
+**Implementation Status:**
 
-1. Use Lovable's Stripe integration tool to enable payment processing
-2. Configure products:
-   - **Product:** "Personalized Storybook (24 pages)"
-   - **Price:** $29.99 USD
-   - **Discount:** 10% off for share referrals
+1. ✅ Order creation flow working
+2. ✅ Admin email notification on order creation
+3. ⚠️ Midtrans payment gateway (blocked - requires sandbox credentials)
+4. ⏳ Webhook handler for payment confirmation
+
+**Current Behavior:**
+- Order is created with status `pending_payment`
+- Admin receives email notification at tjhinn@gmail.com
+- Midtrans popup blocked (401 error - credential mismatch)
+
+**To Re-Enable Midtrans (when ready):**
+1. Update `MIDTRANS_SERVER_KEY` with correct Sandbox server key
+2. Add `VITE_MIDTRANS_CLIENT_KEY` environment variable
+3. Test end-to-end with Midtrans sandbox
 
 **Acceptance Criteria:**
-- ✅ Stripe enabled in Lovable
-- ✅ Product and price created
-- ✅ Test mode confirmed
-
-**Testing:**
-- Use Stripe test card: `4242 4242 4242 4242`
+- ✅ Order creation works
+- ✅ Admin email sent on order creation
+- ⏳ Payment modal opens correctly
+- ⏳ Webhook updates order status to `payment_received`
 
 ---
 
