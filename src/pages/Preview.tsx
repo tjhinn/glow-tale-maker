@@ -74,13 +74,13 @@ const Preview = () => {
   };
 
   const handleFacebookShare = () => {
-    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.name}! ✨`;
+    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.childName}! ✨`;
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}&quote=${encodeURIComponent(shareText)}`;
     openShareWindowWithConfirmation(url);
   };
 
   const handleTwitterShare = () => {
-    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.name}! ✨`;
+    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.childName}! ✨`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.origin)}`;
     openShareWindowWithConfirmation(url);
   };
@@ -131,7 +131,7 @@ const Preview = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="font-playfair text-2xl">Did you complete sharing?</AlertDialogTitle>
             <AlertDialogDescription className="font-poppins">
-              To unlock your 10% discount, please confirm that you shared {personalization?.name}'s magical story!
+              To unlock your 10% discount, please confirm that you shared {personalization?.childName}'s magical story!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -153,7 +153,7 @@ const Preview = () => {
               ✨ See the Magic
             </CardTitle>
             <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
-              {personalization.name}'s adventure in "{selectedStory.title}"
+              {personalization.childName}'s adventure in "{selectedStory.title}"
             </p>
           </CardHeader>
         </Card>
@@ -171,7 +171,7 @@ const Preview = () => {
               <div className="relative group">
                 <img
                   src={sample1}
-                  alt={`Preview of ${selectedStory.title} featuring ${personalization.name}`}
+                  alt={`Preview of ${selectedStory.title} featuring ${personalization.childName}`}
                   className="w-full rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-[1.02]"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -185,7 +185,7 @@ const Preview = () => {
                   {selectedStory.title}
                 </h3>
                 <p className="text-sm text-muted-foreground font-poppins italic">
-                  Featuring {personalization.name} as the hero
+                  Featuring {personalization.childName} as the hero
                 </p>
                 <p className="text-xs text-muted-foreground font-poppins">
                   Full 24-page storybook without watermark delivered after purchase
@@ -219,7 +219,7 @@ const Preview = () => {
                 <div className="space-y-4">
                   <div className="p-6 rounded-xl bg-primary/5 border border-primary/20">
                     <p className="text-center text-foreground font-poppins leading-relaxed">
-                      Share {personalization.name}'s magical story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
+                      Share {personalization.childName}'s magical story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
                     </p>
                   </div>
                   
