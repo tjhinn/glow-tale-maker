@@ -1,8 +1,11 @@
 # YourFairyTale.ai - Implementation Tasks
 
-> **Updated:** 2025-11-06  
+> **Platform:** Lovable Cloud  
+> **Updated:** 2025-11-07  
 > **Status:** Ready for implementation  
 > **Workflow:** Manual quality check after payment → Admin approval → Customer email delivery
+
+> **Note:** This implementation plan uses Lovable Cloud, which provides native database, storage, authentication, and serverless functions. All code examples use the standard Supabase client syntax since Lovable Cloud is built on Supabase infrastructure. No external Supabase account or dashboard access is required—all backend management happens within Lovable.
 
 ---
 
@@ -302,12 +305,12 @@ SELECT * FROM orders WHERE status = 'payment_received';
 
 2. **LOVABLE_API_KEY**
    - Purpose: AI image generation via Lovable AI Gateway
-   - **Action:** Enable Lovable AI (already provisioned)
+   - **Action:** Enable Lovable AI (automatically provisioned)
 
 **Acceptance Criteria:**
 - ✅ RESEND_API_KEY configured
 - ✅ LOVABLE_API_KEY confirmed active
-- ✅ Secrets visible in backend dashboard
+- ✅ Secrets visible in backend settings
 
 **Testing:**
 ```typescript
@@ -330,7 +333,7 @@ console.log('Secrets loaded:', { resendKey: !!resendKey, lovableKey: !!lovableKe
 
 1. Add database query to prefetch stories for gender filtering
 2. Update form state to match new personalization structure
-3. Add photo upload to Supabase Storage
+3. Add photo upload to storage
 4. Save personalization to localStorage for checkout
 
 **Key Code Updates:**
@@ -389,7 +392,7 @@ const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => 
 ```
 
 **Acceptance Criteria:**
-- ✅ Photo uploads to Supabase Storage
+- ✅ Photo uploads to storage
 - ✅ Form data saved to localStorage
 - ✅ Gender selection works correctly
 - ✅ Navigation to /stories works
@@ -472,7 +475,7 @@ const handleContinue = () => {
 
 **Implementation:**
 
-1. Use Lovable's Stripe tool to enable integration
+1. Use Lovable's Stripe integration tool to enable payment processing
 2. Configure products:
    - **Product:** "Personalized Storybook (24 pages)"
    - **Price:** $29.99 USD
@@ -644,7 +647,7 @@ const CheckoutForm = () => {
 **Testing:**
 1. Complete checkout with test card
 2. Verify order in database
-3. Check Stripe dashboard for payment
+3. Check payment confirmation
 
 ---
 
@@ -726,7 +729,7 @@ const ThankYou = () => {
 
 # Phase 2: Backend Edge Functions
 
-## Task 2.1: Create Storage Bucket ✅
+## Task 2.1: Create Storage Buckets ✅
 
 **Prerequisites:**
 - Lovable Cloud enabled ✅
@@ -738,9 +741,9 @@ const ThankYou = () => {
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('hero-photos', 'hero-photos', true);
 
--- Create storybook-pdfs bucket (private, signed URLs only)
+-- Create generated-pdfs bucket (private, signed URLs only)
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('storybook-pdfs', 'storybook-pdfs', false);
+VALUES ('generated-pdfs', 'generated-pdfs', false);
 
 -- RLS for hero-photos: Anyone can upload
 CREATE POLICY "Anyone can upload hero photos"
@@ -748,21 +751,21 @@ ON storage.objects
 FOR INSERT
 WITH CHECK (bucket_id = 'hero-photos');
 
--- RLS for storybook-pdfs: Only admins can upload
+-- RLS for generated-pdfs: Only admins can upload
 CREATE POLICY "Admins can upload PDFs"
 ON storage.objects
 FOR INSERT
 WITH CHECK (
-  bucket_id = 'storybook-pdfs' AND
+  bucket_id = 'generated-pdfs' AND
   public.has_role(auth.uid(), 'admin')
 );
 
--- RLS for storybook-pdfs: Admins can read
+-- RLS for generated-pdfs: Admins can read
 CREATE POLICY "Admins can read PDFs"
 ON storage.objects
 FOR SELECT
 USING (
-  bucket_id = 'storybook-pdfs' AND
+  bucket_id = 'generated-pdfs' AND
   public.has_role(auth.uid(), 'admin')
 );
 ```
@@ -773,7 +776,7 @@ USING (
 - ✅ RLS policies configured
 
 **Completed:** 2025-11-07
-- Created `hero-photos` bucket (already existed, public access)
+- Created `hero-photos` bucket (public access for uploads)
 - Created `generated-pdfs` bucket (private, admin-only access)
 - Configured RLS policies for admin-only upload/view/update/delete on PDFs
 - Only admins can manage generated PDFs
@@ -860,7 +863,7 @@ serve(async (req) => {
         <p><strong>Hero Name:</strong> ${personalization.heroName}</p>
         <p><strong>Amount Paid:</strong> $${amountPaid}</p>
         <p><strong>Order ID:</strong> ${order.id}</p>
-        <p><a href="${Deno.env.get('SUPABASE_URL')}/admin/orders/${order.id}">View Order</a></p>
+        <p>View order in your admin dashboard.</p>
       `,
     });
 
@@ -901,7 +904,8 @@ verify_jwt = false
 
 **Testing:**
 ```bash
-curl -X POST https://[project-id].supabase.co/functions/v1/submit-order \
+# Test via edge function invocation
+curl -X POST [your-cloud-url]/functions/v1/submit-order \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -1012,7 +1016,7 @@ serve(async (req) => {
     // Upload PDF to storage
     const fileName = `${orderId}.pdf`;
     const { error: uploadError } = await supabase.storage
-      .from('storybook-pdfs')
+      .from('generated-pdfs')
       .upload(fileName, pdfBytes, {
         contentType: 'application/pdf',
         upsert: true,
@@ -1022,7 +1026,7 @@ serve(async (req) => {
 
     // Get signed URL (7-day expiry)
     const { data: { signedUrl } } = await supabase.storage
-      .from('storybook-pdfs')
+      .from('generated-pdfs')
       .createSignedUrl(fileName, 60 * 60 * 24 * 7); // 7 days
 
     // Update order with PDF URL and set status to pending review
@@ -1460,17 +1464,17 @@ export default AdminDashboard;
 # 📊 Summary
 
 **Total Tasks:** 22  
-**Completed:** 0  
+**Completed:** 3  
 **In Progress:** 0  
-**Upcoming:** 22  
+**Upcoming:** 19  
 
 **Next Steps:**
-1. Start with Phase 0 (Database Foundation)
+1. Continue with Phase 0 (Database Foundation)
 2. Test each task before moving to next phase
 3. Deploy edge functions incrementally
 4. Test end-to-end flow before launch
 
 ---
 
-**Last Updated:** 2025-11-06  
+**Last Updated:** 2025-11-07  
 **Maintainer:** YourFairyTale.ai Team
