@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Resend } from "https://esm.sh/resend@4.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +57,54 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log("Order created:", order.id);
+
+    // Send admin notification email
+    try {
+      await resend.emails.send({
+        from: 'YourFairyTale.ai <onboarding@resend.dev>',
+        to: ['tjhinn@gmail.com'],
+        subject: `🎨 New Order #${order.id.substring(0, 8)} - ${personalizationData.name}'s Storybook`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #FF8B00;">✨ New Storybook Order Received!</h2>
+            
+            <div style="background: #FFFDF8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #7A5FFF; margin-top: 0;">Order Details</h3>
+              <p><strong>Order ID:</strong> ${order.id}</p>
+              <p><strong>Customer Email:</strong> ${userEmail}</p>
+              <p><strong>Status:</strong> Pending Payment</p>
+            </div>
+
+            <div style="background: #FFE97F20; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #7A5FFF; margin-top: 0;">Hero Details</h3>
+              <p><strong>Hero Name:</strong> ${personalizationData.name}</p>
+              <p><strong>Gender:</strong> ${personalizationData.gender}</p>
+              <p><strong>Pet:</strong> ${personalizationData.petName} (${personalizationData.petType})</p>
+              <p><strong>Favorite Color:</strong> ${personalizationData.favoriteColor}</p>
+              <p><strong>City:</strong> ${personalizationData.city}</p>
+            </div>
+
+            <div style="background: #5BE37D20; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #7A5FFF; margin-top: 0;">Payment Information</h3>
+              <p><strong>Amount:</strong> Rp ${amount.toLocaleString('id-ID')}</p>
+              <p><strong>Discount Applied:</strong> ${discountApplied ? 'Yes (' + discountCode + ')' : 'No'}</p>
+              <p><strong>Currency:</strong> IDR</p>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #ddd;">
+              <p style="color: #666; font-size: 14px;">
+                The customer will complete payment via Midtrans. Once payment is confirmed, 
+                the order status will be updated automatically via webhook.
+              </p>
+            </div>
+          </div>
+        `,
+      });
+      console.log("Admin notification email sent successfully");
+    } catch (emailError) {
+      // Log error but don't fail the order creation
+      console.error("Failed to send admin notification email:", emailError);
+    }
 
     // Create Midtrans Snap transaction
     const midtransAuth = btoa(MIDTRANS_SERVER_KEY + ":");
