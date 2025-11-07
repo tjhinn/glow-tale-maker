@@ -52,7 +52,8 @@ const ThankYou = () => {
               <p className="text-2xl text-foreground font-poppins">
                 {childName}'s adventure is being crafted with love
               </p>
-              <p className="text-lg text-muted-foreground font-poppins leading-relaxed">Our fairy tale artists are illustrating every page of this magical story. You'll receive 's personalized storybook via email within 24 hours. The wait will be worth it! 🌟{childName}'s personalized storybook via email within 24 hours. 
+              <p className="text-lg text-muted-foreground font-poppins leading-relaxed">Our fairy tale artists are illustrating every page of this magical story. You will receive a personalized storybook via email within 24 hours.
+The wait will be worth it!{childName}'s personalized storybook via email within 24 hours. 
                 The wait will be worth it! 🌟
               </p>
             </div>
