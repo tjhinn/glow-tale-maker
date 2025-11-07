@@ -7,6 +7,16 @@ import { Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import sample1 from "@/assets/sample-story-1.jpg";
 
 const Preview = () => {
@@ -18,6 +28,7 @@ const Preview = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [personalization, setPersonalization] = useState<any>(null);
   const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   useEffect(() => {
     const savedPersonalization = localStorage.getItem("personalizationData");
@@ -48,18 +59,30 @@ const Preview = () => {
     });
   };
 
+  const openShareWindowWithConfirmation = (url: string) => {
+    const popup = window.open(url, '_blank', 'width=600,height=400');
+    
+    const handleFocus = () => {
+      // Small delay to ensure popup has closed
+      setTimeout(() => {
+        setShowConfirmDialog(true);
+        window.removeEventListener('focus', handleFocus);
+      }, 500);
+    };
+    
+    window.addEventListener('focus', handleFocus);
+  };
+
   const handleFacebookShare = () => {
     const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.name}! ✨`;
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}&quote=${encodeURIComponent(shareText)}`;
-    window.open(url, '_blank', 'width=600,height=400');
-    applyDiscount();
+    openShareWindowWithConfirmation(url);
   };
 
   const handleTwitterShare = () => {
     const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.name}! ✨`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.origin)}`;
-    window.open(url, '_blank', 'width=600,height=400');
-    applyDiscount();
+    openShareWindowWithConfirmation(url);
   };
 
   const handleInstagramShare = () => {
@@ -69,7 +92,7 @@ const Preview = () => {
       description: "Open Instagram and paste the link in your story or post.",
       duration: 5000,
     });
-    applyDiscount();
+    setShowConfirmDialog(true);
   };
 
   const handleContinue = () => {
@@ -83,6 +106,26 @@ const Preview = () => {
   return (
     <PageWrapper>
       <Confetti active={showConfetti} count={100} />
+      
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-playfair text-2xl">Did you complete sharing?</AlertDialogTitle>
+            <AlertDialogDescription className="font-poppins">
+              To unlock your 10% discount, please confirm that you shared {personalization?.name}'s magical story!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, I didn't share</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={applyDiscount}
+              className="bg-primary hover:bg-primary/90"
+            >
+              Yes, I shared it! ✨
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
