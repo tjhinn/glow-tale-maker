@@ -7,15 +7,13 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import sample1 from "@/assets/sample-story-1.jpg";
-
 const ThankYou = () => {
   const navigate = useNavigate();
   const [showConfetti, setShowConfetti] = useState(false);
   const [childName, setChildName] = useState<string>("");
-
   useEffect(() => {
     setShowConfetti(true);
-    
+
     // Get child's name from localStorage
     const personalizationData = localStorage.getItem("personalization");
     if (personalizationData) {
@@ -30,16 +28,12 @@ const ThankYou = () => {
       localStorage.removeItem("shareDiscount");
       localStorage.removeItem("orderId");
     }, 3000);
-
     return () => clearTimeout(clearTimer);
   }, []);
-
   const handleBackHome = () => {
     navigate("/");
   };
-
-  return (
-    <PageWrapper>
+  return <PageWrapper>
       <Confetti active={showConfetti} count={150} />
       <SparklesAnimation count={12} className="opacity-40" />
       
@@ -58,9 +52,7 @@ const ThankYou = () => {
               <p className="text-2xl text-foreground font-poppins">
                 {childName}'s adventure is being crafted with love
               </p>
-              <p className="text-lg text-muted-foreground font-poppins leading-relaxed">
-                Our fairy tale artists are hand-illustrating every page of this magical story. 
-                You'll receive {childName}'s personalized storybook via email within 24 hours. 
+              <p className="text-lg text-muted-foreground font-poppins leading-relaxed">Our fairy tale artists are illustrating every page of this magical story. You'll receive 's personalized storybook via email within 24 hours. The wait will be worth it! 🌟{childName}'s personalized storybook via email within 24 hours. 
                 The wait will be worth it! 🌟
               </p>
             </div>
@@ -76,11 +68,7 @@ const ThankYou = () => {
           </CardHeader>
           <CardContent className="p-8 text-center space-y-6">
             <div className="mb-6 relative group">
-              <img
-                src={sample1}
-                alt="Preview of your personalized storybook cover featuring your child as the hero"
-                className="w-full max-w-md mx-auto rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500"
-              />
+              <img src={sample1} alt="Preview of your personalized storybook cover featuring your child as the hero" className="w-full max-w-md mx-auto rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
             </div>
             
@@ -92,12 +80,7 @@ const ThankYou = () => {
 
         {/* Back to Home */}
         <div className="text-center">
-          <Button
-            variant="magical"
-            size="lg"
-            onClick={handleBackHome}
-            className="group"
-          >
+          <Button variant="magical" size="lg" onClick={handleBackHome} className="group">
             <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
             Create Another Fairy Tale
           </Button>
@@ -106,8 +89,6 @@ const ThankYou = () => {
           </p>
         </div>
       </div>
-    </PageWrapper>
-  );
+    </PageWrapper>;
 };
-
 export default ThankYou;
