@@ -648,10 +648,10 @@ const CheckoutForm = () => {
 
 ---
 
-## Task 1.6: Update ThankYou.tsx ⏳
+## Task 1.6: Update ThankYou.tsx ✅
 
 **Prerequisites:**
-- Task 1.5 completed (order created)
+- Task 1.5 completed (order created) 🚧
 
 **Changes Required:**
 
@@ -715,14 +715,21 @@ const ThankYou = () => {
 3. Wait 3 seconds
 4. Check localStorage is cleared
 
+**Completed:** 2025-11-07
+- Added whimsical 24-hour message with child's name
+- Displayed non-watermarked preview cover
+- Implemented localStorage clearing after 3 seconds
+- Added confetti and sparkles animation on page load
+- Added "Back Home" button
+
 ---
 
 # Phase 2: Backend Edge Functions
 
-## Task 2.1: Create Storage Bucket ⏳
+## Task 2.1: Create Storage Bucket ✅
 
 **Prerequisites:**
-- Lovable Cloud enabled
+- Lovable Cloud enabled ✅
 
 **Implementation:**
 
@@ -762,8 +769,14 @@ USING (
 
 **Acceptance Criteria:**
 - ✅ `hero-photos` bucket created (public)
-- ✅ `storybook-pdfs` bucket created (private)
+- ✅ `generated-pdfs` bucket created (private)
 - ✅ RLS policies configured
+
+**Completed:** 2025-11-07
+- Created `hero-photos` bucket (already existed, public access)
+- Created `generated-pdfs` bucket (private, admin-only access)
+- Configured RLS policies for admin-only upload/view/update/delete on PDFs
+- Only admins can manage generated PDFs
 
 ---
 
