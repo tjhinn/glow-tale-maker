@@ -87,76 +87,30 @@ const Preview = () => {
 
   const handleInstagramShare = async () => {
     const shareUrl = window.location.origin;
-    const shareText = `✨ Check out "${selectedStory?.title}" - a magical personalized storybook starring ${personalization?.name}!`;
     
-    // Try Web Share API first (works on mobile browsers)
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${personalization?.name}'s Fairy Tale`,
-          text: shareText,
-          url: shareUrl,
-        });
-        setShowConfirmDialog(true);
-        return;
-      } catch (error) {
-        // User cancelled or share failed, continue to fallback
-        if ((error as Error).name !== 'AbortError') {
-          console.error('Share failed:', error);
-        }
-      }
-    }
-    
-    // Fallback: Try Instagram deep link on mobile
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      // Copy to clipboard first
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        
-        // Try to open Instagram app
-        window.location.href = 'instagram://story-camera';
-        
-        toast({
-          title: "Opening Instagram! 📸",
-          description: "Link copied! Paste it in your Instagram story or post.",
-          duration: 6000,
-        });
-        
-        // Set timeout to show confirmation dialog
-        setTimeout(() => setShowConfirmDialog(true), 2000);
-      } catch (error) {
-        console.error('Clipboard write failed:', error);
-      }
-    } else {
-      // Desktop: Enhanced copy-to-clipboard
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: "Link copied! 📋",
-          description: (
-            <div className="space-y-2">
-              <p>Open Instagram on your phone and paste the link in your story or post.</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open('https://www.instagram.com', '_blank')}
-                className="mt-2 w-full"
-              >
-                Open Instagram Web
-              </Button>
-            </div>
-          ),
-          duration: 8000,
-        });
-        setShowConfirmDialog(true);
-      } catch (error) {
-        toast({
-          title: "Couldn't copy link",
-          description: "Please manually copy the link: " + shareUrl,
-          variant: "destructive",
-        });
-      }
+    try {
+      // Copy link to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      
+      // Open Instagram Web in new tab
+      window.open('https://www.instagram.com', '_blank');
+      
+      // Show simple success toast
+      toast({
+        title: "Link copied! 📋",
+        description: "Instagram opened in a new tab. Paste the link to share!",
+        duration: 5000,
+      });
+      
+      // Trigger confirmation dialog for discount
+      setShowConfirmDialog(true);
+    } catch (error) {
+      // Handle clipboard failure
+      toast({
+        title: "Couldn't copy link",
+        description: "Please manually copy the link: " + shareUrl,
+        variant: "destructive",
+      });
     }
   };
 
