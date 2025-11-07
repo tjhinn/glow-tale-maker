@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import sample1 from "@/assets/sample-story-1.jpg";
+import sample2 from "@/assets/sample-story-2.jpg";
 
 const Preview = () => {
   const navigate = useNavigate();
@@ -52,11 +53,16 @@ const Preview = () => {
     localStorage.setItem("shareDiscount", "true");
     setDiscountApplied(true);
     setShowConfetti(true);
+    
+    // Toast notification
     toast({
       title: "🎉 Discount unlocked!",
       description: "10% off applied to your order.",
       className: "bg-success text-success-foreground",
     });
+
+    // Reset confetti after animation completes
+    setTimeout(() => setShowConfetti(false), 3500);
   };
 
   const openShareWindowWithConfirmation = (url: string) => {
@@ -158,41 +164,67 @@ const Preview = () => {
           </CardHeader>
         </Card>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          {/* Story Preview */}
-          <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5 hover:shadow-2xl hover:border-primary transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-xl font-playfair flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                Your Story Preview
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
+        {/* Story Preview Section - Full Width */}
+        <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5 mb-8">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl md:text-3xl font-playfair flex items-center justify-center gap-3">
+              <Sparkles className="w-6 h-6 text-primary" />
+              Your Story Preview
+              <Sparkles className="w-6 h-6 text-primary" />
+            </CardTitle>
+            <p className="text-sm text-muted-foreground font-poppins mt-2">
+              Featuring {personalization.childName} as the hero in "{selectedStory.title}"
+            </p>
+          </CardHeader>
+          <CardContent className="p-4 md:p-8 space-y-6">
+            {/* Preview Pages Grid */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Sample Page 1 */}
               <div className="relative group">
                 <img
                   src={sample1}
-                  alt={`Preview of ${selectedStory.title} featuring ${personalization.childName}`}
-                  className="w-full rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-[1.02]"
+                  alt={`Preview page 1 of ${selectedStory.title}`}
+                  className="w-full rounded-xl shadow-lg transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-background/90 backdrop-blur-sm px-8 py-4 rounded-xl border-2 border-primary/40 rotate-[-5deg] shadow-xl">
-                    <p className="text-xl font-bold text-primary/70 tracking-wider">PREVIEW</p>
+                  <div className="bg-background/90 backdrop-blur-sm px-6 md:px-10 py-3 md:py-5 rounded-xl border-2 border-primary/50 rotate-[-3deg] shadow-2xl">
+                    <p className="text-lg md:text-2xl font-bold text-primary/70 tracking-widest font-playfair">PREVIEW</p>
                   </div>
                 </div>
               </div>
-              <div className="text-center space-y-2">
-                <h3 className="text-lg font-playfair text-foreground">
-                  {selectedStory.title}
-                </h3>
-                <p className="text-sm text-muted-foreground font-poppins italic">
-                  Featuring {personalization.childName} as the hero
-                </p>
-                <p className="text-xs text-muted-foreground font-poppins">
-                  Full 24-page storybook without watermark delivered after purchase
-                </p>
+
+              {/* Sample Page 2 */}
+              <div className="relative group">
+                <img
+                  src={sample2}
+                  alt={`Preview page 2 of ${selectedStory.title}`}
+                  className="w-full rounded-xl shadow-lg transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-background/90 backdrop-blur-sm px-6 md:px-10 py-3 md:py-5 rounded-xl border-2 border-primary/50 rotate-[2deg] shadow-2xl">
+                    <p className="text-lg md:text-2xl font-bold text-primary/70 tracking-widest font-playfair">PREVIEW</p>
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-accent/10 border-2 border-accent/30 rounded-2xl p-6 text-center space-y-3">
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5 text-accent animate-pulse" />
+                <h3 className="text-lg md:text-xl font-playfair text-foreground">
+                  Complete 24-Page Storybook
+                </h3>
+                <Sparkles className="w-5 h-5 text-accent animate-pulse" />
+              </div>
+              <p className="text-sm md:text-base text-muted-foreground font-poppins leading-relaxed">
+                Your personalized storybook features {personalization.childName} in beautiful, professionally illustrated spreads — delivered without watermarks after purchase
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
 
           {/* Share Card */}
           <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300">

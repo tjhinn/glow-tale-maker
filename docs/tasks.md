@@ -488,16 +488,16 @@ const handleContinue = () => {
 
 ---
 
-## Task 1.4: Update Preview.tsx with Share Discount ⏳
+## Task 1.4: Update Preview.tsx with Share Discount ✅
 
 **Prerequisites:**
-- Task 1.2 completed (story selected)
+- Task 1.2 completed (story selected) ✅
 
 **Changes Required:**
 
-1. Add Web Share API integration
-2. Apply 10% discount on successful share
-3. Display watermarked preview
+1. ✅ Add Web Share API integration (Facebook, X/Twitter, Instagram)
+2. ✅ Apply 10% discount on successful share
+3. ✅ Display watermarked preview pages (2 sample spreads)
 4. Save discount status to localStorage
 
 **Key Code Updates:**
