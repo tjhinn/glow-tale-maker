@@ -63,7 +63,7 @@ serve(async (req) => {
     }
     
     const story = (order as any).stories;
-    const imagePrompts = story.image_prompts as string[];
+    const imagePrompts = story.image_prompts as Array<{ prompt: string; spread: number } | string>;
     
     console.log(`[${orderId}] Personalization data:`, JSON.stringify(personalization));
 
@@ -73,7 +73,8 @@ serve(async (req) => {
     const generatedImages: string[] = [];
 
     for (let i = 0; i < imagePrompts.length; i++) {
-      const rawPrompt = imagePrompts[i];
+      const imagePromptObj = imagePrompts[i];
+      const rawPrompt = typeof imagePromptObj === 'string' ? imagePromptObj : imagePromptObj.prompt;
       
       // Personalize the prompt
       const personalizedPrompt = rawPrompt
