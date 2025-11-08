@@ -32,7 +32,7 @@ Live Preview: shows personalized cover + sample spreads (with watermark).
 Social-share discount: integrated via navigator.share().
 
 
-Stripe Checkout: glowing, friendly payment UI.
+LemonSqueezy Checkout: glowing, friendly payment UI with global coverage.
 
 
 Thank-you Page: non-watermarked book preview + download link.
@@ -59,8 +59,8 @@ Storage
 Lovable Cloud Assets + signed URLs
 Secure upload for photos and stories
 Payments
-Stripe Elements
-Reliable, supports discount logic
+LemonSqueezy
+Merchant of Record, global tax compliance, reliable checkout
 Auth
 Guest checkout + admin login
 Reduces friction for buyers
@@ -128,7 +128,7 @@ Mobile-first simplicity: every component finger-friendly; no nested menus.
 All uploads stored via signed URLs; auto-expire after generation.
 
 
-Stripe handles PCI DSS compliance.
+LemonSqueezy handles PCI DSS compliance and global tax/VAT collection as Merchant of Record.
 
 
 COPPA-aligned parental consent before child photo upload.
@@ -146,7 +146,7 @@ MVP (Month 1–2)
 Build personalization → story selection → checkout flow.
 
 
-Stripe + share discount logic.
+LemonSqueezy + share discount logic.
 
 
 Static illustration set (no AI photo blending).

@@ -16,7 +16,7 @@ View cover and sample pages (with watermark)
 Share Preview
 Get discount via social share
 Purchase Story
-Pay via Stripe
+Pay via LemonSqueezy
 Download
 Receive PDF link (non-watermarked)
 Guest Checkout
@@ -35,7 +35,7 @@ Store in Lovable Cloud
 View Orders
 Track completed or refunded transactions
 Update Prices
-Sync with Stripe dashboard
+Managed in LemonSqueezy dashboard (product variants)
 Future (post-MVP)
 Manage AI composite templates
 
@@ -168,14 +168,14 @@ Component
 Left
 Watermarked storybook cover (auto-generated)
 Right
-Stripe Elements form placeholder
+Discount applied indicator
 CTA
 “✨ Share your preview & get 10% off!”
 Secondary CTA
 “Continue to Checkout”
 
 ⚙️ Logic
-On successful share → 10% discount applied automatically via coupon param in Stripe.
+On successful share → 10% discount applied automatically in checkout session.
 
 
 On cancel → friendly reminder popup: “No worries, you can share later!”
@@ -197,14 +197,14 @@ Watermark overlay uses subtle leaf pattern.
 📍 Path
 /payment
 🎯 Purpose
-Securely handle payment via Stripe and finalize purchase.
+Securely handle payment via LemonSqueezy and finalize purchase.
 🧠 Elements
 Area
 Function
 Left
 Cover preview with watermark
 Right
-Stripe payment form + live discount status
+Email + pricing display with live discount status
 CTA
 “✨ Pay Securely” (glowing orange pulse)
 Success
@@ -302,7 +302,7 @@ Story Selection
 LocalStorage
 Preview generation
 Payment Result
-Stripe → Webhook → Cloud
+LemonSqueezy → Webhook → Cloud
 Order record
 Email
 Order confirmation + file delivery
@@ -340,7 +340,7 @@ LocalStorage → stores temporary personalization data.
 React Context → global store for name, gender, storyID, discount flag.
 
 
-Stripe Webhook → validates payment success before rendering Thank-You page.
+LemonSqueezy Webhook → validates payment success before rendering Thank-You page.
 
 
 
@@ -385,7 +385,7 @@ Styling: Tailwind CSS + shadcn/ui
 Storage: Lovable Cloud (secure uploads + PDF gen)
 
 
-Payments: Stripe Checkout / Elements
+Payments: LemonSqueezy Checkout (Merchant of Record)
 
 
 Animation: Framer Motion (sparkles, parallax, transitions)
@@ -405,14 +405,14 @@ Email + order data encrypted at rest.
 COPPA-friendly — parent consent required for photo upload.
 
 
-Stripe PCI compliance covers payment data.
+LemonSqueezy handles PCI compliance and global tax/VAT as Merchant of Record.
 
 
 
 📘 MVP Exit Criteria (Definition of Done)
 ✅ Users can complete the flow from homepage → payment → thank-you.
  ✅ Personalized PDF generated automatically with correct inputs.
- ✅ Stripe payment + discount logic functional.
+ ✅ LemonSqueezy payment + discount logic functional.
  ✅ Illustrations integrated and responsive.
  ✅ Admin can add/edit stories.
  ✅ 3 external users test with positive flow completion.

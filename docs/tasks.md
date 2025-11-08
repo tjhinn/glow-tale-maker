@@ -560,104 +560,63 @@ const handleShare = async () => {
 
 ---
 
-## Task 1.5: Update Checkout.tsx with Stripe Elements ⏳
+## Task 1.5: Update Checkout.tsx with LemonSqueezy ✅
+
+**Status:** COMPLETED
 
 **Prerequisites:**
-- Task 1.3 completed (Stripe enabled)
-- Task 1.4 completed (discount logic)
+- Task 1.3 completed (LemonSqueezy configured) ✅
+- Task 1.4 completed (discount logic) ✅
 
-**Changes Required:**
+**Changes Completed:**
 
-1. Integrate Stripe Elements
-2. Apply discount if `shareDiscount` exists
-3. Create payment intent on submit
-4. Create order record after successful payment
-5. Navigate to /thank-you
+1. ✅ Removed Midtrans Snap SDK integration
+2. ✅ Updated to call `create-lemonsqueezy-checkout` edge function
+3. ✅ Apply discount if `shareDiscount` exists
+4. ✅ Redirect to LemonSqueezy hosted checkout page
+5. ✅ Updated pricing display to USD ($9.99)
+6. ✅ Navigate to /thank-you after successful payment
 
-**Key Code Updates:**
+**Key Implementation:**
 
 ```typescript
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
+const handlePayment = async () => {
+  const personalizationData = JSON.parse(localStorage.getItem("personalizationData") || "{}");
+  const selectedStory = JSON.parse(localStorage.getItem("selectedStory") || "{}");
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  // Call edge function to create LemonSqueezy checkout
+  const { data, error } = await supabase.functions.invoke("create-lemonsqueezy-checkout", {
+    body: {
+      userEmail: email,
+      amount: finalPrice, // in cents
+      discountApplied: hasDiscount,
+      discountCode: hasDiscount ? "SHARE10" : undefined,
+      personalizationData,
+      storyId: selectedStory.id,
+    },
+  });
 
-const CheckoutForm = () => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const navigate = useNavigate();
+  // Store order ID for thank you page
+  localStorage.setItem("orderId", data.orderId);
 
-  const personalization = JSON.parse(localStorage.getItem('personalization') || '{}');
-  const selectedStory = JSON.parse(localStorage.getItem('selectedStory') || '{}');
-  const discountApplied = localStorage.getItem('shareDiscount') === 'true';
-
-  const basePrice = 29.99;
-  const finalPrice = discountApplied ? basePrice * 0.9 : basePrice;
-
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) return;
-
-    // Call edge function to create order and process payment
-    const { data, error } = await supabase.functions.invoke('submit-order', {
-      body: {
-        email: formData.email,
-        customerName: personalization.heroName,
-        storyId: selectedStory.id,
-        personalization,
-        discountApplied,
-        amountPaid: finalPrice
-      }
-    });
-
-    if (error) {
-      toast.error('Payment failed');
-      return;
-    }
-
-    // Confirm payment with Stripe
-    const { error: confirmError } = await stripe.confirmCardPayment(
-      data.clientSecret,
-      { payment_method: { card: cardElement } }
-    );
-
-    if (confirmError) {
-      toast.error(confirmError.message);
-      return;
-    }
-
-    toast.success('Payment successful!');
-    localStorage.setItem('orderId', data.orderId);
-    navigate('/thank-you');
-  };
-
-  return (
-    <form onSubmit={handlePayment}>
-      <CardElement />
-      <div className="mt-4">
-        <p>Base Price: ${basePrice.toFixed(2)}</p>
-        {discountApplied && <p className="text-accent">Discount: -${(basePrice * 0.1).toFixed(2)}</p>}
-        <p className="font-bold">Total: ${finalPrice.toFixed(2)}</p>
-      </div>
-      <Button type="submit" disabled={!stripe}>Pay Securely</Button>
-    </form>
-  );
+  // Redirect to LemonSqueezy hosted checkout
+  window.location.href = data.checkoutUrl;
 };
 ```
 
 **Acceptance Criteria:**
-- ✅ Stripe Elements renders correctly
+- ✅ LemonSqueezy checkout redirect works correctly
 - ✅ Discount applied if share completed
-- ✅ Payment processes successfully
-- ✅ Order created in database
-- ✅ Navigate to /thank-you
+- ✅ Order created in database with `pending_payment` status
+- ✅ User redirected to LemonSqueezy
+- ✅ After payment, user returns to /thank-you
+- ✅ Pricing displayed in USD
 
 **Testing:**
-1. Complete checkout with test card
-2. Verify order in database
+1. Complete checkout flow
+2. Verify redirect to LemonSqueezy checkout page
+3. Complete test payment in LemonSqueezy
+4. Verify webhook updates order status
 3. Check payment confirmation
 
 ---

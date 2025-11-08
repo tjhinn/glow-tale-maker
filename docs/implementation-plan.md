@@ -7,7 +7,7 @@ End-to-end user flow (from homepage → payment → thank-you page).
 Secure personalized PDF generation with watermark.
 
 
-Stripe payment + share discount.
+LemonSqueezy payment + share discount.
 
 
 Emotionally polished, mobile-first UX.
@@ -92,7 +92,7 @@ Build preview view:
 Left: watermarked cover preview.
 
 
-Right: discount logic + Stripe Elements form.
+Right: discount logic + email input for checkout redirect.
 
 
 Integrate navigator.share() → apply 10% discount when shared.
@@ -149,7 +149,7 @@ Refine microcopy and transitions.
 Run Lighthouse for performance + accessibility.
 
 
-Confirm Stripe test payments + email delivery.
+Confirm LemonSqueezy test payments + email delivery.
 
 
 Prepare soft launch (invite-only beta).
@@ -192,7 +192,7 @@ Design Lead
 Finalize mobile layouts, animation feel
 Daily async review
 Frontend Dev
-React + Tailwind + Stripe integration
+React + Tailwind + LemonSqueezy integration
 Daily build updates
 Backend Dev
 Cloud storage, PDF gen, orders API
@@ -233,7 +233,7 @@ AI personalization (child face + scene blending) → post-launch pilot.
 All forms mobile-optimized.
 
 
-Stripe payments working in test + live modes.
+LemonSqueezy payments working in test + live modes.
 
 
 Watermark clears only after payment success.
