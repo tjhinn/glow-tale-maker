@@ -66,8 +66,11 @@ serve(async (req) => {
     }
 
     // Extract personalization data
-    const heroName = order.personalization_data?.name || "Little Hero";
+    const personalization = order.personalization_data as any;
+    const heroName = personalization?.childName || "Little Hero";
     const storyTitle = order.stories?.title || "Your Magical Storybook";
+    
+    console.log(`Sending email for hero: ${heroName}, story: ${storyTitle}`);
 
     // Send email
     console.log(`Sending email to: ${order.user_email}`);

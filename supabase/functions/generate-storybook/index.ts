@@ -56,9 +56,16 @@ serve(async (req) => {
       throw new Error(`Order not found: ${orderError?.message}`);
     }
 
-    const personalization = order.personalization as any;
+    const personalization = order.personalization_data as any;
+    
+    if (!personalization) {
+      throw new Error(`No personalization data found for order ${orderId}`);
+    }
+    
     const story = (order as any).stories;
     const imagePrompts = story.image_prompts as string[];
+    
+    console.log(`[${orderId}] Personalization data:`, JSON.stringify(personalization));
 
     console.log(`[${orderId}] Generating ${imagePrompts.length} illustrations...`);
 
@@ -70,12 +77,12 @@ serve(async (req) => {
       
       // Personalize the prompt
       const personalizedPrompt = rawPrompt
-        .replace(/{heroName}/g, personalization.name)
-        .replace(/{petName}/g, personalization.petName)
-        .replace(/{petType}/g, personalization.petType)
-        .replace(/{city}/g, personalization.city)
-        .replace(/{favoriteColor}/g, personalization.favoriteColor)
-        .replace(/{favoriteFood}/g, personalization.favoriteFood);
+        .replace(/{heroName}/g, personalization.childName || 'the hero')
+        .replace(/{petName}/g, personalization.petName || 'the pet')
+        .replace(/{petType}/g, personalization.petType || 'pet')
+        .replace(/{city}/g, personalization.city || 'the city')
+        .replace(/{favoriteColor}/g, personalization.favoriteColor || 'blue')
+        .replace(/{favoriteFood}/g, personalization.favoriteFood || 'cookies');
 
       console.log(`[${orderId}] Generating image ${i + 1}/${imagePrompts.length}...`);
 
