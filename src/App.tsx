@@ -14,6 +14,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminTest from "./pages/AdminTest";
 import AdminOrders from "./pages/AdminOrders";
 import AdminStories from "./pages/AdminStories";
+import AdminCarousel from "./pages/AdminCarousel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/admin/test" element={<AdminTest />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/stories" element={<AdminStories />} />
+          <Route path="/admin/carousel" element={<AdminCarousel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

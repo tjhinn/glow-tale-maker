@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,9 +11,8 @@ import {
 } from "@/components/ui/carousel";
 import { Star, Sparkles, Heart, BookOpen } from "lucide-react";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-illustration.jpg";
-import sample1 from "@/assets/sample-story-1.jpg";
-import sample2 from "@/assets/sample-story-2.jpg";
 
 const reviews = [
   {
@@ -39,6 +39,29 @@ const reviews = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const [carouselImages, setCarouselImages] = useState<any[]>([]);
+  const [loadingImages, setLoadingImages] = useState(true);
+
+  useEffect(() => {
+    fetchCarouselImages();
+  }, []);
+
+  const fetchCarouselImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('carousel_images')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      setCarouselImages(data || []);
+    } catch (error) {
+      console.error('Error fetching carousel images:', error);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -114,30 +137,38 @@ const Home = () => {
           
           <Carousel className="max-w-5xl mx-auto">
             <CarouselContent>
-              <CarouselItem className="md:basis-1/2">
-                <Card className="border-2 border-primary/30 shadow-2xl hover:shadow-primary/20 transition-all duration-300 page-turn overflow-hidden group">
-                  <CardContent className="p-0 relative">
-                    <img
-                      src={sample1}
-                      alt="Whimsical storybook illustration showing a child on a magical adventure"
-                      className="w-full h-auto rounded-lg group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-              <CarouselItem className="md:basis-1/2">
-                <Card className="border-2 border-accent/30 shadow-2xl hover:shadow-accent/20 transition-all duration-300 page-turn overflow-hidden group">
-                  <CardContent className="p-0 relative">
-                    <img
-                      src={sample2}
-                      alt="Beautiful personalized storybook scene with vibrant colors"
-                      className="w-full h-auto rounded-lg group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </CardContent>
-                </Card>
-              </CarouselItem>
+              {loadingImages ? (
+                <CarouselItem className="md:basis-1/2">
+                  <Card className="border-2 border-primary/30 shadow-2xl">
+                    <CardContent className="p-0 flex items-center justify-center h-96">
+                      <p className="text-muted-foreground">Loading magical illustrations...</p>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ) : carouselImages.length > 0 ? (
+                carouselImages.map((image, index) => (
+                  <CarouselItem key={image.id} className="md:basis-1/2">
+                    <Card className={`border-2 ${index % 2 === 0 ? 'border-primary/30 hover:shadow-primary/20' : 'border-accent/30 hover:shadow-accent/20'} shadow-2xl transition-all duration-300 page-turn overflow-hidden group`}>
+                      <CardContent className="p-0 relative">
+                        <img
+                          src={image.image_url}
+                          alt={image.alt_text}
+                          className="w-full h-auto rounded-lg group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className={`absolute inset-0 bg-gradient-to-t ${index % 2 === 0 ? 'from-primary/20' : 'from-accent/20'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))
+              ) : (
+                <CarouselItem className="md:basis-1/2">
+                  <Card className="border-2 border-primary/30 shadow-2xl">
+                    <CardContent className="p-0 flex items-center justify-center h-96">
+                      <p className="text-muted-foreground">No carousel images available</p>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              )}
             </CarouselContent>
             <CarouselPrevious className="hidden md:flex hover:glow-primary" />
             <CarouselNext className="hidden md:flex hover:glow-primary" />

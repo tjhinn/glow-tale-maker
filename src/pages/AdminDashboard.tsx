@@ -111,6 +111,16 @@ const AdminDashboard = () => {
             </div>
 
             <div className="p-6 rounded-lg border bg-card">
+              <h2 className="text-xl font-semibold mb-2">Manage Carousel</h2>
+              <p className="text-muted-foreground mb-4">
+                Add and remove images from the homepage carousel
+              </p>
+              <Button onClick={() => navigate('/admin/carousel')}>
+                Manage Carousel
+              </Button>
+            </div>
+
+            <div className="p-6 rounded-lg border bg-card">
               <h2 className="text-xl font-semibold mb-2">Test Features</h2>
               <p className="text-muted-foreground mb-4">
                 Test order generation and PDF creation
