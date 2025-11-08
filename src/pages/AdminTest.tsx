@@ -18,6 +18,7 @@ export default function AdminTest() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
+  const [approvingIds, setApprovingIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,6 +70,38 @@ export default function AdminTest() {
       });
     } finally {
       setGeneratingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(orderId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleApproveOrder = async (orderId: string) => {
+    setApprovingIds(prev => new Set(prev).add(orderId));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("approve-order", {
+        body: { orderId },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Order Approved & Email Sent! ✨",
+        description: "The customer has been notified via email.",
+      });
+
+      // Refresh orders to show updated status
+      await fetchOrders();
+    } catch (error: any) {
+      toast({
+        title: "Approval Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setApprovingIds(prev => {
         const newSet = new Set(prev);
         newSet.delete(orderId);
         return newSet;
@@ -144,20 +177,40 @@ export default function AdminTest() {
                         {new Date(order.created_at).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          onClick={() => handleGeneratePDF(order.id)}
-                          disabled={generatingIds.has(order.id)}
-                          size="sm"
-                        >
-                          {generatingIds.has(order.id) ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Generating...
-                            </>
-                          ) : (
-                            "Generate PDF"
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleGeneratePDF(order.id)}
+                            disabled={generatingIds.has(order.id)}
+                            size="sm"
+                            variant="outline"
+                          >
+                            {generatingIds.has(order.id) ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Generating...
+                              </>
+                            ) : (
+                              "Generate PDF"
+                            )}
+                          </Button>
+                          
+                          {order.status === "pending_admin_review" && order.pdf_url && (
+                            <Button
+                              onClick={() => handleApproveOrder(order.id)}
+                              disabled={approvingIds.has(order.id)}
+                              size="sm"
+                            >
+                              {approvingIds.has(order.id) ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Approving...
+                                </>
+                              ) : (
+                                "Approve & Send"
+                              )}
+                            </Button>
                           )}
-                        </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
