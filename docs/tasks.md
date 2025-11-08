@@ -1280,7 +1280,7 @@ export default AdminLogin;
 
 ---
 
-## Task 3.2: Create Admin Dashboard - Orders View ⏳
+## Task 3.2: Create Admin Dashboard - Orders View ✅
 
 **Prerequisites:**
 - Task 3.1 completed (admin login)
