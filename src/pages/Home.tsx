@@ -13,6 +13,7 @@ import { Star, Sparkles, Heart, BookOpen } from "lucide-react";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-illustration.jpg";
+import Autoplay from "embla-carousel-autoplay";
 
 const reviews = [
   {
@@ -135,7 +136,20 @@ const Home = () => {
             </p>
           </div>
           
-          <Carousel className="max-w-5xl mx-auto">
+          <Carousel 
+            className="max-w-5xl mx-auto"
+            opts={{
+              loop: true,
+              align: "start"
+            }}
+            plugins={[
+              Autoplay({
+                delay: 4000,
+                stopOnInteraction: true,
+                stopOnMouseEnter: true
+              })
+            ]}
+          >
             <CarouselContent>
               {loadingImages ? (
                 <CarouselItem className="md:basis-1/2">
@@ -190,7 +204,20 @@ const Home = () => {
             </p>
           </div>
           
-          <Carousel className="max-w-6xl mx-auto">
+          <Carousel 
+            className="max-w-6xl mx-auto"
+            opts={{
+              loop: true,
+              align: "start"
+            }}
+            plugins={[
+              Autoplay({
+                delay: 5000,
+                stopOnInteraction: true,
+                stopOnMouseEnter: true
+              })
+            ]}
+          >
             <CarouselContent>
               {reviews.map((review, index) => (
                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
