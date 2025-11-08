@@ -10,12 +10,6 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { supabase } from "@/integrations/supabase/client";
 import sample1 from "@/assets/sample-story-1.jpg";
 
-// Declare Midtrans Snap on window object
-declare global {
-  interface Window {
-    snap: any;
-  }
-}
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -24,26 +18,10 @@ const Checkout = () => {
   const [email, setEmail] = useState("");
   const hasDiscount = localStorage.getItem("shareDiscount") === "true";
   
-  const basePrice = 149000; // IDR 149,000 (~$10 USD)
-  const discount = hasDiscount ? basePrice * 0.1 : 0;
+  const basePrice = 999; // $9.99 USD in cents
+  const discount = hasDiscount ? Math.round(basePrice * 0.1) : 0;
   const finalPrice = basePrice - discount;
 
-  useEffect(() => {
-    // Load Midtrans Snap script
-    const script = document.createElement("script");
-    script.src = "https://app.sandbox.midtrans.com/snap/snap.js";
-    // Get client key from environment variable
-    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY || "SB-Mid-client-REPLACE_WITH_YOUR_KEY";
-    script.setAttribute("data-client-key", clientKey);
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
 
   const handlePayment = async () => {
     if (!email) {
@@ -61,11 +39,11 @@ const Checkout = () => {
       const personalizationData = JSON.parse(localStorage.getItem("personalizationData") || "{}");
       const selectedStory = JSON.parse(localStorage.getItem("selectedStory") || "{}");
 
-      // Call edge function to create Midtrans payment
-      const { data, error } = await supabase.functions.invoke("create-midtrans-payment", {
+      // Call edge function to create LemonSqueezy checkout
+      const { data, error } = await supabase.functions.invoke("create-lemonsqueezy-checkout", {
         body: {
           userEmail: email,
-          amount: Math.round(finalPrice),
+          amount: finalPrice,
           discountApplied: hasDiscount,
           discountCode: hasDiscount ? "SHARE10" : undefined,
           personalizationData,
@@ -74,50 +52,16 @@ const Checkout = () => {
       });
 
       if (error) {
-        console.error("Error creating payment:", error);
+        console.error("Error creating checkout:", error);
         throw error;
       }
 
-      console.log("Payment data received:", data);
+      // Store order ID for thank you page
+      localStorage.setItem("orderId", data.orderId);
 
-      // Open Midtrans Snap payment page
-      if (window.snap) {
-        window.snap.pay(data.snapToken, {
-          onSuccess: function (result: any) {
-            console.log("Payment success:", result);
-            localStorage.setItem("orderId", data.orderId);
-            toast({
-              title: "🎉 Payment Successful!",
-              description: "Your magical storybook is being prepared!",
-              className: "bg-success text-success-foreground",
-            });
-            navigate("/thank-you");
-          },
-          onPending: function (result: any) {
-            console.log("Payment pending:", result);
-            toast({
-              title: "Payment Pending",
-              description: "We're waiting for your payment confirmation.",
-            });
-            setProcessing(false);
-          },
-          onError: function (result: any) {
-            console.error("Payment error:", result);
-            toast({
-              title: "Payment Failed",
-              description: "Please try again or contact support.",
-              variant: "destructive",
-            });
-            setProcessing(false);
-          },
-          onClose: function () {
-            console.log("Payment popup closed");
-            setProcessing(false);
-          },
-        });
-      } else {
-        throw new Error("Midtrans Snap is not loaded");
-      }
+      // Redirect to LemonSqueezy hosted checkout
+      window.location.href = data.checkoutUrl;
+      
     } catch (error: any) {
       console.error("Error processing payment:", error);
       toast({
@@ -183,7 +127,7 @@ const Checkout = () => {
                   <Sparkles className="w-8 h-8 text-success mx-auto mb-2 animate-sparkle" />
                   <p className="text-success font-bold font-poppins">🎉 10% Discount Applied!</p>
                   <p className="text-sm text-success-foreground mt-1 font-poppins">
-                    You saved Rp {discount.toLocaleString("id-ID")}
+                    You saved ${(discount / 100).toFixed(2)}
                   </p>
                 </div>
               )}
@@ -193,18 +137,18 @@ const Checkout = () => {
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-muted-foreground">Base Price:</span>
                   <span className={hasDiscount ? "line-through text-muted-foreground" : "font-bold"}>
-                    Rp {basePrice.toLocaleString("id-ID")}
+                    ${(basePrice / 100).toFixed(2)}
                   </span>
                 </div>
                 {hasDiscount && (
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-success">Discount:</span>
-                    <span className="text-success font-semibold">-Rp {discount.toLocaleString("id-ID")}</span>
+                    <span className="text-success font-semibold">-${(discount / 100).toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pt-2 border-t border-border">
                   <span className="font-bold text-lg">Total:</span>
-                  <span className="font-bold text-2xl text-primary">Rp {finalPrice.toLocaleString("id-ID")}</span>
+                  <span className="font-bold text-2xl text-primary">${(finalPrice / 100).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -232,17 +176,17 @@ const Checkout = () => {
                 className="w-full animate-glow-pulse group"
               >
                 {processing ? (
-                  <>✨ Processing your magic...</>
+                  <>✨ Redirecting to checkout...</>
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
-                    Pay Securely Rp {finalPrice.toLocaleString("id-ID")}
+                    Pay Securely ${(finalPrice / 100).toFixed(2)}
                   </>
                 )}
               </Button>
 
               <p className="text-xs text-center text-muted-foreground font-poppins">
-                🔒 Powered by Midtrans • Secure payment processing
+                🔒 Powered by LemonSqueezy • Secure global payment processing
               </p>
             </CardContent>
           </Card>

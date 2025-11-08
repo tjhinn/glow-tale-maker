@@ -54,13 +54,14 @@ export type Database = {
           discount_code: string | null
           email_sent_at: string | null
           id: string
+          payment_provider: string | null
+          payment_provider_id: string | null
+          payment_transaction_id: string | null
           pdf_generated_at: string | null
           pdf_url: string | null
           personalization_data: Json
           status: Database["public"]["Enums"]["order_status"]
           story_id: string
-          stripe_charge_id: string | null
-          stripe_payment_intent_id: string | null
           updated_at: string
           user_email: string
         }
@@ -73,13 +74,14 @@ export type Database = {
           discount_code?: string | null
           email_sent_at?: string | null
           id?: string
+          payment_provider?: string | null
+          payment_provider_id?: string | null
+          payment_transaction_id?: string | null
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data: Json
           status?: Database["public"]["Enums"]["order_status"]
           story_id: string
-          stripe_charge_id?: string | null
-          stripe_payment_intent_id?: string | null
           updated_at?: string
           user_email: string
         }
@@ -92,13 +94,14 @@ export type Database = {
           discount_code?: string | null
           email_sent_at?: string | null
           id?: string
+          payment_provider?: string | null
+          payment_provider_id?: string | null
+          payment_transaction_id?: string | null
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data?: Json
           status?: Database["public"]["Enums"]["order_status"]
           story_id?: string
-          stripe_charge_id?: string | null
-          stripe_payment_intent_id?: string | null
           updated_at?: string
           user_email?: string
         }
