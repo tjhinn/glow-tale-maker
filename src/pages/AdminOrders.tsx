@@ -211,6 +211,7 @@ const AdminOrders = () => {
                             View Personalization Details
                           </summary>
                           <div className="mt-2 p-3 bg-muted rounded-lg space-y-1">
+                            <p><strong>Gender:</strong> {((order.personalization_data as unknown as PersonalizationData).gender || '').charAt(0).toUpperCase() + ((order.personalization_data as unknown as PersonalizationData).gender || '').slice(1)}</p>
                             <p><strong>Pet:</strong> {(order.personalization_data as unknown as PersonalizationData).petName} ({(order.personalization_data as unknown as PersonalizationData).petSpecies})</p>
                             <p><strong>City:</strong> {(order.personalization_data as unknown as PersonalizationData).city}</p>
                             <p><strong>Favorite Color:</strong> {(order.personalization_data as unknown as PersonalizationData).favoriteColor}</p>
