@@ -1,35 +1,78 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
+import { supabase } from "@/integrations/supabase/client";
 import sample1 from "@/assets/sample-story-1.jpg";
 const ThankYou = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showConfetti, setShowConfetti] = useState(false);
   const [childName, setChildName] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
     setShowConfetti(true);
-
-    // Get child's name from localStorage
-    const personalizationData = localStorage.getItem("personalization");
-    if (personalizationData) {
-      const data = JSON.parse(personalizationData);
-      setChildName(data.name || "your little hero");
-    }
-
-    // Clear localStorage after 3 seconds
+    
+    const fetchOrderData = async () => {
+      try {
+        // Try to get order_id from URL params
+        const searchParams = new URLSearchParams(location.search);
+        const orderId = searchParams.get('order_id');
+        
+        if (orderId) {
+          // Fetch order from database
+          const { data: order, error } = await supabase
+            .from('orders')
+            .select('personalization_data')
+            .eq('id', orderId)
+            .single();
+          
+          if (!error && order) {
+            const personalizationData = order.personalization_data as any;
+            setChildName(personalizationData?.childName || "your little hero");
+          } else {
+            // Fallback to localStorage if database fetch fails
+            tryLocalStorage();
+          }
+        } else {
+          // No order_id in URL, use localStorage
+          tryLocalStorage();
+        }
+      } catch (error) {
+        console.error('Error fetching order:', error);
+        tryLocalStorage();
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    const tryLocalStorage = () => {
+      const personalizationData = localStorage.getItem("personalizationData");
+      if (personalizationData) {
+        const data = JSON.parse(personalizationData);
+        setChildName(data.childName || "your little hero");
+      } else {
+        setChildName("your little hero");
+      }
+    };
+    
+    fetchOrderData();
+    
+    // Clear localStorage after 5 seconds
     const clearTimer = setTimeout(() => {
-      localStorage.removeItem("personalization");
+      localStorage.removeItem("personalizationData");
       localStorage.removeItem("selectedStory");
       localStorage.removeItem("shareDiscount");
       localStorage.removeItem("orderId");
-    }, 3000);
+    }, 5000);
+    
     return () => clearTimeout(clearTimer);
-  }, []);
+  }, [location]);
   const handleBackHome = () => {
     navigate("/");
   };
@@ -38,6 +81,17 @@ const ThankYou = () => {
       <SparklesAnimation count={12} className="opacity-40" />
       
       <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+        {loading ? (
+          <Card className="shadow-2xl border-2 border-primary/30 mb-8">
+            <CardContent className="py-16 text-center">
+              <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary mb-4" />
+              <p className="text-lg text-muted-foreground font-poppins">
+                Loading your magical confirmation...
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
         {/* Success Message */}
         <Card className="shadow-2xl border-4 border-success mb-8 bg-gradient-to-br from-success/5 to-primary/5 relative overflow-hidden glow-soft">
           <SparklesAnimation count={8} className="opacity-30" />
@@ -88,6 +142,8 @@ const ThankYou = () => {
             ✨ Ready to craft more magical memories?
           </p>
         </div>
+        </>
+        )}
       </div>
     </PageWrapper>;
 };
