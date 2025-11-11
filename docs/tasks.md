@@ -234,7 +234,7 @@ CREATE TABLE orders (
   status order_status DEFAULT 'payment_received',
   discount_applied BOOLEAN DEFAULT false,
   amount_paid DECIMAL(10,2) NOT NULL,
-  stripe_payment_id TEXT,
+  payment_provider_id TEXT, -- Generic field for Stripe, LemonSqueezy, etc.
   pdf_url TEXT,
   download_expires_at TIMESTAMPTZ,
   admin_notes TEXT,
@@ -468,37 +468,35 @@ const handleContinue = () => {
 
 ---
 
-## Task 1.3: Configure Payment Integration ⏳
+## Task 1.3: Configure Payment Integration ✅
 
-**Note:** Currently using Midtrans for Indonesia market. Stripe integration deferred.
+**DEPRECATED:** Midtrans and Stripe integrations have been replaced with LemonSqueezy.
+
+**Current Active Payment Provider:** LemonSqueezy
 
 **Prerequisites:**
 - Lovable Cloud enabled ✅
-- MIDTRANS_SERVER_KEY configured ✅
+- LEMONSQUEEZY_API_KEY configured ✅
 - RESEND_API_KEY configured ✅
 
 **Implementation Status:**
 
 1. ✅ Order creation flow working
 2. ✅ Admin email notification on order creation
-3. ⚠️ Midtrans payment gateway (blocked - requires sandbox credentials)
-4. ⏳ Webhook handler for payment confirmation
+3. ✅ LemonSqueezy checkout integration
+4. ✅ Webhook handler for payment confirmation
 
 **Current Behavior:**
 - Order is created with status `pending_payment`
+- User redirected to LemonSqueezy hosted checkout
+- Webhook updates order to `payment_received` on successful payment
 - Admin receives email notification at tjhinn@gmail.com
-- Midtrans popup blocked (401 error - credential mismatch)
-
-**To Re-Enable Midtrans (when ready):**
-1. Update `MIDTRANS_SERVER_KEY` with correct Sandbox server key
-2. Add `VITE_MIDTRANS_CLIENT_KEY` environment variable
-3. Test end-to-end with Midtrans sandbox
 
 **Acceptance Criteria:**
 - ✅ Order creation works
 - ✅ Admin email sent on order creation
-- ⏳ Payment modal opens correctly
-- ⏳ Webhook updates order status to `payment_received`
+- ✅ LemonSqueezy checkout opens correctly
+- ✅ Webhook updates order status to `payment_received`
 
 ---
 
@@ -764,128 +762,11 @@ USING (
 
 **Implementation:**
 
-```typescript
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Stripe from "https://esm.sh/stripe@14.0.0";
-import { Resend } from "npm:resend@2.0.0";
+**DEPRECATED - STRIPE EXAMPLE:**
+This example has been replaced with LemonSqueezy implementation.
+See `supabase/functions/create-lemonsqueezy-checkout/index.ts` for the active payment integration.
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-  apiVersion: '2023-10-16',
-});
-
-const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const { email, customerName, storyId, personalization, discountApplied, amountPaid } = await req.json();
-
-    // Create Stripe Payment Intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amountPaid * 100), // Convert to cents
-      currency: 'usd',
-      metadata: {
-        customerEmail: email,
-        storyId,
-      },
-    });
-
-    // Create order in database
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        customer_email: email,
-        customer_name: customerName,
-        story_id: storyId,
-        personalization_data: personalization,
-        discount_applied: discountApplied,
-        amount_paid: amountPaid,
-        stripe_payment_id: paymentIntent.id,
-        status: 'payment_received',
-      })
-      .select()
-      .single();
-
-    if (orderError) throw orderError;
-
-    // Send admin notification email
-    await resend.emails.send({
-      from: 'YourFairyTale.ai <orders@yourdomain.com>',
-      to: ['tjhinn@gmail.com'],
-      subject: `🎨 New Order: ${customerName}'s Storybook`,
-      html: `
-        <h2>New Order Received!</h2>
-        <p><strong>Customer:</strong> ${customerName} (${email})</p>
-        <p><strong>Hero Name:</strong> ${personalization.heroName}</p>
-        <p><strong>Amount Paid:</strong> $${amountPaid}</p>
-        <p><strong>Order ID:</strong> ${order.id}</p>
-        <p>View order in your admin dashboard.</p>
-      `,
-    });
-
-    return new Response(
-      JSON.stringify({
-        clientSecret: paymentIntent.client_secret,
-        orderId: order.id,
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (error) {
-    console.error('Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  }
-});
-```
-
-**Config Entry:**
-
-```toml
-[functions.submit-order]
-verify_jwt = false
-```
-
-**Acceptance Criteria:**
-- ✅ Creates Stripe Payment Intent
-- ✅ Inserts order into database
-- ✅ Sends admin email notification
-- ✅ Returns client secret for payment confirmation
-
-**Testing:**
-```bash
-# Test via edge function invocation
-curl -X POST [your-cloud-url]/functions/v1/submit-order \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "customerName": "Test Parent",
-    "storyId": "uuid-here",
-    "personalization": {},
-    "discountApplied": false,
-    "amountPaid": 29.99
-  }'
-```
+**Note:** The original Stripe example code has been removed. The project now uses LemonSqueezy for all payment processing.
 
 ---
 
