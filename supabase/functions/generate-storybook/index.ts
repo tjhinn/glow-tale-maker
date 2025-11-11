@@ -7,6 +7,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Personalize text by replacing placeholders
+function personalizeText(template: string, personalization: any): string {
+  return template
+    .replace(/{heroName}/g, personalization.heroName)
+    .replace(/{petName}/g, personalization.petName)
+    .replace(/{petType}/g, personalization.petType)
+    .replace(/{city}/g, personalization.city)
+    .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
+    .replace(/{favoriteFood}/g, personalization.favoriteFood || '');
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -47,7 +58,7 @@ serve(async (req) => {
         stories (
           title,
           cover_image_url,
-          page_images
+          pages
         )
       `)
       .eq("id", orderId)
@@ -65,6 +76,7 @@ serve(async (req) => {
     }
     
     const story = (order as any).stories;
+    const storyPages = story.pages as any[];
     
     console.log(`[${orderId}] Personalization data:`, JSON.stringify(personalization));
 
@@ -90,31 +102,40 @@ serve(async (req) => {
       .update({ illustrated_hero_url: illustratedHeroUrl })
       .eq("id", orderId);
 
-    console.log(`[${orderId}] Hero illustrated. Compositing into ${story.page_images?.length || 0} images...`);
+    console.log(`[${orderId}] Hero illustrated. Processing ${storyPages?.length || 0} pages...`);
 
-    // Step 2: Composite hero into story images
+    // Step 2: Personalize text for all pages
+    const personalizedPages = storyPages.map(page => ({
+      page: page.page,
+      text: personalizeText(page.text, personalization),
+      template_image_url: page.template_image_url,
+    }));
+
+    // Step 3: Composite hero into story images
     const compositeImages: string[] = [];
     
     // Get story images (cover + pages)
-    const storyImages: { url: string; name: string }[] = [];
+    const storyImages: { url: string; name: string; page: number }[] = [];
     
     if (story.cover_image_url) {
       const { data } = supabase.storage.from('story-images').getPublicUrl(story.cover_image_url);
-      storyImages.push({ url: data.publicUrl, name: 'cover' });
+      storyImages.push({ url: data.publicUrl, name: 'cover', page: 0 });
     }
     
-    if (story.page_images && Array.isArray(story.page_images)) {
-      for (const pageImg of story.page_images) {
-        const { data } = supabase.storage.from('story-images').getPublicUrl(pageImg.image_url);
-        storyImages.push({ url: data.publicUrl, name: `page-${pageImg.page}` });
+    for (const pageData of personalizedPages) {
+      if (pageData.template_image_url) {
+        const { data } = supabase.storage.from('story-images').getPublicUrl(pageData.template_image_url);
+        storyImages.push({ url: data.publicUrl, name: `page-${pageData.page}`, page: pageData.page });
       }
     }
 
     if (storyImages.length === 0) {
-      throw new Error("No story images found - story must have pre-generated images");
+      throw new Error("No story images found - story must have template images");
     }
 
     // Composite hero into each image
+    const personalizedStoryPages: any[] = [];
+    
     for (let i = 0; i < storyImages.length; i++) {
       const storyImage = storyImages[i];
       console.log(`[${orderId}] Compositing ${storyImage.name} (${i + 1}/${storyImages.length})...`);
@@ -176,11 +197,34 @@ serve(async (req) => {
       }
 
       compositeImages.push(compositeImageUrl);
+      
+      // Add to personalized story pages (skip cover)
+      if (storyImage.page > 0) {
+        const pageIndex = storyImage.page - 1;
+        personalizedStoryPages.push({
+          page: storyImage.page,
+          text: personalizedPages[pageIndex].text,
+          composited_image_url: compositeImageUrl,
+        });
+      }
     }
 
-    console.log(`[${orderId}] All images composited. Creating PDF...`);
+    console.log(`[${orderId}] All images composited. Saving personalized story...`);
 
-    // Step 3: Create PDF with composited images
+    // Step 4: Save personalized story to database
+    const personalizedStory = {
+      title: personalizeText(story.title, personalization),
+      pages: personalizedStoryPages,
+    };
+
+    await supabase
+      .from("orders")
+      .update({ personalized_story: personalizedStory })
+      .eq("id", orderId);
+
+    console.log(`[${orderId}] Personalized story saved. Creating PDF...`);
+
+    // Step 5: Create PDF with composited images
     const pdfDoc = await PDFDocument.create();
 
     for (let i = 0; i < compositeImages.length; i++) {

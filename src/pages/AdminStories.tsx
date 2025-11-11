@@ -15,15 +15,21 @@ import { toast } from 'sonner';
 import { Loader2, ArrowLeft, Plus, Edit, Trash2, BookOpen, Upload, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
+interface PageData {
+  page: number;
+  text: string;
+  template_image_url: string;
+  image_prompt?: string;
+}
+
 interface Story {
   id: string;
   title: string;
   moral: string;
   hero_gender: string;
   illustration_style: string;
-  pages: any;
+  pages: PageData[];
   cover_image_url: string | null;
-  page_images: any;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -41,14 +47,14 @@ const AdminStories = () => {
     moral: '',
     hero_gender: 'boy',
     illustration_style: 'whimsical_storybook',
-    pages: '',
     is_active: true,
   });
 
+  const [pages, setPages] = useState<Array<{ text: string; image: File | null; imagePrompt: string; imageUrl?: string; page: number }>>(
+    Array(12).fill(null).map((_, i) => ({ text: '', image: null, imagePrompt: '', page: i + 1 }))
+  );
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [pageFiles, setPageFiles] = useState<File[]>([]);
   const [coverPreview, setCoverPreview] = useState<string>('');
-  const [pageImagePreviews, setPageImagePreviews] = useState<string[]>([]);
 
   const { data: stories, isLoading } = useQuery({
     queryKey: ['admin-stories'],
@@ -59,7 +65,7 @@ const AdminStories = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Story[];
+      return data as unknown as Story[];
     },
   });
 
@@ -77,35 +83,43 @@ const AdminStories = () => {
     }
   };
 
-  const handlePageImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 12) {
-      toast.error('Maximum 12 page images allowed');
-      return;
-    }
-    if (files.some(f => f.size > 5 * 1024 * 1024)) {
-      toast.error('Each page image must be less than 5MB');
+  const handlePageImageUpload = (pageIndex: number, file: File | null) => {
+    if (file && file.size > 5 * 1024 * 1024) {
+      toast.error('Page image must be less than 5MB');
       return;
     }
     
-    setPageFiles(files);
-    const previews: string[] = [];
-    files.forEach(file => {
+    const newPages = [...pages];
+    newPages[pageIndex] = { ...newPages[pageIndex], image: file };
+    
+    if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        previews.push(reader.result as string);
-        if (previews.length === files.length) {
-          setPageImagePreviews(previews);
-        }
+        newPages[pageIndex].imageUrl = reader.result as string;
+        setPages([...newPages]);
       };
       reader.readAsDataURL(file);
-    });
+    } else {
+      setPages(newPages);
+    }
   };
 
-  const uploadImages = async (storyId: string): Promise<{ coverUrl: string | null; pageImages: any[] }> => {
+  const updatePageText = (pageIndex: number, text: string) => {
+    const newPages = [...pages];
+    newPages[pageIndex] = { ...newPages[pageIndex], text };
+    setPages(newPages);
+  };
+
+  const updatePagePrompt = (pageIndex: number, prompt: string) => {
+    const newPages = [...pages];
+    newPages[pageIndex] = { ...newPages[pageIndex], imagePrompt: prompt };
+    setPages(newPages);
+  };
+
+  const uploadImages = async (storyId: string): Promise<{ coverUrl: string | null; pagesData: PageData[] }> => {
     setUploading(true);
     let coverUrl: string | null = null;
-    const pageImages: any[] = [];
+    const pagesData: PageData[] = [];
 
     try {
       // Upload cover image
@@ -119,18 +133,30 @@ const AdminStories = () => {
         coverUrl = coverPath;
       }
 
-      // Upload page images
-      for (let i = 0; i < pageFiles.length; i++) {
-        const pagePath = `${storyId}/page-${String(i + 1).padStart(2, '0')}.jpg`;
-        const { error: pageError } = await supabase.storage
-          .from('story-images')
-          .upload(pagePath, pageFiles[i], { upsert: true });
-        
-        if (pageError) throw pageError;
-        pageImages.push({ page: i + 1, image_url: pagePath });
+      // Upload page images and build pages data
+      for (let i = 0; i < pages.length; i++) {
+        const pageData = pages[i];
+        let imageUrl = '';
+
+        if (pageData.image) {
+          const pagePath = `${storyId}/page-${String(i + 1).padStart(2, '0')}.jpg`;
+          const { error: pageError } = await supabase.storage
+            .from('story-images')
+            .upload(pagePath, pageData.image, { upsert: true });
+          
+          if (pageError) throw pageError;
+          imageUrl = pagePath;
+        }
+
+        pagesData.push({
+          page: i + 1,
+          text: pageData.text,
+          template_image_url: imageUrl,
+          image_prompt: pageData.imagePrompt || '',
+        } as any);
       }
 
-      return { coverUrl, pageImages };
+      return { coverUrl, pagesData };
     } finally {
       setUploading(false);
     }
@@ -138,6 +164,11 @@ const AdminStories = () => {
 
   const createStoryMutation = useMutation({
     mutationFn: async (newStory: any) => {
+      // Validate that all pages have text
+      if (pages.some(p => !p.text.trim())) {
+        throw new Error('All 12 pages must have text');
+      }
+
       // First create the story to get an ID
       const { data: storyData, error: insertError } = await supabase
         .from('stories')
@@ -146,7 +177,7 @@ const AdminStories = () => {
           moral: newStory.moral,
           hero_gender: newStory.hero_gender,
           illustration_style: newStory.illustration_style,
-          pages: JSON.parse(newStory.pages),
+          pages: [],
           is_active: newStory.is_active,
         })
         .select()
@@ -154,21 +185,19 @@ const AdminStories = () => {
       
       if (insertError) throw insertError;
       
-      // Upload images if any
-      if (coverFile || pageFiles.length > 0) {
-        const { coverUrl, pageImages } = await uploadImages(storyData.id);
-        
-        // Update story with image URLs
-        const { error: updateError } = await supabase
-          .from('stories')
-          .update({
-            cover_image_url: coverUrl,
-            page_images: pageImages,
-          })
-          .eq('id', storyData.id);
-        
-        if (updateError) throw updateError;
-      }
+      // Upload images and build pages data
+      const { coverUrl, pagesData } = await uploadImages(storyData.id);
+      
+      // Update story with all data
+      const { error: updateError } = await supabase
+        .from('stories')
+        .update({
+          cover_image_url: coverUrl,
+          pages: pagesData as any,
+        })
+        .eq('id', storyData.id);
+      
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-stories'] });
@@ -184,27 +213,24 @@ const AdminStories = () => {
 
   const updateStoryMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
-      let coverUrl = null;
-      let pageImages: any[] = [];
+      // Validate that all pages have text
+      if (pages.some(p => !p.text.trim())) {
+        throw new Error('All 12 pages must have text');
+      }
 
       // Upload new images if any
-      if (coverFile || pageFiles.length > 0) {
-        const uploadResult = await uploadImages(id);
-        coverUrl = uploadResult.coverUrl;
-        pageImages = uploadResult.pageImages;
-      }
+      const { coverUrl, pagesData } = await uploadImages(id);
 
       const updateData: any = {
         title: updates.title,
         moral: updates.moral,
         hero_gender: updates.hero_gender,
         illustration_style: updates.illustration_style,
-        pages: JSON.parse(updates.pages),
+      pages: pagesData as any,
         is_active: updates.is_active,
       };
 
       if (coverUrl) updateData.cover_image_url = coverUrl;
-      if (pageImages.length > 0) updateData.page_images = pageImages;
 
       const { error } = await supabase
         .from('stories')
@@ -246,13 +272,11 @@ const AdminStories = () => {
       moral: '',
       hero_gender: 'boy',
       illustration_style: 'whimsical_storybook',
-      pages: '',
       is_active: true,
     });
+    setPages(Array(12).fill(null).map((_, i) => ({ text: '', image: null, imagePrompt: '', imageUrl: '', page: i + 1 })));
     setCoverFile(null);
-    setPageFiles([]);
     setCoverPreview('');
-    setPageImagePreviews([]);
     setEditingStory(null);
   };
 
@@ -263,7 +287,6 @@ const AdminStories = () => {
       moral: story.moral,
       hero_gender: story.hero_gender,
       illustration_style: story.illustration_style,
-      pages: JSON.stringify(story.pages, null, 2),
       is_active: story.is_active,
     });
     
@@ -273,12 +296,27 @@ const AdminStories = () => {
       setCoverPreview(data.publicUrl);
     }
     
-    if (story.page_images && Array.isArray(story.page_images)) {
-      const previews = story.page_images.map((img: any) => {
-        const { data } = supabase.storage.from('story-images').getPublicUrl(img.image_url);
-        return data.publicUrl;
+    // Load existing pages data
+    if (story.pages && Array.isArray(story.pages)) {
+      const loadedPages = story.pages.map((p: PageData, i) => {
+        let imageUrl = '';
+        if (p.template_image_url) {
+          const { data } = supabase.storage.from('story-images').getPublicUrl(p.template_image_url);
+          imageUrl = data.publicUrl;
+        }
+        return {
+          text: p.text,
+          image: null,
+          imagePrompt: p.image_prompt || '',
+          imageUrl,
+          page: i + 1,
+        };
       });
-      setPageImagePreviews(previews);
+      // Ensure we always have 12 pages
+      while (loadedPages.length < 12) {
+        loadedPages.push({ text: '', image: null, imagePrompt: '', imageUrl: '', page: loadedPages.length + 1 });
+      }
+      setPages(loadedPages);
     }
     
     setIsDialogOpen(true);
@@ -287,11 +325,9 @@ const AdminStories = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate JSON
-    try {
-      JSON.parse(formData.pages);
-    } catch (error) {
-      toast.error('Invalid JSON format in pages');
+    // Validate that all pages have text
+    if (pages.some(p => !p.text.trim())) {
+      toast.error('All 12 pages must have text content');
       return;
     }
 
@@ -335,9 +371,9 @@ const AdminStories = () => {
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-bold font-playfair">Story Management</h1>
+                <h1 className="text-3xl font-bold font-playfair">Story Template Management</h1>
                 <p className="text-muted-foreground mt-1">
-                  {stories?.length || 0} total stories
+                  {stories?.length || 0} total story templates
                 </p>
               </div>
               
@@ -345,13 +381,13 @@ const AdminStories = () => {
                 <DialogTrigger asChild>
                   <Button onClick={resetForm}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add New Story
+                    Add New Story Template
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>
-                      {editingStory ? 'Edit Story' : 'Create New Story'}
+                      {editingStory ? 'Edit Story Template' : 'Create New Story Template'}
                     </DialogTitle>
                   </DialogHeader>
                   
@@ -404,19 +440,51 @@ const AdminStories = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <Label htmlFor="pages">Pages (JSON Array)</Label>
-                      <Textarea
-                        id="pages"
-                        value={formData.pages}
-                        onChange={(e) => setFormData({ ...formData, pages: e.target.value })}
-                        placeholder='["Page 1 text...", "Page 2 text..."]'
-                        className="font-mono text-sm h-32"
-                        required
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Use placeholders: {'{heroName}'}, {'{petName}'}, {'{petType}'}, {'{city}'}
+                    {/* Page Editor - 12 Pages */}
+                    <div className="space-y-4">
+                      <Label>Story Pages (12 pages required)</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Use placeholders: {'{heroName}'}, {'{petName}'}, {'{petType}'}, {'{city}'}, {'{favoriteColor}'}
                       </p>
+                      <div className="space-y-6 max-h-96 overflow-y-auto border rounded-lg p-4">
+                        {pages.map((page, index) => (
+                          <div key={index} className="border-b pb-4 last:border-0">
+                            <h4 className="font-semibold mb-2">Page {index + 1}</h4>
+                            <div className="space-y-3">
+                              <Textarea
+                                placeholder={`Text for page ${index + 1}...`}
+                                value={page.text}
+                                onChange={(e) => updatePageText(index, e.target.value)}
+                                className="h-20"
+                                required
+                              />
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <Label className="text-xs">Page Image</Label>
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handlePageImageUpload(index, e.target.files?.[0] || null)}
+                                    className="text-sm"
+                                  />
+                                  {page.imageUrl && (
+                                    <img src={page.imageUrl} alt={`Page ${index + 1}`} className="mt-2 h-20 w-20 object-cover rounded" />
+                                  )}
+                                </div>
+                                <div>
+                                  <Label className="text-xs">Image Prompt (optional)</Label>
+                                  <Input
+                                    placeholder="Describe the scene..."
+                                    value={page.imagePrompt}
+                                    onChange={(e) => updatePagePrompt(index, e.target.value)}
+                                    className="text-sm"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     {/* Cover Image Upload */}
@@ -448,33 +516,6 @@ const AdminStories = () => {
                       )}
                     </div>
 
-                    {/* Page Images Upload */}
-                    <div>
-                      <Label htmlFor="pages-images">Page Images (12 images)</Label>
-                      <Input
-                        id="pages-images"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handlePageImagesUpload}
-                        className="cursor-pointer"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Upload exactly 12 images, one for each page
-                      </p>
-                      {pageImagePreviews.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2 mt-2">
-                          {pageImagePreviews.map((url, i) => (
-                            <div key={i} className="relative">
-                              <img src={url} alt={`Page ${i + 1}`} className="h-20 w-full object-cover rounded" />
-                              <span className="absolute bottom-0 left-0 bg-black/70 text-white text-xs px-1 rounded-tr">
-                                P{i + 1}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
 
                     <div className="flex items-center space-x-2">
                       <Switch
@@ -548,7 +589,6 @@ const AdminStories = () => {
 
                   <div className="text-sm text-muted-foreground mb-4">
                     <p>Pages: {Array.isArray(story.pages) ? story.pages.length : 0}</p>
-                    <p>Images: {story.page_images && Array.isArray(story.page_images) ? story.page_images.length : 0}</p>
                     <p className="text-xs mt-1">Style: {story.illustration_style}</p>
                   </div>
 

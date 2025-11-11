@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Sparkles, Facebook, Instagram } from "lucide-react";
+import { Share2, Sparkles, Facebook, Instagram, ChevronLeft, ChevronRight } from "lucide-react";
 import { Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
@@ -17,8 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import sample1 from "@/assets/sample-story-1.jpg";
-import sample2 from "@/assets/sample-story-2.jpg";
 
 const Preview = () => {
   const navigate = useNavigate();
@@ -30,6 +28,7 @@ const Preview = () => {
   const [personalization, setPersonalization] = useState<any>(null);
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
   useEffect(() => {
     const savedPersonalization = localStorage.getItem("personalizationData");
@@ -124,9 +123,23 @@ const Preview = () => {
     navigate("/checkout");
   };
 
+  const personalizeText = (template: string) => {
+    if (!personalization) return template;
+    return template
+      .replace(/{heroName}/g, personalization.heroName)
+      .replace(/{petName}/g, personalization.petName)
+      .replace(/{petType}/g, personalization.petType)
+      .replace(/{city}/g, personalization.city)
+      .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
+      .replace(/{favoriteFood}/g, personalization.favoriteFood || '');
+  };
+
   if (!personalization || !selectedStory) {
     return null;
   }
+
+  const storyPages = selectedStory.pages || [];
+  const currentPage = storyPages[currentPageIndex];
 
   return (
     <PageWrapper>
@@ -164,7 +177,7 @@ const Preview = () => {
           </CardHeader>
         </Card>
 
-        {/* Story Preview Section - Full Width */}
+        {/* Story Preview Section - 12 Pages */}
         <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5 mb-8">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl md:text-3xl font-playfair flex items-center justify-center gap-3">
@@ -173,40 +186,68 @@ const Preview = () => {
               <Sparkles className="w-6 h-6 text-primary" />
             </CardTitle>
             <p className="text-sm text-muted-foreground font-poppins mt-2">
-              Featuring {personalization.heroName} as the hero in "{selectedStory.title}"
+              Preview of your personalized 12-page storybook
             </p>
           </CardHeader>
           <CardContent className="p-4 md:p-8 space-y-6">
-            {/* Preview Pages Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Sample Page 1 */}
-              <div className="relative group">
-                <img
-                  src={sample1}
-                  alt={`Preview page 1 of ${selectedStory.title}`}
-                  className="w-full rounded-xl shadow-lg transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-background/90 backdrop-blur-sm px-6 md:px-10 py-3 md:py-5 rounded-xl border-2 border-primary/50 rotate-[-3deg] shadow-2xl">
-                    <p className="text-lg md:text-2xl font-bold text-primary/70 tracking-widest font-playfair">PREVIEW</p>
+            {/* Page Navigation */}
+            {currentPage && (
+              <div className="space-y-4">
+                <div className="relative group">
+                  <div className="bg-background/95 backdrop-blur-sm p-6 rounded-xl border-2 border-primary/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-playfair text-primary">Page {currentPageIndex + 1} of {storyPages.length}</h3>
+                    </div>
+                    <p className="text-base leading-relaxed text-foreground font-poppins">
+                      {personalizeText(currentPage.text)}
+                    </p>
+                  </div>
+                  
+                  <div className="mt-4 relative">
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <div className="bg-background/90 backdrop-blur-sm px-6 md:px-10 py-3 md:py-5 rounded-xl border-2 border-primary/50 rotate-[-2deg] shadow-2xl">
+                        <p className="text-lg md:text-2xl font-bold text-primary/70 tracking-widest font-playfair">PREVIEW</p>
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-muted/50 to-muted/20 aspect-[4/3] rounded-xl flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+                      <p className="text-muted-foreground text-sm">Illustration will appear here after purchase</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Sample Page 2 */}
-              <div className="relative group">
-                <img
-                  src={sample2}
-                  alt={`Preview page 2 of ${selectedStory.title}`}
-                  className="w-full rounded-xl shadow-lg transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl"
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-background/90 backdrop-blur-sm px-6 md:px-10 py-3 md:py-5 rounded-xl border-2 border-primary/50 rotate-[2deg] shadow-2xl">
-                    <p className="text-lg md:text-2xl font-bold text-primary/70 tracking-widest font-playfair">PREVIEW</p>
+                {/* Navigation Buttons */}
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                    disabled={currentPageIndex === 0}
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    Previous
+                  </Button>
+                  <div className="flex gap-2">
+                    {storyPages.map((_: any, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPageIndex(idx)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          idx === currentPageIndex ? 'bg-primary w-8' : 'bg-muted-foreground/30'
+                        }`}
+                        aria-label={`Go to page ${idx + 1}`}
+                      />
+                    ))}
                   </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCurrentPageIndex(Math.min(storyPages.length - 1, currentPageIndex + 1))}
+                    disabled={currentPageIndex === storyPages.length - 1}
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Info Box */}
             <div className="bg-accent/10 border-2 border-accent/30 rounded-2xl p-6 text-center space-y-3">

@@ -62,6 +62,7 @@ export type Database = {
           pdf_generated_at: string | null
           pdf_url: string | null
           personalization_data: Json
+          personalized_story: Json | null
           status: Database["public"]["Enums"]["order_status"]
           story_id: string
           updated_at: string
@@ -84,6 +85,7 @@ export type Database = {
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data: Json
+          personalized_story?: Json | null
           status?: Database["public"]["Enums"]["order_status"]
           story_id: string
           updated_at?: string
@@ -106,6 +108,7 @@ export type Database = {
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data?: Json
+          personalized_story?: Json | null
           status?: Database["public"]["Enums"]["order_status"]
           story_id?: string
           updated_at?: string
@@ -130,7 +133,6 @@ export type Database = {
           illustration_style: string
           is_active: boolean
           moral: string
-          page_images: Json | null
           pages: Json
           title: string
           updated_at: string
@@ -143,7 +145,6 @@ export type Database = {
           illustration_style?: string
           is_active?: boolean
           moral: string
-          page_images?: Json | null
           pages?: Json
           title: string
           updated_at?: string
@@ -156,7 +157,6 @@ export type Database = {
           illustration_style?: string
           is_active?: boolean
           moral?: string
-          page_images?: Json | null
           pages?: Json
           title?: string
           updated_at?: string
