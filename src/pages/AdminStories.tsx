@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Plus, Edit, Trash2, BookOpen } from 'lucide-react';
+import { Loader2, ArrowLeft, Plus, Edit, Trash2, BookOpen, Upload, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface Story {
@@ -22,7 +22,8 @@ interface Story {
   hero_gender: string;
   illustration_style: string;
   pages: any;
-  image_prompts: any;
+  cover_image_url: string | null;
+  page_images: any;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -33,6 +34,7 @@ const AdminStories = () => {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -40,9 +42,13 @@ const AdminStories = () => {
     hero_gender: 'boy',
     illustration_style: 'whimsical_storybook',
     pages: '',
-    image_prompts: '',
     is_active: true,
   });
+
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [pageFiles, setPageFiles] = useState<File[]>([]);
+  const [coverPreview, setCoverPreview] = useState<string>('');
+  const [pageImagePreviews, setPageImagePreviews] = useState<string[]>([]);
 
   const { data: stories, isLoading } = useQuery({
     queryKey: ['admin-stories'],
@@ -57,18 +63,112 @@ const AdminStories = () => {
     },
   });
 
+  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Cover image must be less than 5MB');
+        return;
+      }
+      setCoverFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setCoverPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePageImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 24) {
+      toast.error('Maximum 24 page images allowed');
+      return;
+    }
+    if (files.some(f => f.size > 5 * 1024 * 1024)) {
+      toast.error('Each page image must be less than 5MB');
+      return;
+    }
+    
+    setPageFiles(files);
+    const previews: string[] = [];
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        previews.push(reader.result as string);
+        if (previews.length === files.length) {
+          setPageImagePreviews(previews);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadImages = async (storyId: string): Promise<{ coverUrl: string | null; pageImages: any[] }> => {
+    setUploading(true);
+    let coverUrl: string | null = null;
+    const pageImages: any[] = [];
+
+    try {
+      // Upload cover image
+      if (coverFile) {
+        const coverPath = `${storyId}/cover.jpg`;
+        const { error: coverError } = await supabase.storage
+          .from('story-images')
+          .upload(coverPath, coverFile, { upsert: true });
+        
+        if (coverError) throw coverError;
+        coverUrl = coverPath;
+      }
+
+      // Upload page images
+      for (let i = 0; i < pageFiles.length; i++) {
+        const pagePath = `${storyId}/page-${String(i + 1).padStart(2, '0')}.jpg`;
+        const { error: pageError } = await supabase.storage
+          .from('story-images')
+          .upload(pagePath, pageFiles[i], { upsert: true });
+        
+        if (pageError) throw pageError;
+        pageImages.push({ page: i + 1, image_url: pagePath });
+      }
+
+      return { coverUrl, pageImages };
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const createStoryMutation = useMutation({
     mutationFn: async (newStory: any) => {
-      const { error } = await supabase.from('stories').insert({
-        title: newStory.title,
-        moral: newStory.moral,
-        hero_gender: newStory.hero_gender,
-        illustration_style: newStory.illustration_style,
-        pages: JSON.parse(newStory.pages),
-        image_prompts: JSON.parse(newStory.image_prompts),
-        is_active: newStory.is_active,
-      });
-      if (error) throw error;
+      // First create the story to get an ID
+      const { data: storyData, error: insertError } = await supabase
+        .from('stories')
+        .insert({
+          title: newStory.title,
+          moral: newStory.moral,
+          hero_gender: newStory.hero_gender,
+          illustration_style: newStory.illustration_style,
+          pages: JSON.parse(newStory.pages),
+          is_active: newStory.is_active,
+        })
+        .select()
+        .single();
+      
+      if (insertError) throw insertError;
+      
+      // Upload images if any
+      if (coverFile || pageFiles.length > 0) {
+        const { coverUrl, pageImages } = await uploadImages(storyData.id);
+        
+        // Update story with image URLs
+        const { error: updateError } = await supabase
+          .from('stories')
+          .update({
+            cover_image_url: coverUrl,
+            page_images: pageImages,
+          })
+          .eq('id', storyData.id);
+        
+        if (updateError) throw updateError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-stories'] });
@@ -84,18 +184,33 @@ const AdminStories = () => {
 
   const updateStoryMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+      let coverUrl = null;
+      let pageImages: any[] = [];
+
+      // Upload new images if any
+      if (coverFile || pageFiles.length > 0) {
+        const uploadResult = await uploadImages(id);
+        coverUrl = uploadResult.coverUrl;
+        pageImages = uploadResult.pageImages;
+      }
+
+      const updateData: any = {
+        title: updates.title,
+        moral: updates.moral,
+        hero_gender: updates.hero_gender,
+        illustration_style: updates.illustration_style,
+        pages: JSON.parse(updates.pages),
+        is_active: updates.is_active,
+      };
+
+      if (coverUrl) updateData.cover_image_url = coverUrl;
+      if (pageImages.length > 0) updateData.page_images = pageImages;
+
       const { error } = await supabase
         .from('stories')
-        .update({
-          title: updates.title,
-          moral: updates.moral,
-          hero_gender: updates.hero_gender,
-          illustration_style: updates.illustration_style,
-          pages: JSON.parse(updates.pages),
-          image_prompts: JSON.parse(updates.image_prompts),
-          is_active: updates.is_active,
-        })
+        .update(updateData)
         .eq('id', id);
+      
       if (error) throw error;
     },
     onSuccess: () => {
@@ -132,9 +247,12 @@ const AdminStories = () => {
       hero_gender: 'boy',
       illustration_style: 'whimsical_storybook',
       pages: '',
-      image_prompts: '',
       is_active: true,
     });
+    setCoverFile(null);
+    setPageFiles([]);
+    setCoverPreview('');
+    setPageImagePreviews([]);
     setEditingStory(null);
   };
 
@@ -146,9 +264,23 @@ const AdminStories = () => {
       hero_gender: story.hero_gender,
       illustration_style: story.illustration_style,
       pages: JSON.stringify(story.pages, null, 2),
-      image_prompts: JSON.stringify(story.image_prompts, null, 2),
       is_active: story.is_active,
     });
+    
+    // Set existing image previews
+    if (story.cover_image_url) {
+      const { data } = supabase.storage.from('story-images').getPublicUrl(story.cover_image_url);
+      setCoverPreview(data.publicUrl);
+    }
+    
+    if (story.page_images && Array.isArray(story.page_images)) {
+      const previews = story.page_images.map((img: any) => {
+        const { data } = supabase.storage.from('story-images').getPublicUrl(img.image_url);
+        return data.publicUrl;
+      });
+      setPageImagePreviews(previews);
+    }
+    
     setIsDialogOpen(true);
   };
 
@@ -158,9 +290,8 @@ const AdminStories = () => {
     // Validate JSON
     try {
       JSON.parse(formData.pages);
-      JSON.parse(formData.image_prompts);
     } catch (error) {
-      toast.error('Invalid JSON format in pages or image prompts');
+      toast.error('Invalid JSON format in pages');
       return;
     }
 
@@ -288,16 +419,61 @@ const AdminStories = () => {
                       </p>
                     </div>
 
+                    {/* Cover Image Upload */}
                     <div>
-                      <Label htmlFor="image_prompts">Image Prompts (JSON Array)</Label>
-                      <Textarea
-                        id="image_prompts"
-                        value={formData.image_prompts}
-                        onChange={(e) => setFormData({ ...formData, image_prompts: e.target.value })}
-                        placeholder='["Spread 1 prompt...", "Spread 2 prompt..."]'
-                        className="font-mono text-sm h-32"
-                        required
+                      <Label htmlFor="cover">Cover Image</Label>
+                      <Input
+                        id="cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverUpload}
+                        className="cursor-pointer"
                       />
+                      {coverPreview && (
+                        <div className="mt-2 relative inline-block">
+                          <img src={coverPreview} alt="Cover preview" className="h-32 rounded-lg" />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 h-6 w-6"
+                            onClick={() => {
+                              setCoverFile(null);
+                              setCoverPreview('');
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Page Images Upload */}
+                    <div>
+                      <Label htmlFor="pages-images">Page Images (24 images)</Label>
+                      <Input
+                        id="pages-images"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handlePageImagesUpload}
+                        className="cursor-pointer"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Upload exactly 24 images, one for each page
+                      </p>
+                      {pageImagePreviews.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 mt-2">
+                          {pageImagePreviews.map((url, i) => (
+                            <div key={i} className="relative">
+                              <img src={url} alt={`Page ${i + 1}`} className="h-20 w-full object-cover rounded" />
+                              <span className="absolute bottom-0 left-0 bg-black/70 text-white text-xs px-1 rounded-tr">
+                                P{i + 1}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -320,8 +496,15 @@ const AdminStories = () => {
                       >
                         Cancel
                       </Button>
-                      <Button type="submit">
-                        {editingStory ? 'Update Story' : 'Create Story'}
+                      <Button type="submit" disabled={uploading}>
+                        {uploading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>{editingStory ? 'Update Story' : 'Create Story'}</>
+                        )}
                       </Button>
                     </div>
                   </form>
@@ -353,9 +536,19 @@ const AdminStories = () => {
                     </div>
                   </div>
 
+                  {story.cover_image_url && (
+                    <div className="mb-4">
+                      <img
+                        src={supabase.storage.from('story-images').getPublicUrl(story.cover_image_url).data.publicUrl}
+                        alt={story.title}
+                        className="w-full h-32 object-cover rounded"
+                      />
+                    </div>
+                  )}
+
                   <div className="text-sm text-muted-foreground mb-4">
                     <p>Pages: {Array.isArray(story.pages) ? story.pages.length : 0}</p>
-                    <p>Prompts: {Array.isArray(story.image_prompts) ? story.image_prompts.length : 0}</p>
+                    <p>Images: {story.page_images && Array.isArray(story.page_images) ? story.page_images.length : 0}</p>
                     <p className="text-xs mt-1">Style: {story.illustration_style}</p>
                   </div>
 

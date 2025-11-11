@@ -46,7 +46,8 @@ serve(async (req) => {
         *,
         stories (
           title,
-          image_prompts
+          cover_image_url,
+          page_images
         )
       `)
       .eq("id", orderId)
@@ -57,35 +58,72 @@ serve(async (req) => {
     }
 
     const personalization = order.personalization_data as any;
+    const heroPhotoUrl = order.hero_photo_url;
     
-    if (!personalization) {
-      throw new Error(`No personalization data found for order ${orderId}`);
+    if (!personalization || !heroPhotoUrl) {
+      throw new Error(`No personalization data or hero photo found for order ${orderId}`);
     }
     
     const story = (order as any).stories;
-    const imagePrompts = story.image_prompts as Array<{ prompt: string; spread: number } | string>;
     
     console.log(`[${orderId}] Personalization data:`, JSON.stringify(personalization));
 
-    console.log(`[${orderId}] Generating ${imagePrompts.length} illustrations...`);
+    // Step 1: Illustrate the hero photo
+    console.log(`[${orderId}] Step 1: Illustrating hero photo...`);
+    
+    const { data: illustrateData, error: illustrateError } = await supabase.functions.invoke(
+      'illustrate-hero-photo',
+      {
+        body: { orderId, heroPhotoUrl }
+      }
+    );
 
-    // Generate illustrations using Lovable AI
-    const generatedImages: string[] = [];
+    if (illustrateError || !illustrateData?.illustratedHeroUrl) {
+      throw new Error(`Failed to illustrate hero: ${illustrateError?.message || 'No illustrated hero returned'}`);
+    }
 
-    for (let i = 0; i < imagePrompts.length; i++) {
-      const imagePromptObj = imagePrompts[i];
-      const rawPrompt = typeof imagePromptObj === 'string' ? imagePromptObj : imagePromptObj.prompt;
-      
-      // Personalize the prompt
-      const personalizedPrompt = rawPrompt
-        .replace(/{heroName}/g, personalization.heroName || 'the hero')
-        .replace(/{petName}/g, personalization.petName || 'the pet')
-        .replace(/{petType}/g, personalization.petType || 'pet')
-        .replace(/{city}/g, personalization.city || 'the city')
-        .replace(/{favoriteColor}/g, personalization.favoriteColor || 'blue')
-        .replace(/{favoriteFood}/g, personalization.favoriteFood || 'cookies');
+    const illustratedHeroUrl = illustrateData.illustratedHeroUrl;
+    
+    // Update order with illustrated hero URL
+    await supabase
+      .from("orders")
+      .update({ illustrated_hero_url: illustratedHeroUrl })
+      .eq("id", orderId);
 
-      console.log(`[${orderId}] Generating image ${i + 1}/${imagePrompts.length}...`);
+    console.log(`[${orderId}] Hero illustrated. Compositing into ${story.page_images?.length || 0} images...`);
+
+    // Step 2: Composite hero into story images
+    const compositeImages: string[] = [];
+    
+    // Get story images (cover + pages)
+    const storyImages: { url: string; name: string }[] = [];
+    
+    if (story.cover_image_url) {
+      const { data } = supabase.storage.from('story-images').getPublicUrl(story.cover_image_url);
+      storyImages.push({ url: data.publicUrl, name: 'cover' });
+    }
+    
+    if (story.page_images && Array.isArray(story.page_images)) {
+      for (const pageImg of story.page_images) {
+        const { data } = supabase.storage.from('story-images').getPublicUrl(pageImg.image_url);
+        storyImages.push({ url: data.publicUrl, name: `page-${pageImg.page}` });
+      }
+    }
+
+    if (storyImages.length === 0) {
+      throw new Error("No story images found - story must have pre-generated images");
+    }
+
+    // Composite hero into each image
+    for (let i = 0; i < storyImages.length; i++) {
+      const storyImage = storyImages[i];
+      console.log(`[${orderId}] Compositing ${storyImage.name} (${i + 1}/${storyImages.length})...`);
+
+      // Fetch the story image
+      const imageResponse = await fetch(storyImage.url);
+      const imageBlob = await imageResponse.blob();
+      const imageBuffer = await imageBlob.arrayBuffer();
+      const imageBase64 = `data:image/jpeg;base64,${btoa(String.fromCharCode(...new Uint8Array(imageBuffer)))}`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -98,7 +136,20 @@ serve(async (req) => {
           messages: [
             {
               role: "user",
-              content: `Create a children's storybook illustration: ${personalizedPrompt}. Style: warm, whimsical, full-color digital painting.`,
+              content: [
+                {
+                  type: "text",
+                  text: `Composite this illustrated character into the storybook scene as the main hero. Blend the character naturally into the scene, matching the art style, lighting, and perspective. The character should appear in an appropriate location based on the scene context (foreground if they're the focus, integrated into the action). Maintain the whimsical storybook aesthetic. Hero details: ${personalization.heroName}, ${personalization.gender}.`,
+                },
+                {
+                  type: "image_url",
+                  image_url: { url: imageBase64 },
+                },
+                {
+                  type: "image_url",
+                  image_url: { url: illustratedHeroUrl },
+                },
+              ],
             },
           ],
           modalities: ["image", "text"],
@@ -113,27 +164,27 @@ serve(async (req) => {
           throw new Error("AI credits depleted. Please add funds to your Lovable workspace.");
         }
         const errorText = await response.text();
-        console.error(`AI gateway error for image ${i + 1}:`, response.status, errorText);
-        throw new Error(`Failed to generate image ${i + 1}`);
+        console.error(`AI gateway error for ${storyImage.name}:`, response.status, errorText);
+        throw new Error(`Failed to composite ${storyImage.name}`);
       }
 
       const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const compositeImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-      if (!imageUrl) {
-        throw new Error(`No image generated for prompt ${i + 1}`);
+      if (!compositeImageUrl) {
+        throw new Error(`No composited image generated for ${storyImage.name}`);
       }
 
-      generatedImages.push(imageUrl);
+      compositeImages.push(compositeImageUrl);
     }
 
-    console.log(`[${orderId}] All illustrations generated. Creating PDF...`);
+    console.log(`[${orderId}] All images composited. Creating PDF...`);
 
-    // Create PDF with pdf-lib
+    // Step 3: Create PDF with composited images
     const pdfDoc = await PDFDocument.create();
 
-    for (let i = 0; i < generatedImages.length; i++) {
-      const base64Data = generatedImages[i].split(",")[1];
+    for (let i = 0; i < compositeImages.length; i++) {
+      const base64Data = compositeImages[i].split(",")[1];
       const imageBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
       const image = await pdfDoc.embedPng(imageBytes);

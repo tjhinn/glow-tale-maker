@@ -55,6 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
         user_email: paymentRequest.userEmail,
         story_id: paymentRequest.storyId,
         personalization_data: paymentRequest.personalizationData,
+        hero_photo_url: paymentRequest.personalizationData.photoUrl,
         amount_paid: paymentRequest.amount,
         discount_applied: paymentRequest.discountApplied,
         discount_code: paymentRequest.discountCode,

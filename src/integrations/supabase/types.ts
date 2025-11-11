@@ -53,7 +53,9 @@ export type Database = {
           discount_applied: boolean | null
           discount_code: string | null
           email_sent_at: string | null
+          hero_photo_url: string | null
           id: string
+          illustrated_hero_url: string | null
           payment_provider: string | null
           payment_provider_id: string | null
           payment_transaction_id: string | null
@@ -73,7 +75,9 @@ export type Database = {
           discount_applied?: boolean | null
           discount_code?: string | null
           email_sent_at?: string | null
+          hero_photo_url?: string | null
           id?: string
+          illustrated_hero_url?: string | null
           payment_provider?: string | null
           payment_provider_id?: string | null
           payment_transaction_id?: string | null
@@ -93,7 +97,9 @@ export type Database = {
           discount_applied?: boolean | null
           discount_code?: string | null
           email_sent_at?: string | null
+          hero_photo_url?: string | null
           id?: string
+          illustrated_hero_url?: string | null
           payment_provider?: string | null
           payment_provider_id?: string | null
           payment_transaction_id?: string | null
@@ -117,37 +123,40 @@ export type Database = {
       }
       stories: {
         Row: {
+          cover_image_url: string | null
           created_at: string
           hero_gender: string
           id: string
           illustration_style: string
-          image_prompts: Json
           is_active: boolean
           moral: string
+          page_images: Json | null
           pages: Json
           title: string
           updated_at: string
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
           hero_gender: string
           id?: string
           illustration_style?: string
-          image_prompts?: Json
           is_active?: boolean
           moral: string
+          page_images?: Json | null
           pages?: Json
           title: string
           updated_at?: string
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
           hero_gender?: string
           id?: string
           illustration_style?: string
-          image_prompts?: Json
           is_active?: boolean
           moral?: string
+          page_images?: Json | null
           pages?: Json
           title?: string
           updated_at?: string
