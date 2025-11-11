@@ -213,7 +213,7 @@ const Preview = () => {
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="w-5 h-5 text-accent animate-pulse" />
                 <h3 className="text-lg md:text-xl font-playfair text-foreground">
-                  Complete 24-Page Storybook
+                  Complete 12-Page Storybook
                 </h3>
                 <Sparkles className="w-5 h-5 text-accent animate-pulse" />
               </div>

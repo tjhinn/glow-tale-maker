@@ -97,7 +97,7 @@ const Home = () => {
             </h2>
             
             <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto font-poppins leading-relaxed">
-              Create a personalized 24-page illustrated storybook starring your child.
+              Create a personalized 12-page illustrated storybook starring your child.
               A magical keepsake they'll treasure forever.
             </p>
 

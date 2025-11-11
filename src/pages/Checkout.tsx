@@ -107,7 +107,7 @@ const Checkout = () => {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground text-center">
-                Full 24-page storybook without watermark delivered after purchase
+                Full 12-page storybook without watermark delivered after purchase
               </p>
             </CardContent>
           </Card>

@@ -79,8 +79,8 @@ const AdminStories = () => {
 
   const handlePageImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 24) {
-      toast.error('Maximum 24 page images allowed');
+    if (files.length > 12) {
+      toast.error('Maximum 12 page images allowed');
       return;
     }
     if (files.some(f => f.size > 5 * 1024 * 1024)) {
@@ -450,7 +450,7 @@ const AdminStories = () => {
 
                     {/* Page Images Upload */}
                     <div>
-                      <Label htmlFor="pages-images">Page Images (24 images)</Label>
+                      <Label htmlFor="pages-images">Page Images (12 images)</Label>
                       <Input
                         id="pages-images"
                         type="file"
@@ -460,7 +460,7 @@ const AdminStories = () => {
                         className="cursor-pointer"
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Upload exactly 24 images, one for each page
+                        Upload exactly 12 images, one for each page
                       </p>
                       {pageImagePreviews.length > 0 && (
                         <div className="grid grid-cols-4 gap-2 mt-2">

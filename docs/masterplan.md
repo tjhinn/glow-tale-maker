@@ -1,6 +1,6 @@
 🧚‍♀️ masterplan.md
 🎬 30-Second Elevator Pitch
-YourFairyTale.ai is a mobile-first web app that turns a child's name, photo, and favorite things into a personalized, 24-page illustrated fairy-tale book in minutes. Parents feel the magic of creation without the tech friction — just joy, wonder, and a glowing digital keepsake ready to download or gift.
+YourFairyTale.ai is a mobile-first web app that turns a child's name, photo, and favorite things into a personalized, 12-page illustrated fairy-tale book in minutes. Parents feel the magic of creation without the tech friction — just joy, wonder, and a glowing digital keepsake ready to download or gift.
 
 💡 Problem & Mission
 Problem:
@@ -66,7 +66,7 @@ Guest checkout + admin login
 Reduces friction for buyers
 PDF Generation
 Lovable Cloud serverless pipeline
-Auto-creates 24-page storybook
+Auto-creates 12-page storybook
 Delivery
 Expiring link + email
 Secure, family-friendly
@@ -94,18 +94,23 @@ AdminUser → manages stories, illustrations, and pricing
 
 ### 🎨 Image Generation Strategy
 
-**AI-Powered Illustrations:**
-- Each story contains 24 pages of text and 12 image prompts (one per spread)
-- The `image_prompts[]` field in `stories` table stores detailed text descriptions
-- During PDF generation, these prompts are sent to AI image generation APIs
-- Images are generated on-demand per order with personalized details injected
-- This ensures every storybook is unique and tailored to the child
+**Pre-Generated + AI Compositing:**
+- Each story contains 12 pages with pre-generated illustrations
+- Each page includes:
+  - **Text content** with personalization placeholders (`{heroName}`, `{petType}`, etc.)
+  - **Image template** (pre-generated base illustration stored in Supabase)
+  - **Image prompt** (guidance for AI when compositing the hero into the scene)
+- During PDF generation:
+  1. User's hero photo is converted to illustrated style once
+  2. Illustrated hero is composited into each page's image template using the image prompt
+  3. Final personalized storybook PDF is generated with 1 cover + 12 pages
+- This ensures every storybook is unique while maintaining visual consistency
 
-**Why AI Generation vs Pre-Made Assets:**
-- ✨ **Personalization**: Child's name, appearance, pet, and preferences are woven into each illustration
-- 📦 **Scalability**: No need to store thousands of static images
-- 🎨 **Consistency**: Single prompt per spread ensures cohesive visual storytelling
-- 💾 **Efficiency**: Generated images are temporary; only final PDFs are stored
+**Why Pre-Generated + Compositing:**
+- ✨ **Personalization**: Child appears as the hero in every scene
+- 🎨 **Quality Control**: Admin curates exact illustration style and composition
+- ⚡ **Speed**: Faster than generating 12 images from scratch
+- 💾 **Efficiency**: Only final PDFs need long-term storage
 
 🎨 UI Design Principles (per Krug's Laws + Lovable ethos)
 Don't make me think: every page has one clear next step (large bottom CTA).
