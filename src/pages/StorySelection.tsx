@@ -69,7 +69,7 @@ const StorySelection = () => {
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/30 shadow-lg flex-shrink-0">
                   <img 
                     src={personalization.photoUrl} 
-                    alt={personalization.childName}
+                    alt={personalization.heroName}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -80,7 +80,7 @@ const StorySelection = () => {
               )}
               <div className="text-center md:text-left flex-1">
                 <CardTitle className="text-3xl md:text-4xl font-playfair mb-2">
-                  Choose {personalization.childName}'s Adventure!
+                  Choose {personalization.heroName}'s Adventure!
                 </CardTitle>
                 <p className="text-sm text-muted-foreground font-poppins">
                   Pick the perfect tale for our {personalization.gender === 'boy' ? 'brave hero' : 'amazing hero'}

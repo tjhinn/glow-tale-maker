@@ -78,7 +78,7 @@ serve(async (req) => {
       
       // Personalize the prompt
       const personalizedPrompt = rawPrompt
-        .replace(/{heroName}/g, personalization.childName || 'the hero')
+        .replace(/{heroName}/g, personalization.heroName || 'the hero')
         .replace(/{petName}/g, personalization.petName || 'the pet')
         .replace(/{petType}/g, personalization.petType || 'pet')
         .replace(/{city}/g, personalization.city || 'the city')

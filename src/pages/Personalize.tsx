@@ -21,9 +21,9 @@ const Personalize = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    childName: "",
+    heroName: "",
     gender: "",
-    petSpecies: "",
+    petType: "",
     petName: "",
     city: "",
     favoriteColor: "",
@@ -57,7 +57,7 @@ const Personalize = () => {
   };
 
   const handleContinue = async () => {
-    if (!formData.childName || !formData.gender) {
+    if (!formData.heroName || !formData.gender) {
       toast({
         title: "Missing information",
         description: "Please fill in your child's name and gender to continue.",
@@ -98,9 +98,9 @@ const Personalize = () => {
       
       // Prepare personalization data
       const personalizationData = {
-        childName: formData.childName,
+        heroName: formData.heroName,
         gender: formData.gender,
-        petSpecies: formData.petSpecies,
+        petType: formData.petType,
         petName: formData.petName,
         city: formData.city,
         favoriteColor: formData.favoriteColor,
@@ -150,12 +150,12 @@ const Personalize = () => {
               </h3>
               
               <div className="space-y-2">
-                <Label htmlFor="childName">Child's Name</Label>
+                <Label htmlFor="heroName">Child's Name</Label>
                 <Input
-                  id="childName"
+                  id="heroName"
                   placeholder="Enter the hero's name"
-                  value={formData.childName}
-                  onChange={(e) => handleInputChange("childName", e.target.value)}
+                  value={formData.heroName}
+                  onChange={(e) => handleInputChange("heroName", e.target.value)}
                   className="border-primary/30"
                 />
               </div>
@@ -184,12 +184,12 @@ const Personalize = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="petSpecies">Pet Type</Label>
+                  <Label htmlFor="petType">Pet Type</Label>
                   <Input
-                    id="petSpecies"
+                    id="petType"
                     placeholder="e.g., cat, dog, rabbit"
-                    value={formData.petSpecies}
-                    onChange={(e) => handleInputChange("petSpecies", e.target.value)}
+                    value={formData.petType}
+                    onChange={(e) => handleInputChange("petType", e.target.value)}
                     className="border-accent/30"
                   />
                 </div>

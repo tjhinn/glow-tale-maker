@@ -15,9 +15,9 @@ interface PaymentRequest {
   discountApplied: boolean;
   discountCode?: string;
   personalizationData: {
-    childName: string;
+    heroName: string;
     gender: string;
-    petSpecies: string;
+    petType: string;
     petName: string;
     favoriteColor: string;
     favoriteFood: string;
@@ -87,9 +87,9 @@ const handler = async (req: Request): Promise<Response> => {
           <hr>
           <h3>Personalization Details:</h3>
           <ul>
-            <li><strong>Child Name:</strong> ${paymentRequest.personalizationData.childName}</li>
+            <li><strong>Hero Name:</strong> ${paymentRequest.personalizationData.heroName}</li>
             <li><strong>Gender:</strong> ${paymentRequest.personalizationData.gender}</li>
-            <li><strong>Pet:</strong> ${paymentRequest.personalizationData.petName} (${paymentRequest.personalizationData.petSpecies})</li>
+            <li><strong>Pet:</strong> ${paymentRequest.personalizationData.petName} (${paymentRequest.personalizationData.petType})</li>
             <li><strong>Favorite Color:</strong> ${paymentRequest.personalizationData.favoriteColor}</li>
             <li><strong>Favorite Food:</strong> ${paymentRequest.personalizationData.favoriteFood}</li>
             <li><strong>City:</strong> ${paymentRequest.personalizationData.city}</li>

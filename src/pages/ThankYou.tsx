@@ -12,7 +12,7 @@ const ThankYou = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showConfetti, setShowConfetti] = useState(false);
-  const [childName, setChildName] = useState<string>("");
+  const [heroName, setHeroName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -34,7 +34,7 @@ const ThankYou = () => {
           
           if (!error && order) {
             const personalizationData = order.personalization_data as any;
-            setChildName(personalizationData?.childName || "your little hero");
+            setHeroName(personalizationData?.heroName || "your little hero");
           } else {
             // Fallback to localStorage if database fetch fails
             tryLocalStorage();
@@ -55,9 +55,9 @@ const ThankYou = () => {
       const personalizationData = localStorage.getItem("personalizationData");
       if (personalizationData) {
         const data = JSON.parse(personalizationData);
-        setChildName(data.childName || "your little hero");
+        setHeroName(data.heroName || "your little hero");
       } else {
-        setChildName("your little hero");
+        setHeroName("your little hero");
       }
     };
     
@@ -104,7 +104,7 @@ const ThankYou = () => {
             </CardTitle>
             <div className="space-y-4 max-w-2xl mx-auto">
               <p className="text-2xl text-foreground font-poppins">
-                {childName}'s adventure is being crafted with love
+                {heroName}'s adventure is being crafted with love
               </p>
               <p className="text-lg text-muted-foreground font-poppins leading-relaxed">
                 Our fairy tale artists are illustrating every page of this magical story. You will receive a personalized storybook via email within 24 hours. The wait will be worth it!

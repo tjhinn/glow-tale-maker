@@ -14,10 +14,10 @@ import type { Database } from '@/integrations/supabase/types';
 type OrderStatus = Database['public']['Enums']['order_status'];
 
 interface PersonalizationData {
-  childName: string;
+  heroName: string;
   gender: string;
   petName: string;
-  petSpecies: string;
+  petType: string;
   city: string;
   favoriteColor: string;
   favoriteFood: string;
@@ -170,7 +170,7 @@ const AdminOrders = () => {
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-bold text-lg">
-                            {(order.personalization_data as unknown as PersonalizationData)?.childName || 'Unknown'}
+                            {(order.personalization_data as unknown as PersonalizationData)?.heroName || 'Unknown'}
                           </h3>
                           <p className="text-sm text-muted-foreground">{order.user_email}</p>
                         </div>
@@ -187,7 +187,7 @@ const AdminOrders = () => {
                         <div>
                           <p className="text-muted-foreground">Hero Name</p>
                           <p className="font-medium">
-                            {(order.personalization_data as unknown as PersonalizationData)?.childName || 'N/A'}
+                            {(order.personalization_data as unknown as PersonalizationData)?.heroName || 'N/A'}
                           </p>
                         </div>
                         <div>
@@ -212,7 +212,7 @@ const AdminOrders = () => {
                           </summary>
                           <div className="mt-2 p-3 bg-muted rounded-lg space-y-1">
                             <p><strong>Gender:</strong> {((order.personalization_data as unknown as PersonalizationData).gender || '').charAt(0).toUpperCase() + ((order.personalization_data as unknown as PersonalizationData).gender || '').slice(1)}</p>
-                            <p><strong>Pet:</strong> {(order.personalization_data as unknown as PersonalizationData).petName} ({(order.personalization_data as unknown as PersonalizationData).petSpecies})</p>
+                            <p><strong>Pet:</strong> {(order.personalization_data as unknown as PersonalizationData).petName} ({(order.personalization_data as unknown as PersonalizationData).petType})</p>
                             <p><strong>City:</strong> {(order.personalization_data as unknown as PersonalizationData).city}</p>
                             <p><strong>Favorite Color:</strong> {(order.personalization_data as unknown as PersonalizationData).favoriteColor}</p>
                             <p><strong>Favorite Food:</strong> {(order.personalization_data as unknown as PersonalizationData).favoriteFood}</p>
