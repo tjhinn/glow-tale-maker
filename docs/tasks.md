@@ -9,6 +9,23 @@
 
 ---
 
+## 🎯 Recent Updates (2025-11-11)
+
+**Phase 0 Foundation - COMPLETED:**
+- ✅ User roles system with `has_role()` security definer function
+- ✅ RLS policies on user_roles table (INSERT, UPDATE, DELETE, SELECT)
+- ✅ Admin user seeded (tjhinn@gmail.com - UUID: 54d2d627-2f23-469b-9e74-d18c155b800f)
+- ✅ Auto-confirm email signups enabled
+- ✅ Storage bucket RLS policies (hero-photos: public, generated-pdfs: admin-only)
+- ✅ Field name standardization (heroName, petType) across all components and edge functions
+
+**Next Steps:**
+- Verify all secrets configured (RESEND_API_KEY, LOVABLE_API_KEY, LEMONSQUEEZY_API_KEY)
+- Test complete end-to-end flow (personalize → story → checkout → PDF → email)
+- Begin Phase 4 testing & polish
+
+---
+
 ## 📋 Task Status Legend
 
 - ✅ **Completed** - Task is done and tested
@@ -20,7 +37,7 @@
 
 # Phase 0: Database & Auth Foundation
 
-## Task 0.1: Create User Roles System ⏳
+## Task 0.1: Create User Roles System ✅
 
 **Prerequisites:**
 - Lovable Cloud enabled ✅
@@ -87,7 +104,7 @@ ON CONFLICT DO NOTHING;
 **Acceptance Criteria:**
 - ✅ `user_roles` table created with RLS enabled
 - ✅ `has_role()` function works without recursion
-- ✅ Admin seeded for tjhinn@gmail.com
+- ✅ Admin seeded for tjhinn@gmail.com (UUID: 54d2d627-2f23-469b-9e74-d18c155b800f)
 - ✅ Security definer pattern prevents privilege escalation
 
 **Testing:**
@@ -100,9 +117,14 @@ SELECT public.has_role((SELECT id FROM auth.users WHERE email = 'tjhinn@gmail.co
 -- Should return: true
 ```
 
+**Completed:** 2025-11-11
+- Migration: `20251111014742_09e5eb5c-72d8-4478-8607-fedf9a14553e.sql`
+- RLS policies: INSERT, UPDATE, DELETE (admins only), SELECT (users see own, admins see all)
+- Auth configured with `auto_confirm_email` enabled
+
 ---
 
-## Task 0.2: Create Stories Table ⏳
+## Task 0.2: Create Stories Table ✅
 
 **Prerequisites:**
 - Task 0.1 completed (for RLS policies)
@@ -204,9 +226,14 @@ VALUES (
 SELECT * FROM stories WHERE is_active = true;
 ```
 
+**Completed:** Initial implementation
+- Table structure includes JSONB for pages and image_prompts
+- RLS policies allow public read, admin-only write
+- Sample stories seeded (2 boy + 2 girl stories)
+
 ---
 
-## Task 0.3: Create Orders Table ⏳
+## Task 0.3: Create Orders Table ✅
 
 **Prerequisites:**
 - Task 0.2 completed (stories table exists)
@@ -289,6 +316,12 @@ VALUES (
 SELECT * FROM orders WHERE status = 'payment_received';
 ```
 
+**Completed:** Initial implementation
+- Order status enum with proper workflow states
+- RLS policies restrict all access to admins only
+- Indexes on status and created_at for performance
+- Integration with LemonSqueezy payment provider
+
 ---
 
 ## Task 0.4: Configure Secrets ⏳
@@ -324,17 +357,18 @@ console.log('Secrets loaded:', { resendKey: !!resendKey, lovableKey: !!lovableKe
 
 # Phase 1: Frontend Flow Enhancement
 
-## Task 1.1: Update Personalize.tsx ⏳
+## Task 1.1: Update Personalize.tsx ✅
 
 **Prerequisites:**
-- Task 0.2 completed (stories table exists)
+- Task 0.2 completed (stories table exists) ✅
 
 **Changes Required:**
 
-1. Add database query to prefetch stories for gender filtering
-2. Update form state to match new personalization structure
-3. Add photo upload to storage
-4. Save personalization to localStorage for checkout
+1. ✅ Add database query to prefetch stories for gender filtering
+2. ✅ Update form state to match new personalization structure
+3. ✅ Add photo upload to storage
+4. ✅ Save personalization to localStorage for checkout
+5. ✅ **Field name standardization (2025-11-11):** All fields standardized to `heroName` and `petType`
 
 **Key Code Updates:**
 
@@ -396,12 +430,18 @@ const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => 
 - ✅ Form data saved to localStorage
 - ✅ Gender selection works correctly
 - ✅ Navigation to /stories works
+- ✅ Field names standardized to `heroName` and `petType` (2025-11-11)
 
 **Testing:**
 1. Fill out form
 2. Upload photo
 3. Click "Continue to Stories"
 4. Check localStorage for saved data
+
+**Completed:** 2025-11-11
+- Field standardization: `childName` → `heroName`, `petSpecies` → `petType`
+- All edge functions updated to use consistent field names
+- Database placeholder expectations aligned with form output
 
 ---
 
@@ -743,11 +783,13 @@ USING (
 - ✅ `generated-pdfs` bucket created (private)
 - ✅ RLS policies configured
 
-**Completed:** 2025-11-07
-- Created `hero-photos` bucket (public access for uploads)
-- Created `generated-pdfs` bucket (private, admin-only access)
-- Configured RLS policies for admin-only upload/view/update/delete on PDFs
-- Only admins can manage generated PDFs
+**Completed:** 2025-11-11
+- Created `hero-photos` bucket (public access for uploads/reads)
+- Created `generated-pdfs` bucket (private, admin-only reads)
+- **Updated RLS policies (2025-11-11):**
+  - `hero-photos`: Public INSERT and SELECT policies for anonymous uploads
+  - `generated-pdfs`: Admin-only SELECT, edge functions use service role for uploads
+- Migration: `20251111015020_67bb7009-55d2-4fd6-864d-5175ed4e2103.sql`
 
 ---
 
