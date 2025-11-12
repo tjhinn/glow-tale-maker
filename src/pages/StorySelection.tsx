@@ -62,28 +62,35 @@ const StorySelection = () => {
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         {/* Hero Card with Photo */}
         <Card className="shadow-2xl border-2 border-primary/20 mb-8 relative overflow-hidden">
-          <SparklesAnimation count={6} className="opacity-30" />
-          <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20 relative">
-            <div className="flex flex-col md:flex-row items-center gap-6">
+          <SparklesAnimation count={8} className="opacity-30" />
+          <CardHeader className="bg-gradient-to-br from-accent/30 via-primary/20 to-secondary/30 relative">
+            <div className="flex flex-col items-center gap-6 text-center">
               {personalization.illustratedCharacterUrl ? (
-                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/30 shadow-lg flex-shrink-0">
-                  <img 
-                    src={personalization.illustratedCharacterUrl} 
-                    alt={personalization.heroName}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative group">
+                  <div className="absolute -inset-2 bg-gradient-to-r from-primary via-accent to-secondary rounded-full opacity-30 blur-lg group-hover:opacity-50 transition-all duration-300"></div>
+                  <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-primary/40 shadow-2xl ring-4 ring-accent/20 hover:scale-105 transition-transform duration-300">
+                    <img 
+                      src={personalization.illustratedCharacterUrl} 
+                      alt={personalization.heroName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
                 </div>
               ) : (
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center border-4 border-primary/30 shadow-lg flex-shrink-0">
-                  <User className="w-12 h-12 text-white" />
+                <div className="w-40 h-40 md:w-48 md:h-48 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center border-4 border-primary/30 shadow-lg">
+                  <User className="w-20 h-20 md:w-24 md:h-24 text-white" />
                 </div>
               )}
-              <div className="text-center md:text-left flex-1">
-                <CardTitle className="text-3xl md:text-4xl font-playfair mb-2">
+              <div className="space-y-2">
+                <CardTitle className="text-3xl md:text-4xl font-playfair">
                   Choose {personalization.heroName}'s Adventure!
                 </CardTitle>
                 <p className="text-sm text-muted-foreground font-poppins">
                   Pick the perfect tale for our {personalization.gender === 'boy' ? 'brave hero' : 'amazing hero'}
+                  {personalization.petName && ` and ${personalization.petName}`}
                 </p>
               </div>
             </div>

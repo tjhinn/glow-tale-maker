@@ -42,7 +42,7 @@ serve(async (req) => {
       );
     }
 
-    const { heroPhotoUrl } = await req.json();
+    const { heroPhotoUrl, petType, petName, favoriteColor, favoriteFood } = await req.json();
     
     if (!heroPhotoUrl) {
       return new Response(
@@ -62,6 +62,28 @@ serve(async (req) => {
 
     console.log(`Generating character illustration for photo: ${heroPhotoUrl.substring(0, 50)}...`);
 
+    // Build personalized prompt
+    let promptText = "Convert this photo into a whimsical children's storybook illustration. Maintain the person's likeness, facial features, and hair, but render in a warm, hand-painted digital art style suitable for a fairy tale. The character should look friendly and child-appropriate with soft colors and gentle features.";
+    
+    // Add pet companion if provided
+    if (petType && petName) {
+      promptText += ` Include a cute, friendly ${petType} companion named ${petName} standing beside or near the character. The ${petType} should look playful and magical, rendered in the same storybook art style.`;
+    }
+    
+    // Add favorite color for clothing
+    if (favoriteColor) {
+      promptText += ` Dress the character in ${favoriteColor}-colored clothing or outfit that fits the magical storybook aesthetic. The ${favoriteColor} should be vibrant and eye-catching while maintaining a gentle, fairy-tale feel.`;
+    }
+    
+    // Add favorite food as magical detail
+    if (favoriteFood) {
+      promptText += ` Include ${favoriteFood} as a small, whimsical detail in the illustration - perhaps the character is holding it with a gentle glow around it, or it appears nearby with magical sparkles, fitting naturally into the fairy tale scene.`;
+    }
+    
+    promptText += " The overall composition should feel magical, warm, and inviting, suitable for a children's fairy tale book cover.";
+
+    console.log("AI Prompt:", promptText);
+
     // Call Lovable AI to illustrate the hero photo
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -77,7 +99,7 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: "Convert this photo into a whimsical children's storybook illustration. Maintain the person's likeness, facial features, and hair, but render in a warm, hand-painted digital art style suitable for a fairy tale. The character should look friendly and child-appropriate with soft colors and gentle features.",
+                text: promptText,
               },
               {
                 type: "image_url",

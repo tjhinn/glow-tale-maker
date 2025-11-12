@@ -108,7 +108,13 @@ const Personalize = () => {
           });
 
           const { data, error } = await supabase.functions.invoke('generate-character-illustration', {
-            body: { heroPhotoUrl: publicUrl }
+            body: { 
+              heroPhotoUrl: publicUrl,
+              petType: formData.petType,
+              petName: formData.petName,
+              favoriteColor: formData.favoriteColor,
+              favoriteFood: formData.favoriteFood
+            }
           });
 
           setIsGeneratingCharacter(false);
