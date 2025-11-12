@@ -270,7 +270,7 @@ const AdminStories = () => {
     setFormData({
       title: '',
       moral: '',
-      hero_gender: 'boy',
+      hero_gender: 'both',
       illustration_style: 'whimsical_storybook',
       is_active: true,
     });
@@ -423,8 +423,9 @@ const AdminStories = () => {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="boy">Boy</SelectItem>
-                            <SelectItem value="girl">Girl</SelectItem>
+                            <SelectItem value="boy">Boy Only</SelectItem>
+                            <SelectItem value="girl">Girl Only</SelectItem>
+                            <SelectItem value="both">Both Genders</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -569,7 +570,10 @@ const AdminStories = () => {
                       <h3 className="font-bold text-lg mb-1">{story.title}</h3>
                       <p className="text-sm text-muted-foreground mb-2">{story.moral}</p>
                       <div className="flex gap-2 flex-wrap">
-                        <Badge variant="outline">{story.hero_gender}</Badge>
+                        <Badge variant="outline">
+                          {story.hero_gender === 'both' ? '👦👧 Both' : 
+                           story.hero_gender === 'boy' ? '👦 Boy' : '👧 Girl'}
+                        </Badge>
                         <Badge variant={story.is_active ? 'default' : 'secondary'}>
                           {story.is_active ? 'Active' : 'Inactive'}
                         </Badge>

@@ -38,7 +38,7 @@ const StorySelection = () => {
         .from('stories')
         .select('*')
         .eq('is_active', true)
-        .eq('hero_gender', personalization?.gender || 'boy');
+        .or(`hero_gender.eq.${personalization?.gender},hero_gender.eq.both`);
       
       if (error) throw error;
       return data;
