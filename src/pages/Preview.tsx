@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Sparkles, Facebook, Instagram, ChevronLeft, ChevronRight } from "lucide-react";
+import { Share2, Sparkles, Facebook, Instagram } from "lucide-react";
 import { Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
@@ -28,7 +28,6 @@ const Preview = () => {
   const [personalization, setPersonalization] = useState<any>(null);
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
   useEffect(() => {
     const savedPersonalization = localStorage.getItem("personalizationData");
@@ -123,15 +122,46 @@ const Preview = () => {
     navigate("/checkout");
   };
 
-  const personalizeText = (template: string) => {
+  const renderPersonalizedText = (template: string) => {
     if (!personalization) return template;
-    return template
-      .replace(/{heroName}/g, personalization.heroName)
-      .replace(/{petName}/g, personalization.petName)
-      .replace(/{petType}/g, personalization.petType)
-      .replace(/{city}/g, personalization.city)
-      .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
-      .replace(/{favoriteFood}/g, personalization.favoriteFood || '');
+    
+    const tokens: Record<string, string> = {
+      '{heroName}': personalization.heroName,
+      '{petName}': personalization.petName,
+      '{petType}': personalization.petType,
+      '{city}': personalization.city,
+      '{favoriteColor}': personalization.favoriteColor || '',
+      '{favoriteFood}': personalization.favoriteFood || '',
+    };
+    
+    // Replace tokens with HIGHLIGHT markers
+    let result = template;
+    Object.entries(tokens).forEach(([token, value]) => {
+      if (value) {
+        result = result.split(token).join(`<HIGHLIGHT>${value}</HIGHLIGHT>`);
+      }
+    });
+    
+    // Split by HIGHLIGHT tags and create React elements
+    const segments = result.split(/<HIGHLIGHT>|<\/HIGHLIGHT>/);
+    return (
+      <>
+        {segments.map((segment, index) => {
+          // Odd indices are highlighted content
+          if (index % 2 === 1) {
+            return (
+              <span 
+                key={index}
+                className="font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent"
+              >
+                {segment}
+              </span>
+            );
+          }
+          return segment;
+        })}
+      </>
+    );
   };
 
   if (!personalization || !selectedStory) {
@@ -139,7 +169,6 @@ const Preview = () => {
   }
 
   const storyPages = selectedStory.pages || [];
-  const currentPage = storyPages[currentPageIndex];
 
   return (
     <PageWrapper>
@@ -177,93 +206,105 @@ const Preview = () => {
           </CardHeader>
         </Card>
 
-        {/* Story Preview Section - 12 Pages */}
-        <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5 mb-8">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl md:text-3xl font-playfair flex items-center justify-center gap-3">
-              <Sparkles className="w-6 h-6 text-primary" />
-              Your Story Preview
-              <Sparkles className="w-6 h-6 text-primary" />
-            </CardTitle>
-            <p className="text-sm text-muted-foreground font-poppins mt-2">
-              Preview of your personalized 12-page storybook
-            </p>
-          </CardHeader>
-          <CardContent className="p-4 md:p-8 space-y-6">
-            {/* Page Navigation */}
-            {currentPage && (
-              <div className="space-y-4">
-                <div className="relative group">
-                  <div className="bg-background/95 backdrop-blur-sm p-6 rounded-xl border-2 border-primary/20">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-lg font-playfair text-primary">Page {currentPageIndex + 1} of {storyPages.length}</h3>
+        {/* New Preview Layout */}
+        <div className="space-y-8 mb-8">
+          
+          {/* Hero Section: Cover + Character */}
+          <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl md:text-3xl font-playfair flex items-center justify-center gap-3">
+                <Sparkles className="w-6 h-6 text-primary" />
+                Your Magical Story
+                <Sparkles className="w-6 h-6 text-primary" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 md:p-8">
+              <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
+                
+                {/* Story Cover Image */}
+                <div className="order-2 md:order-1">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
+                    <div className="relative rounded-2xl overflow-hidden border-4 border-primary/30 shadow-2xl">
+                      <img 
+                        src={selectedStory.cover_image_url}
+                        alt={selectedStory.title}
+                        className="w-full h-auto"
+                      />
                     </div>
-                    <p className="text-base leading-relaxed text-foreground font-poppins">
-                      {personalizeText(currentPage.text)}
-                    </p>
                   </div>
-                  
-                  <div className="mt-4 relative">
-                    <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <div className="bg-background/90 backdrop-blur-sm px-6 md:px-10 py-3 md:py-5 rounded-xl border-2 border-primary/50 rotate-[-2deg] shadow-2xl">
-                        <p className="text-lg md:text-2xl font-bold text-primary/70 tracking-widest font-playfair">PREVIEW</p>
+                  <p className="text-center mt-4 font-playfair text-xl text-primary">
+                    {selectedStory.title}
+                  </p>
+                </div>
+                
+                {/* Illustrated Character */}
+                <div className="order-1 md:order-2">
+                  <div className="text-center space-y-4">
+                    <h3 className="font-playfair text-2xl text-foreground">
+                      Meet Your Hero!
+                    </h3>
+                    <div className="relative group mx-auto w-48 h-48 md:w-64 md:h-64">
+                      <div className="absolute inset-0 bg-gradient-to-r from-accent/30 to-primary/30 rounded-full blur-xl group-hover:blur-2xl transition-all"></div>
+                      <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-accent/50 shadow-2xl">
+                        <img 
+                          src={personalization.illustratedCharacterUrl}
+                          alt={personalization.heroName}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </div>
-                    <div className="bg-gradient-to-br from-muted/50 to-muted/20 aspect-[4/3] rounded-xl flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
-                      <p className="text-muted-foreground text-sm">Illustration will appear here after purchase</p>
-                    </div>
+                    <p className="font-poppins text-lg">
+                      <span className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                        {personalization.heroName}
+                      </span>
+                    </p>
                   </div>
                 </div>
-
-                {/* Navigation Buttons */}
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
-                    disabled={currentPageIndex === 0}
-                  >
-                    <ChevronLeft className="w-4 h-4 mr-1" />
-                    Previous
-                  </Button>
-                  <div className="flex gap-2">
-                    {storyPages.map((_: any, idx: number) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCurrentPageIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          idx === currentPageIndex ? 'bg-primary w-8' : 'bg-muted-foreground/30'
-                        }`}
-                        aria-label={`Go to page ${idx + 1}`}
-                      />
-                    ))}
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentPageIndex(Math.min(storyPages.length - 1, currentPageIndex + 1))}
-                    disabled={currentPageIndex === storyPages.length - 1}
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
+                
               </div>
-            )}
-
-            {/* Info Box */}
-            <div className="bg-accent/10 border-2 border-accent/30 rounded-2xl p-6 text-center space-y-3">
-              <div className="flex items-center justify-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent animate-pulse" />
-                <h3 className="text-lg md:text-xl font-playfair text-foreground">
-                  Complete 12-Page Storybook
-                </h3>
-                <Sparkles className="w-5 h-5 text-accent animate-pulse" />
-              </div>
-              <p className="text-sm md:text-base text-muted-foreground font-poppins leading-relaxed">
-                Your personalized storybook features {personalization.heroName} in beautiful, professionally illustrated spreads — delivered without watermarks after purchase
+            </CardContent>
+          </Card>
+          
+          {/* Story Preview: First 3 Pages Only */}
+          <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/5 to-background">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-playfair">
+                ✨ Story Preview
+              </CardTitle>
+              <p className="text-sm text-muted-foreground font-poppins mt-2">
+                Here's a sneak peek of the first 3 pages
               </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="p-4 md:p-8 space-y-6">
+              {storyPages.slice(0, 3).map((page: any, index: number) => (
+                <div 
+                  key={index}
+                  className="bg-background/95 backdrop-blur-sm p-6 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
+                >
+                  <h3 className="text-lg font-playfair text-primary mb-3">
+                    Page {page.page}
+                  </h3>
+                  <p className="text-base leading-relaxed font-poppins">
+                    {renderPersonalizedText(page.text)}
+                  </p>
+                </div>
+              ))}
+              
+              {/* Teaser for remaining pages */}
+              <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-dashed border-primary/30 rounded-xl p-8 text-center space-y-3">
+                <Sparkles className="w-12 h-12 text-primary mx-auto animate-pulse" />
+                <p className="font-playfair text-xl text-foreground">
+                  9 more magical pages await!
+                </p>
+                <p className="text-sm text-muted-foreground font-poppins">
+                  Complete your purchase to unlock the full 12-page illustrated storybook
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          
+        </div>
 
         {/* Share Card - Full Width */}
         <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300 mb-8">
