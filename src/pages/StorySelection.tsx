@@ -48,8 +48,29 @@ const StorySelection = () => {
 
   const handleContinue = () => {
     if (selectedStory && stories) {
-      localStorage.setItem("selectedStory", JSON.stringify(stories.find(s => s.id === selectedStory)));
-      navigate("/preview");
+      const story = stories.find(s => s.id === selectedStory);
+      
+      if (story) {
+        // Convert storage path to full public URL
+        let fullCoverUrl = story.cover_image_url;
+        
+        // Check if it's a relative path (not starting with http/https)
+        if (fullCoverUrl && !fullCoverUrl.startsWith('http')) {
+          const { data } = supabase.storage
+            .from('story-assets')
+            .getPublicUrl(fullCoverUrl);
+          
+          fullCoverUrl = data.publicUrl;
+        }
+        
+        // Save story with full URL
+        localStorage.setItem("selectedStory", JSON.stringify({
+          ...story,
+          cover_image_url: fullCoverUrl
+        }));
+        
+        navigate("/preview");
+      }
     }
   };
 
