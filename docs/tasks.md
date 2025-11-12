@@ -9,7 +9,7 @@
 
 ---
 
-## 🎯 Recent Updates (2025-11-11)
+## 🎯 Recent Updates (2025-11-12)
 
 **Phase 0 Foundation - COMPLETED:**
 - ✅ User roles system with `has_role()` security definer function
@@ -18,6 +18,9 @@
 - ✅ Auto-confirm email signups enabled
 - ✅ Storage bucket RLS policies (hero-photos: public, generated-pdfs: admin-only)
 - ✅ Field name standardization (heroName, petType) across all components and edge functions
+
+**Bugfixes:**
+- ✅ Story cover image URL resolution fixed: corrected bucket to 'story-images' on selection and added preview-side repair with placeholder fallback (2025-11-12). Testing: re-select a story → preview; or go to preview with previously saved story to auto-repair.
 
 **Next Steps:**
 - Verify all secrets configured (RESEND_API_KEY, LOVABLE_API_KEY, LEMONSQUEEZY_API_KEY)

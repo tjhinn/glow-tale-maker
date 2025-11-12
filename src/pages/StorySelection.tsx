@@ -57,7 +57,7 @@ const StorySelection = () => {
         // Check if it's a relative path (not starting with http/https)
         if (fullCoverUrl && !fullCoverUrl.startsWith('http')) {
           const { data } = supabase.storage
-            .from('story-assets')
+            .from('story-images')
             .getPublicUrl(fullCoverUrl);
           
           fullCoverUrl = data.publicUrl;

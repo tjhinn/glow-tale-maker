@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const Preview = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const Preview = () => {
   const [personalization, setPersonalization] = useState<any>(null);
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const savedPersonalization = localStorage.getItem("personalizationData");
@@ -46,6 +48,33 @@ const Preview = () => {
     setPersonalization(JSON.parse(savedPersonalization));
     setSelectedStory(JSON.parse(savedStory));
   }, [navigate, toast]);
+
+  // Resolve and repair cover image URL if needed
+  useEffect(() => {
+    if (!selectedStory) return;
+
+    const raw = selectedStory.cover_image_url as string | null | undefined;
+    if (!raw) { setCoverUrl(null); return; }
+
+    const isHttp = /^https?:\/\//i.test(raw);
+    const isWrongBucket = typeof raw === 'string' && raw.includes('/object/public/story-assets');
+
+    if (isHttp && !isWrongBucket) {
+      setCoverUrl(raw);
+      return;
+    }
+
+    const path = isWrongBucket ? raw.split('/story-assets/')[1] : raw;
+    const { data } = supabase.storage.from('story-images').getPublicUrl(path);
+    const url = data?.publicUrl || raw;
+    setCoverUrl(url);
+
+    try {
+      const repaired = { ...selectedStory, cover_image_url: url };
+      setSelectedStory(repaired);
+      localStorage.setItem('selectedStory', JSON.stringify(repaired));
+    } catch {}
+  }, [selectedStory]);
 
   const applyDiscount = () => {
     localStorage.setItem("shareDiscount", "true");
@@ -227,9 +256,10 @@ const Preview = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
                     <div className="relative rounded-2xl overflow-hidden border-4 border-primary/30 shadow-2xl">
                       <img 
-                        src={selectedStory.cover_image_url}
+                        src={coverUrl || selectedStory.cover_image_url || '/placeholder.svg'}
                         alt={selectedStory.title}
                         className="w-full h-auto"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
                       />
                     </div>
                   </div>
