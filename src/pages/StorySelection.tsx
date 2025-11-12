@@ -65,10 +65,10 @@ const StorySelection = () => {
           <SparklesAnimation count={6} className="opacity-30" />
           <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20 relative">
             <div className="flex flex-col md:flex-row items-center gap-6">
-              {personalization.photoUrl ? (
+              {personalization.illustratedCharacterUrl ? (
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-primary/30 shadow-lg flex-shrink-0">
                   <img 
-                    src={personalization.photoUrl} 
+                    src={personalization.illustratedCharacterUrl} 
                     alt={personalization.heroName}
                     className="w-full h-full object-cover"
                   />
