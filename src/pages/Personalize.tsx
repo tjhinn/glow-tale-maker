@@ -30,6 +30,8 @@ const Personalize = () => {
     favoriteFood: "",
     photo: null as File | null,
   });
+  const [isGeneratingCharacter, setIsGeneratingCharacter] = useState(false);
+  const [illustratedCharacterUrl, setIllustratedCharacterUrl] = useState<string>("");
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -67,12 +69,13 @@ const Personalize = () => {
     }
     
     try {
-      let photoUrl = "";
+      let originalPhotoUrl = "";
+      let illustratedUrl = illustratedCharacterUrl;
       
       // Upload photo to Supabase Storage if provided
       if (formData.photo) {
         const fileExt = formData.photo.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const fileName = `original-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${fileName}`;
         
         const { error: uploadError } = await supabase.storage
@@ -93,7 +96,43 @@ const Personalize = () => {
           .from('hero-photos')
           .getPublicUrl(filePath);
         
-        photoUrl = publicUrl;
+        originalPhotoUrl = publicUrl;
+
+        // Generate illustrated character if we haven't already
+        if (!illustratedUrl) {
+          setIsGeneratingCharacter(true);
+          
+          toast({
+            title: "Creating your illustrated character... ✨",
+            description: "This will take just a moment!",
+          });
+
+          const { data, error } = await supabase.functions.invoke('generate-character-illustration', {
+            body: { heroPhotoUrl: publicUrl }
+          });
+
+          setIsGeneratingCharacter(false);
+
+          if (error) {
+            console.error("Character illustration error:", error);
+            toast({
+              title: "Character generation failed",
+              description: error.message || "Please try again later.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          if (data?.illustratedCharacterUrl) {
+            illustratedUrl = data.illustratedCharacterUrl;
+            setIllustratedCharacterUrl(illustratedUrl);
+            
+            toast({
+              title: "Character illustrated! ✨",
+              description: "Your storybook character is ready!",
+            });
+          }
+        }
       }
       
       // Prepare personalization data
@@ -105,7 +144,8 @@ const Personalize = () => {
         city: formData.city,
         favoriteColor: formData.favoriteColor,
         favoriteFood: formData.favoriteFood,
-        photoUrl,
+        originalPhotoUrl,
+        illustratedCharacterUrl: illustratedUrl,
       };
       
       // Store in localStorage
@@ -119,6 +159,7 @@ const Personalize = () => {
       navigate("/stories");
     } catch (error) {
       console.error("Error saving personalization:", error);
+      setIsGeneratingCharacter(false);
       toast({
         title: "Something went wrong",
         description: "Please try again.",
@@ -278,6 +319,19 @@ const Personalize = () => {
               >
                 {formData.photo ? "Change Photo" : "Choose Photo"}
               </Button>
+              
+              {illustratedCharacterUrl && (
+                <div className="mt-4 p-4 rounded-lg bg-background/50 border border-primary/20">
+                  <p className="text-sm text-center mb-2 font-semibold text-primary">
+                    ✨ Your Illustrated Character
+                  </p>
+                  <img 
+                    src={illustratedCharacterUrl} 
+                    alt="Illustrated character" 
+                    className="w-full max-w-xs mx-auto rounded-lg shadow-lg"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Navigation Buttons */}
@@ -296,9 +350,10 @@ const Personalize = () => {
                 size="lg"
                 onClick={handleContinue}
                 className="flex-1 group"
+                disabled={isGeneratingCharacter}
               >
                 <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
-                Continue Your Story
+                {isGeneratingCharacter ? "Creating Character..." : "Continue Your Story"}
               </Button>
             </div>
           </CardContent>

@@ -70,9 +70,10 @@ serve(async (req) => {
 
     const personalization = order.personalization_data as any;
     const heroPhotoUrl = order.hero_photo_url;
+    let illustratedHeroUrl = order.illustrated_hero_url;
     
-    if (!personalization || !heroPhotoUrl) {
-      throw new Error(`No personalization data or hero photo found for order ${orderId}`);
+    if (!personalization) {
+      throw new Error(`No personalization data found for order ${orderId}`);
     }
     
     const story = (order as any).stories;
@@ -80,29 +81,35 @@ serve(async (req) => {
     
     console.log(`[${orderId}] Personalization data:`, JSON.stringify(personalization));
 
-    // Step 1: Illustrate the hero photo
-    console.log(`[${orderId}] Step 1: Illustrating hero photo...`);
-    
-    const { data: illustrateData, error: illustrateError } = await supabase.functions.invoke(
-      'illustrate-hero-photo',
-      {
-        body: { orderId, heroPhotoUrl }
-      }
-    );
+    // Step 1: Check if we already have an illustrated hero, otherwise create one
+    if (illustratedHeroUrl) {
+      console.log(`[${orderId}] Using pre-generated illustrated character`);
+    } else if (heroPhotoUrl) {
+      console.log(`[${orderId}] Step 1: Illustrating hero photo (fallback)...`);
+      
+      const { data: illustrateData, error: illustrateError } = await supabase.functions.invoke(
+        'illustrate-hero-photo',
+        {
+          body: { orderId, heroPhotoUrl }
+        }
+      );
 
-    if (illustrateError || !illustrateData?.illustratedHeroUrl) {
-      throw new Error(`Failed to illustrate hero: ${illustrateError?.message || 'No illustrated hero returned'}`);
+      if (illustrateError || !illustrateData?.illustratedHeroUrl) {
+        throw new Error(`Failed to illustrate hero: ${illustrateError?.message || 'No illustrated hero returned'}`);
+      }
+
+      illustratedHeroUrl = illustrateData.illustratedHeroUrl;
+      
+      // Update order with illustrated hero URL
+      await supabase
+        .from("orders")
+        .update({ illustrated_hero_url: illustratedHeroUrl })
+        .eq("id", orderId);
+    } else {
+      throw new Error(`No hero photo or illustrated character found for order ${orderId}`);
     }
 
-    const illustratedHeroUrl = illustrateData.illustratedHeroUrl;
-    
-    // Update order with illustrated hero URL
-    await supabase
-      .from("orders")
-      .update({ illustrated_hero_url: illustratedHeroUrl })
-      .eq("id", orderId);
-
-    console.log(`[${orderId}] Hero illustrated. Processing ${storyPages?.length || 0} pages...`);
+    console.log(`[${orderId}] Processing ${storyPages?.length || 0} pages...`);
 
     // Step 2: Personalize text for all pages
     const personalizedPages = storyPages.map(page => ({

@@ -39,6 +39,13 @@ const Checkout = () => {
       const personalizationData = JSON.parse(localStorage.getItem("personalizationData") || "{}");
       const selectedStory = JSON.parse(localStorage.getItem("selectedStory") || "{}");
 
+      // Ensure we're using the correct field names for backwards compatibility
+      const paymentData = {
+        ...personalizationData,
+        // Map old photoUrl to new structure if needed
+        originalPhotoUrl: personalizationData.originalPhotoUrl || personalizationData.photoUrl,
+      };
+
       // Call edge function to create LemonSqueezy checkout
       const { data, error } = await supabase.functions.invoke("create-lemonsqueezy-checkout", {
         body: {
@@ -46,7 +53,7 @@ const Checkout = () => {
           amount: finalPrice,
           discountApplied: hasDiscount,
           discountCode: hasDiscount ? "SHARE10" : undefined,
-          personalizationData,
+          personalizationData: paymentData,
           storyId: selectedStory.id,
         },
       });
