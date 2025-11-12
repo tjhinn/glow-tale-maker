@@ -445,7 +445,7 @@ const AdminStories = () => {
                     <div className="space-y-4">
                       <Label>Story Pages (12 pages required)</Label>
                       <p className="text-xs text-muted-foreground">
-                        Use placeholders: {'{heroName}'}, {'{petName}'}, {'{petType}'}, {'{city}'}, {'{favoriteColor}'}
+                        Use placeholders: {'{heroName}'}, {'{petName}'}, {'{petType}'}, {'{city}'}, {'{favoriteColor}'}, {'{favoriteFood}'}
                       </p>
                       <div className="space-y-6 max-h-96 overflow-y-auto border rounded-lg p-4">
                         {pages.map((page, index) => (
