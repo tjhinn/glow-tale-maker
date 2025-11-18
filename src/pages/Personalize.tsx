@@ -30,8 +30,7 @@ const Personalize = () => {
     favoriteFood: "",
     photo: null as File | null,
   });
-  const [isGeneratingCharacter, setIsGeneratingCharacter] = useState(false);
-  const [illustratedCharacterUrl, setIllustratedCharacterUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -67,12 +66,12 @@ const Personalize = () => {
       });
       return;
     }
-    
+
+    setIsLoading(true);
+    let originalPhotoUrl = '';
+
     try {
-      let originalPhotoUrl = "";
-      let illustratedUrl = illustratedCharacterUrl;
-      
-      // Upload photo to Supabase Storage if provided
+      // Upload photo if exists
       if (formData.photo) {
         const fileExt = formData.photo.name.split('.').pop();
         const fileName = `original-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -88,89 +87,46 @@ const Personalize = () => {
             description: "Failed to upload photo. Please try again.",
             variant: "destructive",
           });
+          setIsLoading(false);
           return;
         }
         
-        // Get public URL
         const { data: { publicUrl } } = supabase.storage
           .from('hero-photos')
           .getPublicUrl(filePath);
         
         originalPhotoUrl = publicUrl;
-
-        // Generate illustrated character if we haven't already
-        if (!illustratedUrl) {
-          setIsGeneratingCharacter(true);
-          
-          toast({
-            title: "Creating your illustrated character... ✨",
-            description: "This will take just a moment!",
-          });
-
-          const { data, error } = await supabase.functions.invoke('generate-character-illustration', {
-            body: { 
-              heroPhotoUrl: publicUrl,
-              petType: formData.petType,
-              petName: formData.petName,
-              favoriteColor: formData.favoriteColor,
-              favoriteFood: formData.favoriteFood
-            }
-          });
-
-          setIsGeneratingCharacter(false);
-
-          if (error) {
-            console.error("Character illustration error:", error);
-            toast({
-              title: "Character generation failed",
-              description: error.message || "Please try again later.",
-              variant: "destructive",
-            });
-            return;
-          }
-
-          if (data?.illustratedCharacterUrl) {
-            illustratedUrl = data.illustratedCharacterUrl;
-            setIllustratedCharacterUrl(illustratedUrl);
-            
-            toast({
-              title: "Character illustrated! ✨",
-              description: "Your storybook character is ready!",
-            });
-          }
-        }
       }
-      
-      // Prepare personalization data
+
+      // Save personalization data (WITHOUT illustrated character)
       const personalizationData = {
         heroName: formData.heroName,
         gender: formData.gender,
         petType: formData.petType,
         petName: formData.petName,
-        city: formData.city,
         favoriteColor: formData.favoriteColor,
         favoriteFood: formData.favoriteFood,
-        originalPhotoUrl,
-        illustratedCharacterUrl: illustratedUrl,
+        city: formData.city,
+        heroPhotoUrl: originalPhotoUrl,
       };
       
-      // Store in localStorage
       localStorage.setItem("personalizationData", JSON.stringify(personalizationData));
       
       toast({
-        title: "Magic saved! ✨",
-        description: "Let's choose your adventure!",
+        title: "Perfect! ✨",
+        description: "Now let's choose your story!",
       });
       
       navigate("/stories");
     } catch (error) {
-      console.error("Error saving personalization:", error);
-      setIsGeneratingCharacter(false);
+      console.error("Error:", error);
       toast({
         title: "Something went wrong",
         description: "Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -326,16 +282,10 @@ const Personalize = () => {
                 {formData.photo ? "Change Photo" : "Choose Photo"}
               </Button>
               
-              {illustratedCharacterUrl && (
-                <div className="mt-4 p-4 rounded-lg bg-background/50 border border-primary/20">
-                  <p className="text-sm text-center mb-2 font-semibold text-primary">
-                    ✨ Your Illustrated Character
-                  </p>
-                  <img 
-                    src={illustratedCharacterUrl} 
-                    alt="Illustrated character" 
-                    className="w-full max-w-xs mx-auto rounded-lg shadow-lg"
-                  />
+              {formData.photo && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-accent/5 px-4 py-2 rounded-full mt-2">
+                  <Sparkles className="h-4 w-4 text-accent" />
+                  {formData.photo.name}
                 </div>
               )}
             </div>
@@ -356,10 +306,10 @@ const Personalize = () => {
                 size="lg"
                 onClick={handleContinue}
                 className="flex-1 group"
-                disabled={isGeneratingCharacter}
+                disabled={isLoading}
               >
                 <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
-                {isGeneratingCharacter ? "Creating Character..." : "Continue Your Story"}
+                Continue Your Story
               </Button>
             </div>
           </CardContent>

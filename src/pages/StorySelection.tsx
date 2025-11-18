@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Sparkles, User } from "lucide-react";
+import { ArrowLeft, Sparkles, User, Loader2 } from "lucide-react";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ const StorySelection = () => {
   const { toast } = useToast();
   const [selectedStory, setSelectedStory] = useState<string | null>(null);
   const [personalization, setPersonalization] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load personalization data from localStorage
   useEffect(() => {
@@ -31,7 +32,7 @@ const StorySelection = () => {
   }, [navigate, toast]);
 
   // Fetch stories filtered by hero gender
-  const { data: stories, isLoading } = useQuery({
+  const { data: stories, isLoading: isLoadingStories } = useQuery({
     queryKey: ['stories', personalization?.gender],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,31 +47,84 @@ const StorySelection = () => {
     enabled: !!personalization?.gender
   });
 
-  const handleContinue = () => {
-    if (selectedStory && stories) {
-      const story = stories.find(s => s.id === selectedStory);
+  const handleContinue = async () => {
+    if (!selectedStory || !stories) return;
+    
+    const story = stories.find(s => s.id === selectedStory);
+    if (!story) return;
+    
+    setIsLoading(true);
+    
+    try {
+      // Convert storage path to full public URL for cover
+      let fullCoverUrl = story.cover_image_url;
+      if (fullCoverUrl && !fullCoverUrl.startsWith('http')) {
+        const { data } = supabase.storage
+          .from('story-images')
+          .getPublicUrl(fullCoverUrl);
+        fullCoverUrl = data.publicUrl;
+      }
       
-      if (story) {
-        // Convert storage path to full public URL
-        let fullCoverUrl = story.cover_image_url;
+      // Generate illustrated character if not already done
+      if (personalization.heroPhotoUrl && !personalization.illustratedCharacterUrl) {
+        toast({
+          title: `Bringing ${personalization.heroName} into the story... ✨`,
+          description: `Styling in ${story.illustration_style} style!`,
+        });
         
-        // Check if it's a relative path (not starting with http/https)
-        if (fullCoverUrl && !fullCoverUrl.startsWith('http')) {
-          const { data } = supabase.storage
-            .from('story-images')
-            .getPublicUrl(fullCoverUrl);
-          
-          fullCoverUrl = data.publicUrl;
+        const { data, error } = await supabase.functions.invoke('generate-character-illustration', {
+          body: { 
+            heroPhotoUrl: personalization.heroPhotoUrl,
+            petType: personalization.petType,
+            petName: personalization.petName,
+            favoriteColor: personalization.favoriteColor,
+            favoriteFood: personalization.favoriteFood,
+            illustrationStyle: story.illustration_style
+          }
+        });
+        
+        if (error) {
+          console.error("Character illustration error:", error);
+          toast({
+            title: "Character generation failed",
+            description: error.message || "Please try again later.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
         }
         
-        // Save story with full URL
-        localStorage.setItem("selectedStory", JSON.stringify({
-          ...story,
-          cover_image_url: fullCoverUrl
-        }));
-        
-        navigate("/preview");
+        if (data?.illustratedCharacterUrl) {
+          // Update personalization data with illustrated character
+          const updatedPersonalization = {
+            ...personalization,
+            illustratedCharacterUrl: data.illustratedCharacterUrl
+          };
+          localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+          
+          toast({
+            title: "Character ready! ✨",
+            description: `${personalization.heroName} looks perfect in this story!`,
+          });
+        }
       }
+      
+      // Save selected story
+      localStorage.setItem("selectedStory", JSON.stringify({
+        ...story,
+        cover_image_url: fullCoverUrl
+      }));
+      
+      navigate("/preview");
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,7 +173,7 @@ const StorySelection = () => {
         </Card>
 
         {/* Stories Grid */}
-        {isLoading ? (
+        {isLoadingStories ? (
           <div className="text-center py-12">
             <Sparkles className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
             <p className="text-muted-foreground font-poppins">Loading magical stories...</p>

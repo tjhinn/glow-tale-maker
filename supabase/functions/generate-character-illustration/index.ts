@@ -42,7 +42,7 @@ serve(async (req) => {
       );
     }
 
-    const { heroPhotoUrl, petType, petName, favoriteColor, favoriteFood } = await req.json();
+    const { heroPhotoUrl, petType, petName, favoriteColor, favoriteFood, illustrationStyle } = await req.json();
     
     if (!heroPhotoUrl) {
       return new Response(
@@ -62,8 +62,30 @@ serve(async (req) => {
 
     console.log(`Generating character illustration for photo: ${heroPhotoUrl.substring(0, 50)}...`);
 
-    // Build personalized prompt
-    let promptText = "Convert this photo into a whimsical children's storybook illustration. Maintain the person's likeness, facial features, and hair, but render in a warm, hand-painted digital art style suitable for a fairy tale. The character should look friendly and child-appropriate with soft colors and gentle features.";
+    // Build personalized prompt with illustration style
+    let baseStyle = "whimsical children's storybook illustration with warm, hand-painted digital art style";
+
+    // Override base style if specific illustration style is provided
+    if (illustrationStyle) {
+      const styleLower = illustrationStyle.toLowerCase();
+      
+      if (styleLower.includes('ghibli') || styleLower.includes('watercolor')) {
+        baseStyle = "Studio Ghibli-inspired watercolor illustration with soft, dreamy brushstrokes, gentle color washes, and an ethereal quality. Use muted pastels and flowing organic shapes typical of Miyazaki films";
+      } else if (styleLower.includes('modern') || styleLower.includes('digital')) {
+        baseStyle = "modern digital illustration with vibrant colors, clean lines, and contemporary children's book aesthetic. Use bold, saturated colors and crisp vector-like rendering";
+      } else if (styleLower.includes('vintage') || styleLower.includes('classic')) {
+        baseStyle = "vintage classic storybook illustration with crosshatching, muted earth tones, and nostalgic fairy tale aesthetic reminiscent of 1950s-60s children's books";
+      } else if (styleLower.includes('cartoon') || styleLower.includes('playful')) {
+        baseStyle = "playful cartoon illustration with exaggerated features, bright primary colors, and energetic linework suitable for young readers";
+      } else {
+        // Custom style provided - use it directly
+        baseStyle = `${illustrationStyle} illustration style for children's storybooks`;
+      }
+    }
+
+    console.log("Illustration Style:", illustrationStyle || "default");
+
+    let promptText = `Convert this photo into a ${baseStyle}. Maintain the person's likeness, facial features, and hair, but render in the specified artistic style. The character should look friendly and child-appropriate with gentle features.`;
     
     // Add pet companion if provided
     if (petType && petName) {
