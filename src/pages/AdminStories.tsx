@@ -72,8 +72,8 @@ const AdminStories = () => {
   const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Cover image must be less than 5MB');
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error('Cover image must be less than 20MB');
         return;
       }
       setCoverFile(file);
@@ -84,8 +84,8 @@ const AdminStories = () => {
   };
 
   const handlePageImageUpload = (pageIndex: number, file: File | null) => {
-    if (file && file.size > 5 * 1024 * 1024) {
-      toast.error('Page image must be less than 5MB');
+    if (file && file.size > 20 * 1024 * 1024) {
+      toast.error('Page image must be less than 20MB');
       return;
     }
     

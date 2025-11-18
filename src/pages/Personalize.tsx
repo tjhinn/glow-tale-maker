@@ -41,10 +41,10 @@ const Personalize = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please choose a photo smaller than 5MB.",
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please choose a photo smaller than 10MB.",
           variant: "destructive",
         });
         return;
