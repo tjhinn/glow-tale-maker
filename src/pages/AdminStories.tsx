@@ -462,15 +462,40 @@ const AdminStories = () => {
                               <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <Label className="text-xs">Page Image</Label>
+                                  
+                                  {/* Current saved image */}
+                                  {page.imageUrl && !page.image && (
+                                    <div className="mb-2 p-2 bg-muted/50 rounded border">
+                                      <p className="text-xs text-muted-foreground mb-1">Current Image:</p>
+                                      <img 
+                                        src={page.imageUrl} 
+                                        alt={`Page ${index + 1}`} 
+                                        className="h-24 w-full object-cover rounded mb-1" 
+                                      />
+                                      <p className="text-xs text-muted-foreground">
+                                        Upload a new file to replace
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* New upload preview */}
+                                  {page.image && page.imageUrl && (
+                                    <div className="mb-2 p-2 bg-primary/10 rounded border border-primary">
+                                      <p className="text-xs text-primary mb-1">New Image (unsaved):</p>
+                                      <img 
+                                        src={page.imageUrl} 
+                                        alt={`Page ${index + 1} new`} 
+                                        className="h-24 w-full object-cover rounded" 
+                                      />
+                                    </div>
+                                  )}
+                                  
                                   <Input
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => handlePageImageUpload(index, e.target.files?.[0] || null)}
                                     className="text-sm"
                                   />
-                                  {page.imageUrl && (
-                                    <img src={page.imageUrl} alt={`Page ${index + 1}`} className="mt-2 h-20 w-20 object-cover rounded" />
-                                  )}
                                 </div>
                                 <div>
                                   <Label className="text-xs">Image Prompt (optional)</Label>
@@ -491,16 +516,31 @@ const AdminStories = () => {
                     {/* Cover Image Upload */}
                     <div>
                       <Label htmlFor="cover">Cover Image</Label>
-                      <Input
-                        id="cover"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleCoverUpload}
-                        className="cursor-pointer"
-                      />
-                      {coverPreview && (
-                        <div className="mt-2 relative inline-block">
-                          <img src={coverPreview} alt="Cover preview" className="h-32 rounded-lg" />
+                      
+                      {/* Current saved cover */}
+                      {coverPreview && !coverFile && (
+                        <div className="mb-2 p-2 bg-muted/50 rounded border">
+                          <p className="text-xs text-muted-foreground mb-1">Current Cover:</p>
+                          <img 
+                            src={coverPreview} 
+                            alt="Cover preview" 
+                            className="h-32 rounded-lg mb-1" 
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Upload a new file to replace
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* New cover preview */}
+                      {coverFile && coverPreview && (
+                        <div className="mb-2 p-2 bg-primary/10 rounded border border-primary relative">
+                          <p className="text-xs text-primary mb-1">New Cover (unsaved):</p>
+                          <img 
+                            src={coverPreview} 
+                            alt="New cover preview" 
+                            className="h-32 rounded-lg" 
+                          />
                           <Button
                             type="button"
                             variant="destructive"
@@ -508,13 +548,27 @@ const AdminStories = () => {
                             className="absolute -top-2 -right-2 h-6 w-6"
                             onClick={() => {
                               setCoverFile(null);
-                              setCoverPreview('');
+                              // Revert to saved cover if available
+                              if (editingStory?.cover_image_url) {
+                                const { data } = supabase.storage.from('story-images').getPublicUrl(editingStory.cover_image_url);
+                                setCoverPreview(data.publicUrl);
+                              } else {
+                                setCoverPreview('');
+                              }
                             }}
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                       )}
+                      
+                      <Input
+                        id="cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverUpload}
+                        className="cursor-pointer"
+                      />
                     </div>
 
 
