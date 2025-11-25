@@ -135,7 +135,9 @@ Composition:
 - Square or 4:3 landscape format suitable for a book cover
 - Warm, magical lighting with a sense of adventure
 - Child-friendly, bright, inviting, and full of wonder
-- The overall scene should feel like the opening of an exciting storybook adventure`;
+- The overall scene should feel like the opening of an exciting storybook adventure
+
+IMPORTANT: Do NOT include any text, words, letters, titles, captions, or typography anywhere in the illustration. The image should be purely visual with no written content whatsoever.`;
 
     console.log("AI Prompt:", promptText);
 
