@@ -178,7 +178,7 @@ const StorySelection = () => {
 
               return <Card key={story.id} onClick={() => setSelectedStory(story.id)} className={`
                   cursor-pointer transition-all duration-300 page-turn
-                  ${selectedStory === story.id ? "border-4 border-primary shadow-2xl scale-105 glow-primary" : "border-2 border-border hover:border-primary/50 hover:shadow-xl hover:glow-soft"}
+                  ${selectedStory === story.id ? "border-4 border-primary shadow-xl ring-4 ring-primary/30 bg-primary/5" : "border-2 border-border hover:border-primary/50 hover:shadow-lg"}
                 `}>
                 <CardHeader className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-t-lg relative overflow-hidden p-0">
                   {selectedStory === story.id && <SparklesAnimation count={3} className="opacity-50" />}
