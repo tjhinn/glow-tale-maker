@@ -8,6 +8,7 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { GenerationLoadingModal } from "@/components/story/GenerationLoadingModal";
 const StorySelection = () => {
   const navigate = useNavigate();
   const {
@@ -65,10 +66,6 @@ const StorySelection = () => {
 
       // Generate illustrated character if not already done
       if (personalization.heroPhotoUrl && !personalization.illustratedCharacterUrl) {
-        toast({
-          title: `Bringing ${personalization.heroName} into the story... ✨`,
-          description: `Styling in ${story.illustration_style} style!`
-        });
         const {
           data,
           error
@@ -99,10 +96,6 @@ const StorySelection = () => {
             illustratedCharacterUrl: data.illustratedCharacterUrl
           };
           localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
-          toast({
-            title: "Character ready! ✨",
-            description: `${personalization.heroName} looks perfect in this story!`
-          });
         }
       }
 
@@ -213,12 +206,32 @@ const StorySelection = () => {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <Button variant="magical" size="lg" onClick={handleContinue} disabled={selectedStory === null} className="flex-1 group">
-            <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
-            See the Magic
+          <Button 
+            variant="magical" 
+            size="lg" 
+            onClick={handleContinue} 
+            disabled={selectedStory === null || isLoading} 
+            className="flex-1 group"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Creating Magic...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
+                See the Magic
+              </>
+            )}
           </Button>
         </div>
       </div>
+
+      <GenerationLoadingModal 
+        isOpen={isLoading} 
+        heroName={personalization.heroName} 
+      />
     </PageWrapper>;
 };
 export default StorySelection;
