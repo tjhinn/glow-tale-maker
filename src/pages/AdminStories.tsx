@@ -293,7 +293,7 @@ const AdminStories = () => {
     // Set existing image previews
     if (story.cover_image_url) {
       const { data } = supabase.storage.from('story-images').getPublicUrl(story.cover_image_url);
-      setCoverPreview(data.publicUrl);
+      setCoverPreview(`${data.publicUrl}?t=${new Date(story.updated_at).getTime()}`);
     }
     
     // Load existing pages data
@@ -302,7 +302,7 @@ const AdminStories = () => {
         let imageUrl = '';
         if (p.template_image_url) {
           const { data } = supabase.storage.from('story-images').getPublicUrl(p.template_image_url);
-          imageUrl = data.publicUrl;
+          imageUrl = `${data.publicUrl}?t=${new Date(story.updated_at).getTime()}`;
         }
         return {
           text: p.text,
@@ -551,7 +551,7 @@ const AdminStories = () => {
                               // Revert to saved cover if available
                               if (editingStory?.cover_image_url) {
                                 const { data } = supabase.storage.from('story-images').getPublicUrl(editingStory.cover_image_url);
-                                setCoverPreview(data.publicUrl);
+                                setCoverPreview(`${data.publicUrl}?t=${new Date(editingStory.updated_at).getTime()}`);
                               } else {
                                 setCoverPreview('');
                               }
@@ -638,7 +638,7 @@ const AdminStories = () => {
                   {story.cover_image_url && (
                     <div className="mb-4">
                       <img
-                        src={supabase.storage.from('story-images').getPublicUrl(story.cover_image_url).data.publicUrl}
+                        src={`${supabase.storage.from('story-images').getPublicUrl(story.cover_image_url).data.publicUrl}?t=${new Date(story.updated_at).getTime()}`}
                         alt={story.title}
                         className="w-full h-32 object-cover rounded"
                       />

@@ -173,7 +173,7 @@ const StorySelection = () => {
               let coverUrl = story.cover_image_url;
               if (coverUrl && !coverUrl.startsWith('http')) {
                 const { data } = supabase.storage.from('story-images').getPublicUrl(coverUrl);
-                coverUrl = data.publicUrl;
+                coverUrl = `${data.publicUrl}?t=${new Date(story.updated_at).getTime()}`;
               }
 
               return <Card key={story.id} onClick={() => setSelectedStory(story.id)} className={`
