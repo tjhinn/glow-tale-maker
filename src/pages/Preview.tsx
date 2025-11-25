@@ -257,66 +257,48 @@ const Preview = () => {
           </CardHeader>
         </Card>
 
+        {/* Personalized Scene Illustration Showcase */}
+        <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5 mb-8">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl md:text-3xl font-playfair flex items-center justify-center gap-3">
+              <Sparkles className="w-6 h-6 text-primary" />
+              {personalization.heroName}'s Adventure Awaits
+              <Sparkles className="w-6 h-6 text-primary" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 md:p-8">
+            <div className="relative max-w-2xl mx-auto">
+              {/* Glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-xl"></div>
+              
+              {/* Main image with frame */}
+              <div className="relative rounded-2xl overflow-hidden border-4 border-primary/40 shadow-2xl">
+                <img 
+                  src={personalization.illustratedCharacterUrl}
+                  alt={`${personalization.heroName}'s magical adventure`}
+                  className="w-full h-auto"
+                />
+                {/* Watermark overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                  <div className="bg-background/60 backdrop-blur-sm px-6 py-2 rounded-lg rotate-[-15deg]">
+                    <p className="text-sm font-medium text-muted-foreground">PREVIEW</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Caption */}
+            <p className="text-center mt-6 font-playfair text-xl text-primary">
+              {personalizeSimpleText(selectedStory.title)}
+            </p>
+            <p className="text-center mt-2 text-sm text-muted-foreground">
+              This personalized illustration will appear throughout your storybook
+            </p>
+          </CardContent>
+        </Card>
+
         {/* New Preview Layout */}
         <div className="space-y-8 mb-8">
-          
-          {/* Hero Section: Cover + Character */}
-          <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl md:text-3xl font-playfair flex items-center justify-center gap-3">
-                <Sparkles className="w-6 h-6 text-primary" />
-                Your Magical Story
-                <Sparkles className="w-6 h-6 text-primary" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 md:p-8">
-              <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
-                
-                {/* Story Cover Image */}
-                <div className="order-2 md:order-1">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
-                    <div className="relative rounded-2xl overflow-hidden border-4 border-primary/30 shadow-2xl">
-                      <img 
-                        src={coverUrl || selectedStory.cover_image_url || '/placeholder.svg'}
-                        alt={selectedStory.title}
-                        className="w-full h-auto"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
-                      />
-                    </div>
-                  </div>
-                  <p className="text-center mt-4 font-playfair text-xl text-primary">
-                    {personalizeSimpleText(selectedStory.title)}
-                  </p>
-                </div>
-                
-                {/* Illustrated Character */}
-                <div className="order-1 md:order-2">
-                  <div className="text-center space-y-4">
-                    <h3 className="font-playfair text-2xl text-foreground">
-                      Meet Your Hero!
-                    </h3>
-                    <div className="relative group mx-auto w-48 h-48 md:w-64 md:h-64">
-                      <div className="absolute inset-0 bg-gradient-to-r from-accent/30 to-primary/30 rounded-full blur-xl group-hover:blur-2xl transition-all"></div>
-                      <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-accent/50 shadow-2xl">
-                        <img 
-                          src={personalization.illustratedCharacterUrl}
-                          alt={personalization.heroName}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-                    <p className="font-poppins text-lg">
-                      <span className="font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                        {personalization.heroName}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                
-              </div>
-            </CardContent>
-          </Card>
           
           {/* Story Preview: First 3 Pages Only */}
           <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/5 to-background">

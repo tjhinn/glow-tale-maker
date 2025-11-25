@@ -25,11 +25,14 @@
 - ✅ Preview.tsx with Web Share API and discount logic
 - ✅ Checkout.tsx with LemonSqueezy integration
 - ✅ ThankYou.tsx with order confirmation
+- ✅ **NEW:** Personalized story scene illustration with full scene composition (hero in costume, pet companion, favorite food)
+- ✅ **NEW:** Redesigned Preview page with prominent single-image showcase
 
 **Phase 2 Backend - COMPLETED:**
 - ✅ All edge functions deployed and operational
 - ✅ Edge function imports fixed (@2.79.0 → @2)
 - ✅ Character illustration generation working
+- ✅ **NEW:** Scene illustration generation with story-themed costumes and full composition
 - ✅ PDF generation with composited images
 - ✅ Email delivery system functional
 
@@ -42,6 +45,7 @@
 **Bugfixes:**
 - ✅ Story cover image URL resolution fixed (2025-11-12)
 - ✅ Edge function import errors resolved (2025-11-25)
+- ✅ Personalization placeholders showing as literal text fixed (2025-11-25)
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
