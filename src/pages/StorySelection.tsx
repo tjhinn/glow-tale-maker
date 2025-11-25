@@ -153,7 +153,7 @@ const StorySelection = () => {
                   Choose {personalization.heroName}'s Adventure!
                 </CardTitle>
                 <p className="text-sm text-muted-foreground font-poppins">
-                  Pick the perfect tale for our {personalization.gender === 'boy' ? 'brave hero' : 'amazing hero'}
+                  Pick the perfect tale for our {personalization.gender === 'boy' ? 'brave hero' : 'amazing hero'}, {personalization.heroName}
                   {personalization.petName && ` and ${personalization.petName}`}
                 </p>
               </div>
