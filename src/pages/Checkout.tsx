@@ -180,7 +180,7 @@ const Checkout = () => {
                 size="xl"
                 onClick={handlePayment}
                 disabled={processing || !email}
-                className="w-full animate-glow-pulse group"
+                className="w-full group"
               >
                 {processing ? (
                   <>✨ Redirecting to checkout...</>

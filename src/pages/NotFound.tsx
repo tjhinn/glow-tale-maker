@@ -21,7 +21,7 @@ const NotFound = () => {
           <SparklesAnimation count={8} className="opacity-40" />
           <CardContent className="p-12 text-center space-y-6 relative">
             <div className="flex justify-center">
-              <Sparkles className="w-20 h-20 text-accent animate-float" />
+              <Sparkles className="w-20 h-20 text-accent" />
             </div>
             
             <h1 className="text-6xl md:text-8xl font-playfair text-primary">
