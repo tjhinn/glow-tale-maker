@@ -42,7 +42,7 @@ serve(async (req) => {
       );
     }
 
-    const { heroPhotoUrl, petType, petName, favoriteColor, favoriteFood, illustrationStyle } = await req.json();
+    const { heroPhotoUrl, petType, petName, favoriteColor, favoriteFood, illustrationStyle, storyTitle } = await req.json();
     
     if (!heroPhotoUrl) {
       return new Response(
@@ -84,25 +84,58 @@ serve(async (req) => {
     }
 
     console.log("Illustration Style:", illustrationStyle || "default");
+    console.log("Story Title:", storyTitle || "generic adventure");
 
-    let promptText = `Convert this photo into a ${baseStyle}. Maintain the person's likeness, facial features, and hair, but render in the specified artistic style. The character should look friendly and child-appropriate with gentle features.`;
+    // Create a full scene illustration (not just a portrait)
+    let promptText = `Create a ${baseStyle} children's storybook scene illustration.
+
+Main Character:
+- Transform this child's photo into an illustrated hero, preserving their likeness, facial features, and hair
+- Position as the central focus of the scene
+- The character should look friendly, brave, and child-appropriate with gentle features`;
     
-    // Add pet companion if provided
+    // Add story-themed costume with favorite color
+    if (favoriteColor && storyTitle) {
+      promptText += `
+- Dress them in a ${favoriteColor}-themed adventure costume that fits a "${storyTitle}" story theme
+- The costume should be vibrant, eye-catching, and suitable for the story's setting`;
+    } else if (favoriteColor) {
+      promptText += `
+- Dress them in ${favoriteColor}-colored adventure clothing that fits the magical storybook aesthetic`;
+    }
+    
+    // Add pet companion as a sidekick
     if (petType && petName) {
-      promptText += ` Include a cute, friendly ${petType} companion named ${petName} standing beside or near the character. The ${petType} should look playful and magical, rendered in the same storybook art style.`;
+      promptText += `
+
+Companion:
+- Include ${petName} the ${petType} as a loyal sidekick standing beside or near the hero
+- The ${petType} should look friendly, playful, and magical
+- Render in the same artistic style as the main character`;
     }
     
-    // Add favorite color for clothing
-    if (favoriteColor) {
-      promptText += ` Dress the character in ${favoriteColor}-colored clothing or outfit that fits the magical storybook aesthetic. The ${favoriteColor} should be vibrant and eye-catching while maintaining a gentle, fairy-tale feel.`;
-    }
-    
-    // Add favorite food as magical detail
+    // Add favorite food as whimsical background element
     if (favoriteFood) {
-      promptText += ` Include ${favoriteFood} as a small, whimsical detail in the illustration - perhaps the character is holding it with a gentle glow around it, or it appears nearby with magical sparkles, fitting naturally into the fairy tale scene.`;
+      promptText += `
+
+Background Elements:
+- Add ${favoriteFood} as a whimsical detail somewhere in the scene (floating with sparkles, on a table, glowing magically)
+- The element should fit naturally into the fairy tale environment`;
     }
     
-    promptText += " The overall composition should feel magical, warm, and inviting, suitable for a children's fairy tale book cover.";
+    // Add story-specific environment if title is provided
+    if (storyTitle) {
+      promptText += `
+- Create a magical fantasy environment that fits the "${storyTitle}" theme`;
+    }
+    
+    promptText += `
+
+Composition:
+- Square or 4:3 landscape format suitable for a book cover
+- Warm, magical lighting with a sense of adventure
+- Child-friendly, bright, inviting, and full of wonder
+- The overall scene should feel like the opening of an exciting storybook adventure`;
 
     console.log("AI Prompt:", promptText);
 

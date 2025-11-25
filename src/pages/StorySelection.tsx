@@ -76,7 +76,8 @@ const StorySelection = () => {
             petName: personalization.petName,
             favoriteColor: personalization.favoriteColor,
             favoriteFood: personalization.favoriteFood,
-            illustrationStyle: story.illustration_style
+            illustrationStyle: story.illustration_style,
+            storyTitle: replaceStoryPlaceholders(story.title)
           }
         });
         if (error) {
