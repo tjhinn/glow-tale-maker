@@ -187,7 +187,7 @@ const StorySelection = () => {
                       <img 
                         src={coverUrl} 
                         alt={replaceStoryPlaceholders(story.title)}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover object-center"
                       />
                     </div>
                   )}
