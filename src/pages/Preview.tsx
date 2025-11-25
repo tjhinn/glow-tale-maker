@@ -404,7 +404,16 @@ const Preview = () => {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => navigate("/stories")}
+            onClick={() => {
+              // Clear the old illustration when going back to choose a different story
+              const saved = localStorage.getItem("personalizationData");
+              if (saved) {
+                const data = JSON.parse(saved);
+                delete data.illustratedCharacterUrl;
+                localStorage.setItem("personalizationData", JSON.stringify(data));
+              }
+              navigate("/stories");
+            }}
             className="flex-1"
           >
             ← Choose Different Story

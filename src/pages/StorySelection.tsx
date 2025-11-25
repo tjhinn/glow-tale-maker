@@ -64,8 +64,8 @@ const StorySelection = () => {
         fullCoverUrl = data.publicUrl;
       }
 
-      // Generate illustrated character if not already done
-      if (personalization.heroPhotoUrl && !personalization.illustratedCharacterUrl) {
+      // Generate illustrated character for the selected story
+      if (personalization.heroPhotoUrl) {
         const {
           data,
           error

@@ -46,6 +46,8 @@
 - ✅ Story cover image URL resolution fixed (2025-11-12)
 - ✅ Edge function import errors resolved (2025-11-25)
 - ✅ Personalization placeholders showing as literal text fixed (2025-11-25)
+- ✅ Illustration regeneration on story change implemented (2025-11-25)
+- ✅ Character illustration prompt updated to prevent text overlay (2025-11-25)
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
