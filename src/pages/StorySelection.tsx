@@ -123,6 +123,20 @@ const StorySelection = () => {
       setIsLoading(false);
     }
   };
+
+  // Replace placeholders in story text with personalization data
+  const replaceStoryPlaceholders = (text: string) => {
+    if (!text || !personalization) return text;
+    
+    return text
+      .replace(/{heroName}/g, personalization.heroName || '')
+      .replace(/{petName}/g, personalization.petName || '')
+      .replace(/{petType}/g, personalization.petType || '')
+      .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
+      .replace(/{favoriteFood}/g, personalization.favoriteFood || '')
+      .replace(/{city}/g, personalization.city || '');
+  };
+
   if (!personalization) {
     return null;
   }
@@ -169,13 +183,13 @@ const StorySelection = () => {
                 <CardHeader className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-t-lg relative overflow-hidden">
                   {selectedStory === story.id && <SparklesAnimation count={3} className="opacity-50" />}
                   <CardTitle className="text-2xl font-playfair text-center relative">
-                    {story.title}
+                    {replaceStoryPlaceholders(story.title)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   <div>
                     <h4 className="font-semibold font-poppins mb-2">Moral:</h4>
-                    <p className="text-sm text-muted-foreground italic font-poppins">{story.moral}</p>
+                    <p className="text-sm text-muted-foreground italic font-poppins">{replaceStoryPlaceholders(story.moral)}</p>
                   </div>
                 </CardContent>
               </Card>)}
