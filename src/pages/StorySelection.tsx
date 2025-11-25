@@ -127,16 +127,8 @@ const StorySelection = () => {
   // Replace placeholders in story text with personalization data
   const replaceStoryPlaceholders = (text: string) => {
     if (!text || !personalization) return text;
-    
-    return text
-      .replace(/{heroName}/g, personalization.heroName || '')
-      .replace(/{petName}/g, personalization.petName || '')
-      .replace(/{petType}/g, personalization.petType || '')
-      .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
-      .replace(/{favoriteFood}/g, personalization.favoriteFood || '')
-      .replace(/{city}/g, personalization.city || '');
+    return text.replace(/{heroName}/g, personalization.heroName || '').replace(/{petName}/g, personalization.petName || '').replace(/{petType}/g, personalization.petType || '').replace(/{favoriteColor}/g, personalization.favoriteColor || '').replace(/{favoriteFood}/g, personalization.favoriteFood || '').replace(/{city}/g, personalization.city || '');
   };
-
   if (!personalization) {
     return null;
   }
@@ -188,7 +180,7 @@ const StorySelection = () => {
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   <div>
-                    <h4 className="font-semibold font-poppins mb-2">Moral:</h4>
+                    <h4 className="font-semibold font-poppins mb-2">Story Synopsis:</h4>
                     <p className="text-sm text-muted-foreground italic font-poppins">{replaceStoryPlaceholders(story.moral)}</p>
                   </div>
                 </CardContent>
