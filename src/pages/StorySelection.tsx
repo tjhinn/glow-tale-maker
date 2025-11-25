@@ -168,15 +168,34 @@ const StorySelection = () => {
           </div> : !stories || stories.length === 0 ? <div className="text-center py-12">
             <p className="text-muted-foreground font-poppins">No stories available for this hero.</p>
           </div> : <div className="grid md:grid-cols-2 gap-6 mb-8">
-            {stories.map(story => <Card key={story.id} onClick={() => setSelectedStory(story.id)} className={`
+            {stories.map(story => {
+              // Convert storage path to public URL for cover image
+              let coverUrl = story.cover_image_url;
+              if (coverUrl && !coverUrl.startsWith('http')) {
+                const { data } = supabase.storage.from('story-images').getPublicUrl(coverUrl);
+                coverUrl = data.publicUrl;
+              }
+
+              return <Card key={story.id} onClick={() => setSelectedStory(story.id)} className={`
                   cursor-pointer transition-all duration-300 page-turn
                   ${selectedStory === story.id ? "border-4 border-primary shadow-2xl scale-105 glow-primary" : "border-2 border-border hover:border-primary/50 hover:shadow-xl hover:glow-soft"}
                 `}>
-                <CardHeader className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-t-lg relative overflow-hidden">
+                <CardHeader className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-t-lg relative overflow-hidden p-0">
                   {selectedStory === story.id && <SparklesAnimation count={3} className="opacity-50" />}
-                  <CardTitle className="text-2xl font-playfair text-center relative">
-                    {replaceStoryPlaceholders(story.title)}
-                  </CardTitle>
+                  {coverUrl && (
+                    <div className="w-full h-48 overflow-hidden">
+                      <img 
+                        src={coverUrl} 
+                        alt={replaceStoryPlaceholders(story.title)}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <CardTitle className="text-2xl font-playfair text-center relative">
+                      {replaceStoryPlaceholders(story.title)}
+                    </CardTitle>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   <div>
@@ -184,7 +203,8 @@ const StorySelection = () => {
                     <p className="text-sm text-muted-foreground italic font-poppins">{replaceStoryPlaceholders(story.moral)}</p>
                   </div>
                 </CardContent>
-              </Card>)}
+              </Card>;
+            })}
           </div>}
 
         {/* Navigation Buttons */}
