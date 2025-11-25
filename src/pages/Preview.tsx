@@ -107,13 +107,13 @@ const Preview = () => {
   };
 
   const handleFacebookShare = () => {
-    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.heroName}! ✨`;
+    const shareText = `I just created "${personalizeSimpleText(selectedStory?.title || '')}" - an amazing personalized storybook starring ${personalization?.heroName}! ✨`;
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin)}&quote=${encodeURIComponent(shareText)}`;
     openShareWindowWithConfirmation(url);
   };
 
   const handleTwitterShare = () => {
-    const shareText = `I just created "${selectedStory?.title}" - an amazing personalized storybook starring ${personalization?.heroName}! ✨`;
+    const shareText = `I just created "${personalizeSimpleText(selectedStory?.title || '')}" - an amazing personalized storybook starring ${personalization?.heroName}! ✨`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.origin)}`;
     openShareWindowWithConfirmation(url);
   };
@@ -151,6 +151,27 @@ const Preview = () => {
     navigate("/checkout");
   };
 
+  const personalizeSimpleText = (template: string) => {
+    if (!personalization || !template) return template;
+    
+    const replacements: Record<string, string> = {
+      '{heroName}': personalization.heroName,
+      '{petName}': personalization.petName,
+      '{petType}': personalization.petType,
+      '{petPronoun}': personalization.gender === 'boy' ? 'his' : 'her',
+      '{city}': personalization.city,
+      '{favoriteColor}': personalization.favoriteColor || '',
+      '{favoriteFood}': personalization.favoriteFood || '',
+    };
+    
+    let result = template;
+    Object.entries(replacements).forEach(([token, value]) => {
+      if (value) result = result.split(token).join(value);
+    });
+    
+    return result;
+  };
+
   const renderPersonalizedText = (template: string) => {
     if (!personalization) return template;
     
@@ -158,6 +179,7 @@ const Preview = () => {
       '{heroName}': personalization.heroName,
       '{petName}': personalization.petName,
       '{petType}': personalization.petType,
+      '{petPronoun}': personalization.gender === 'boy' ? 'his' : 'her',
       '{city}': personalization.city,
       '{favoriteColor}': personalization.favoriteColor || '',
       '{favoriteFood}': personalization.favoriteFood || '',
@@ -230,7 +252,7 @@ const Preview = () => {
               ✨ See the Magic
             </CardTitle>
             <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
-              {personalization.heroName}'s adventure in "{selectedStory.title}"
+              {personalization.heroName}'s adventure in "{personalizeSimpleText(selectedStory.title)}"
             </p>
           </CardHeader>
         </Card>
@@ -264,7 +286,7 @@ const Preview = () => {
                     </div>
                   </div>
                   <p className="text-center mt-4 font-playfair text-xl text-primary">
-                    {selectedStory.title}
+                    {personalizeSimpleText(selectedStory.title)}
                   </p>
                 </div>
                 
