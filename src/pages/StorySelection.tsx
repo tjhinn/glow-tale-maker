@@ -183,11 +183,11 @@ const StorySelection = () => {
                 <CardHeader className="bg-gradient-to-br from-accent/20 to-primary/20 rounded-t-lg relative overflow-hidden p-0">
                   {selectedStory === story.id && <SparklesAnimation count={3} className="opacity-50" />}
                   {coverUrl && (
-                    <div className="w-full h-48 overflow-hidden">
+                    <div className="w-full h-64 overflow-hidden bg-muted/20">
                       <img 
                         src={coverUrl} 
                         alt={replaceStoryPlaceholders(story.title)}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
