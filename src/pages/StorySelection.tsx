@@ -81,6 +81,7 @@ const StorySelection = () => {
             petName: personalization.petName,
             favoriteColor: personalization.favoriteColor,
             illustrationStyle: story.illustration_style,
+            heroGender: personalization.gender,
           }
         });
         if (error) {

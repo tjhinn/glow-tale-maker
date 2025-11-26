@@ -49,7 +49,8 @@ serve(async (req) => {
       petType, 
       petName, 
       favoriteColor, 
-      illustrationStyle 
+      illustrationStyle,
+      heroGender
     } = await req.json();
     
     if (!heroPhotoUrl || !coverImageUrl || !personalizedTitle) {
@@ -93,15 +94,24 @@ serve(async (req) => {
     console.log("Cover Image URL:", coverImageUrl.substring(0, 50) + "...");
 
     // Create personalized cover prompt
+    const genderLabel = heroGender === 'boy' ? 'BOY' : heroGender === 'girl' ? 'GIRL' : 'CHILD';
+    const genderDescriptor = heroGender === 'boy' ? 'male' : heroGender === 'girl' ? 'female' : 'gender-neutral';
+    
     let promptText = `Edit this storybook cover to create a personalized version:
 
 REFERENCE IMAGE: I'm also providing a photo of the child who should become the hero.
 
+CRITICAL - Character Gender:
+- The hero MUST be a ${genderLabel}
+- If the original cover shows a different gender character, COMPLETELY REPLACE them with a ${genderDescriptor} character
+- The character's body type, pose, and proportions must match a ${genderLabel}
+
 Main Character Transformation:
-- Replace the main character in the cover with an illustrated version of the child from the reference photo
+- Replace the main character with an illustrated ${genderLabel.toLowerCase()} version based on the reference photo
 - Preserve the child's exact likeness: face shape, eyes, hair color, hairstyle, skin tone
+- The character body, pose, and clothing should clearly represent a ${genderLabel.toLowerCase()}
 - Position them naturally where the original character was
-- Dress them in a ${favoriteColor}-themed costume that matches the scene's style and adventure theme`;
+- Dress them in a ${favoriteColor}-themed costume appropriate for a ${genderLabel.toLowerCase()} that matches the scene's style and adventure theme`;
     
     // Add pet companion instructions
     if (petType && petName) {
