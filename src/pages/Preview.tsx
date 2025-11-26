@@ -278,11 +278,20 @@ const Preview = () => {
                   alt={`${personalization.heroName}'s magical adventure`}
                   className="w-full h-auto"
                 />
-                {/* Watermark overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                  <div className="bg-background/60 backdrop-blur-sm px-6 py-2 rounded-lg rotate-[-15deg]">
-                    <p className="text-sm font-medium text-muted-foreground">PREVIEW</p>
-                  </div>
+                {/* Watermark overlay - scattered for visibility */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  {/* Top-left watermark */}
+                  <p className="absolute top-[10%] left-[5%] text-4xl font-bold text-white/20 rotate-[-25deg] select-none">
+                    PREVIEW
+                  </p>
+                  {/* Top-right watermark */}
+                  <p className="absolute top-[15%] right-[8%] text-3xl font-bold text-white/20 rotate-[20deg] select-none">
+                    PREVIEW
+                  </p>
+                  {/* Bottom-left watermark */}
+                  <p className="absolute bottom-[12%] left-[10%] text-3xl font-bold text-white/20 rotate-[15deg] select-none">
+                    PREVIEW
+                  </p>
                 </div>
               </div>
             </div>
