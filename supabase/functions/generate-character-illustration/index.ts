@@ -108,6 +108,8 @@ serve(async (req) => {
     
     let promptText = `Edit this storybook cover to create a personalized version:
 
+OUTPUT FORMAT: Generate the result as a 4:3 LANDSCAPE image (e.g., 1024x768 or similar landscape dimensions). The aspect ratio MUST match the input cover image exactly.
+
 REFERENCE IMAGE: I'm also providing a photo of the child who should become the hero.
 
 CRITICAL - Character Gender:
@@ -135,12 +137,14 @@ Pet Companion:
     promptText += `
 
 IMPORTANT Guidelines:
+- **CRITICAL**: Output the image in EXACTLY 4:3 LANDSCAPE aspect ratio (wider than tall)
+- The output dimensions must match the input cover image aspect ratio precisely
 - Maintain the EXACT same illustration style, lighting, and color palette as the original cover
 - Keep the background, environment, and composition intact
 - Only modify: the main character and the companion pet
 - The result should look like a professionally produced personalized children's book cover
-- Do NOT add any text, titles, labels, or captions - leave space at the top for a title overlay`;
-
+- Do NOT add any text, titles, labels, or captions - leave space at the top for a title overlay
+- Do NOT crop or change the aspect ratio of the scene - keep it landscape 4:3`;
     console.log("AI Prompt:", promptText);
 
     // Call Lovable AI with multi-image input (cover + hero photo)
