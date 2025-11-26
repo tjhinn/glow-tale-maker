@@ -25,7 +25,7 @@ Rubik Light
 For small guidance or playful microcopy
 
 Typographic Feel:
- Imagine it typeset like a storybook cover — gentle serifs, rounded forms, generous spacing. Never rigid or corporate.
+ Imagine it typeset like a children's book cover — playful, rounded, bouncy forms with generous spacing. Friendly and engaging, never rigid or corporate.
 
 🎨 Color System
 Role
@@ -256,9 +256,9 @@ Font
 Size
 Weight
 H1
-Playfair Display
+Fredoka One
 30px
-600
+400
 H2
 Poppins
 24px

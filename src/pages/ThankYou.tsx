@@ -121,7 +121,7 @@ const ThankYou = () => {
             <div className="flex justify-center">
               <Sparkles className="w-20 h-20 text-success animate-sparkle" />
             </div>
-            <CardTitle className="text-4xl md:text-5xl font-playfair text-success leading-tight">
+            <CardTitle className="text-4xl md:text-5xl font-fredoka text-success leading-tight">
               ✨ The magic is brewing! ✨
             </CardTitle>
             <div className="space-y-4 max-w-2xl mx-auto">
@@ -138,7 +138,7 @@ const ThankYou = () => {
         {/* Preview Sneak Peek */}
         <Card className="shadow-xl border-2 border-primary/30 mb-8 hover:glow-primary transition-all duration-300">
           <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20">
-            <CardTitle className="text-2xl text-center font-playfair">
+            <CardTitle className="text-2xl text-center font-fredoka">
               A Sneak Peek at the Magic
             </CardTitle>
           </CardHeader>

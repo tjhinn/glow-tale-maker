@@ -147,7 +147,7 @@ const StorySelection = () => {
                   </div>
                 </div>}
               <div className="space-y-2">
-                <CardTitle className="text-3xl md:text-4xl font-playfair">
+                <CardTitle className="text-3xl md:text-4xl font-fredoka">
                   Choose {personalization.heroName}'s Adventure!
                 </CardTitle>
                 <p className="text-sm text-muted-foreground font-poppins">
@@ -190,7 +190,7 @@ const StorySelection = () => {
                     </div>
                   )}
                   <div className="p-6">
-                    <CardTitle className="text-2xl font-playfair text-center relative">
+                    <CardTitle className="text-2xl font-fredoka text-center relative">
                       {replaceStoryPlaceholders(story.title)}
                     </CardTitle>
                   </div>

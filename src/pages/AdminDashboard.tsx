@@ -77,7 +77,7 @@ const AdminDashboard = () => {
       <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
         <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container flex h-16 items-center justify-between">
-            <h1 className="text-2xl font-playfair font-bold">Admin Dashboard</h1>
+            <h1 className="text-2xl font-fredoka font-bold">Admin Dashboard</h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">{userEmail}</span>
               <Button variant="outline" size="sm" onClick={handleLogout}>
