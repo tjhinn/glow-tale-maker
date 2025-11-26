@@ -92,10 +92,19 @@ serve(async (req) => {
 
     console.log("Illustration Style:", illustrationStyle || "default");
     console.log("Cover Image URL:", coverImageUrl.substring(0, 50) + "...");
+    
+    // Debug logging for gender parameter
+    console.log("Hero Gender received:", heroGender);
+    console.log("Hero Gender type:", typeof heroGender);
 
-    // Create personalized cover prompt
-    const genderLabel = heroGender === 'boy' ? 'BOY' : heroGender === 'girl' ? 'GIRL' : 'CHILD';
-    const genderDescriptor = heroGender === 'boy' ? 'male' : heroGender === 'girl' ? 'female' : 'gender-neutral';
+    // Create personalized cover prompt with normalized gender
+    const normalizedGender = (heroGender || '').toString().toLowerCase().trim();
+    console.log("Normalized Gender:", normalizedGender);
+    
+    const genderLabel = normalizedGender === 'boy' ? 'BOY' : normalizedGender === 'girl' ? 'GIRL' : 'CHILD';
+    const genderDescriptor = normalizedGender === 'boy' ? 'male' : normalizedGender === 'girl' ? 'female' : 'gender-neutral';
+    console.log("Gender Label:", genderLabel);
+    console.log("Gender Descriptor:", genderDescriptor);
     
     let promptText = `Edit this storybook cover to create a personalized version:
 

@@ -69,6 +69,10 @@ const StorySelection = () => {
         // Prepare personalized title
         const personalizedTitle = replaceStoryPlaceholders(story.title);
         
+        // Debug logging for gender parameter
+        console.log("Personalization gender value:", personalization.gender);
+        console.log("Full personalization object:", personalization);
+        
         const {
           data,
           error
