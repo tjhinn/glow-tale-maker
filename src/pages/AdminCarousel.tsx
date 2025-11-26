@@ -254,7 +254,7 @@ const AdminCarousel = () => {
 
         <Card className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-playfair font-bold">Manage Homepage Carousel</h1>
+            <h1 className="text-3xl font-fredoka font-bold">Manage Homepage Carousel</h1>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button

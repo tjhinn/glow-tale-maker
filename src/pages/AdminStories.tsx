@@ -371,7 +371,7 @@ const AdminStories = () => {
             
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-bold font-playfair">Story Template Management</h1>
+                <h1 className="text-3xl font-bold font-fredoka">Story Template Management</h1>
                 <p className="text-muted-foreground mt-1">
                   {stories?.length || 0} total story templates
                 </p>

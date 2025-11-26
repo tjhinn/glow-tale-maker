@@ -135,7 +135,7 @@ export default function AdminTest() {
         
         <Card className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-playfair font-bold">Admin Test - Orders</h1>
+            <h1 className="text-3xl font-fredoka font-bold">Admin Test - Orders</h1>
             <Button onClick={fetchOrders} variant="outline">
               Refresh
             </Button>
