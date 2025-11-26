@@ -115,23 +115,12 @@ Pet Companion:
     
     promptText += `
 
-Typography - Make it POP!:
-- Add the title "${personalizedTitle}" as the HERO ELEMENT at the top of the cover
-- Make the title LARGE, bold, and impossible to miss - it should command attention
-- Use a bouncy, hand-drawn storybook font with playful, uneven letter heights
-- Add visual depth: soft drop shadow, gentle glow, or a subtle outline to make letters pop
-- Letters should feel alive - slightly tilted, dancing, or whimsical in arrangement
-- Consider adding tiny decorative elements around the title: small stars, sparkles, or magical swirls
-- Use colors that complement the cover art but ensure MAXIMUM contrast for readability
-- The title should feel like it's bursting with joy and adventure
-- Think classic Disney/Pixar movie poster typography - eye-catching and full of personality
-
 IMPORTANT Guidelines:
 - Maintain the EXACT same illustration style, lighting, and color palette as the original cover
 - Keep the background, environment, and composition intact
-- Only modify: the main character, the companion pet, and add the title
+- Only modify: the main character and the companion pet
 - The result should look like a professionally produced personalized children's book cover
-- Do NOT add any other text, labels, or captions besides the title`;
+- Do NOT add any text, titles, labels, or captions - leave space at the top for a title overlay`;
 
     console.log("AI Prompt:", promptText);
 
