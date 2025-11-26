@@ -143,12 +143,14 @@ const ThankYou = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 text-center space-y-6">
-            <div className="mb-6 relative group">
-              <img 
-                src={personalization?.personalizedCoverUrl || sample1} 
-                alt="Preview of your personalized storybook cover featuring your child as the hero" 
-                className="w-full max-w-md mx-auto rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
-              />
+            <div className="mb-6 relative group max-w-md mx-auto">
+              <div className="relative aspect-[4/3] w-full rounded-lg shadow-2xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <img 
+                  src={personalization?.personalizedCoverUrl || sample1} 
+                  alt="Preview of your personalized storybook cover featuring your child as the hero" 
+                  className="absolute inset-0 w-full h-full object-cover" 
+                />
+              </div>
               
               {/* Code-based title overlay - pixel perfect typography (no watermark on thank you page) */}
               {personalization?.personalizedCoverUrl && selectedStory && (
