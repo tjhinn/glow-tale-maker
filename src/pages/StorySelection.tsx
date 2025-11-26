@@ -64,39 +64,43 @@ const StorySelection = () => {
         fullCoverUrl = data.publicUrl;
       }
 
-      // Generate illustrated character for the selected story
+      // Generate personalized cover for the selected story
       if (personalization.heroPhotoUrl) {
+        // Prepare personalized title
+        const personalizedTitle = replaceStoryPlaceholders(story.title);
+        
         const {
           data,
           error
         } = await supabase.functions.invoke('generate-character-illustration', {
           body: {
             heroPhotoUrl: personalization.heroPhotoUrl,
+            coverImageUrl: fullCoverUrl,
+            personalizedTitle: personalizedTitle,
             petType: personalization.petType,
             petName: personalization.petName,
             favoriteColor: personalization.favoriteColor,
-            favoriteFood: personalization.favoriteFood,
             illustrationStyle: story.illustration_style,
-            storyTitle: replaceStoryPlaceholders(story.title)
           }
         });
         if (error) {
-          console.error("Character illustration error:", error);
+          console.error("Personalized cover generation error:", error);
           toast({
-            title: "Character generation failed",
+            title: "Cover generation failed",
             description: error.message || "Please try again later.",
             variant: "destructive"
           });
           setIsLoading(false);
           return;
         }
-        if (data?.illustratedCharacterUrl) {
-          // Update personalization data with illustrated character
+        if (data?.personalizedCoverUrl) {
+          // Update personalization data with personalized cover
           const updatedPersonalization = {
             ...personalization,
-            illustratedCharacterUrl: data.illustratedCharacterUrl
+            personalizedCoverUrl: data.personalizedCoverUrl
           };
           localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+          console.log("Personalized cover generated:", data.personalizedCoverUrl);
         }
       }
 
@@ -133,10 +137,10 @@ const StorySelection = () => {
           <SparklesAnimation count={8} className="opacity-30" />
           <CardHeader className="bg-gradient-to-br from-accent/30 via-primary/20 to-secondary/30 relative">
             <div className="flex flex-col items-center gap-6 text-center">
-              {personalization.illustratedCharacterUrl && <div className="relative group">
+              {personalization.personalizedCoverUrl && <div className="relative group">
                   <div className="absolute -inset-2 bg-gradient-to-r from-primary via-accent to-secondary rounded-full opacity-30 blur-lg group-hover:opacity-50 transition-all duration-300"></div>
                   <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-primary/40 shadow-2xl ring-4 ring-accent/20 hover:scale-105 transition-transform duration-300">
-                    <img src={personalization.illustratedCharacterUrl} alt={personalization.heroName} className="w-full h-full object-cover" />
+                    <img src={personalization.personalizedCoverUrl} alt={personalization.heroName} className="w-full h-full object-cover" />
                   </div>
                   <div className="absolute -top-1 -right-1 w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-lg animate-pulse">
                     <Sparkles className="w-5 h-5 text-white" />

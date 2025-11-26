@@ -42,11 +42,19 @@ serve(async (req) => {
       );
     }
 
-    const { heroPhotoUrl, petType, petName, favoriteColor, favoriteFood, illustrationStyle, storyTitle } = await req.json();
+    const { 
+      heroPhotoUrl, 
+      coverImageUrl, 
+      personalizedTitle, 
+      petType, 
+      petName, 
+      favoriteColor, 
+      illustrationStyle 
+    } = await req.json();
     
-    if (!heroPhotoUrl) {
+    if (!heroPhotoUrl || !coverImageUrl || !personalizedTitle) {
       return new Response(
-        JSON.stringify({ error: "heroPhotoUrl is required" }),
+        JSON.stringify({ error: "heroPhotoUrl, coverImageUrl, and personalizedTitle are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -60,88 +68,70 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Generating character illustration for photo: ${heroPhotoUrl.substring(0, 50)}...`);
+    console.log(`Generating personalized cover for: ${personalizedTitle}`);
 
-    // Build personalized prompt with illustration style
+    // Determine illustration style description
     let baseStyle = "whimsical children's storybook illustration with warm, hand-painted digital art style";
 
-    // Override base style if specific illustration style is provided
     if (illustrationStyle) {
       const styleLower = illustrationStyle.toLowerCase();
       
       if (styleLower.includes('ghibli') || styleLower.includes('watercolor')) {
-        baseStyle = "Studio Ghibli-inspired watercolor illustration with soft, dreamy brushstrokes, gentle color washes, and an ethereal quality. Use muted pastels and flowing organic shapes typical of Miyazaki films";
+        baseStyle = "Studio Ghibli-inspired watercolor illustration with soft, dreamy brushstrokes, gentle color washes, and an ethereal quality";
       } else if (styleLower.includes('modern') || styleLower.includes('digital')) {
-        baseStyle = "modern digital illustration with vibrant colors, clean lines, and contemporary children's book aesthetic. Use bold, saturated colors and crisp vector-like rendering";
+        baseStyle = "modern digital illustration with vibrant colors, clean lines, and contemporary children's book aesthetic";
       } else if (styleLower.includes('vintage') || styleLower.includes('classic')) {
-        baseStyle = "vintage classic storybook illustration with crosshatching, muted earth tones, and nostalgic fairy tale aesthetic reminiscent of 1950s-60s children's books";
+        baseStyle = "vintage classic storybook illustration with crosshatching, muted earth tones, and nostalgic fairy tale aesthetic";
       } else if (styleLower.includes('cartoon') || styleLower.includes('playful')) {
-        baseStyle = "playful cartoon illustration with exaggerated features, bright primary colors, and energetic linework suitable for young readers";
+        baseStyle = "playful cartoon illustration with exaggerated features, bright primary colors, and energetic linework";
       } else {
-        // Custom style provided - use it directly
         baseStyle = `${illustrationStyle} illustration style for children's storybooks`;
       }
     }
 
     console.log("Illustration Style:", illustrationStyle || "default");
-    console.log("Story Title:", storyTitle || "generic adventure");
+    console.log("Cover Image URL:", coverImageUrl.substring(0, 50) + "...");
 
-    // Create a full scene illustration (not just a portrait)
-    let promptText = `Create a ${baseStyle} children's storybook scene illustration.
+    // Create personalized cover prompt
+    let promptText = `Edit this storybook cover to create a personalized version:
 
-Main Character:
-- Transform this child's photo into an illustrated hero, preserving their likeness, facial features, and hair
-- Position as the central focus of the scene
-- The character should look friendly, brave, and child-appropriate with gentle features`;
+REFERENCE IMAGE: I'm also providing a photo of the child who should become the hero.
+
+Main Character Transformation:
+- Replace the main character in the cover with an illustrated version of the child from the reference photo
+- Preserve the child's exact likeness: face shape, eyes, hair color, hairstyle, skin tone
+- Position them naturally where the original character was
+- Dress them in a ${favoriteColor}-themed costume that matches the scene's style and adventure theme`;
     
-    // Add story-themed costume with favorite color
-    if (favoriteColor && storyTitle) {
-      promptText += `
-- Dress them in a ${favoriteColor}-themed adventure costume that fits a "${storyTitle}" story theme
-- The costume should be vibrant, eye-catching, and suitable for the story's setting`;
-    } else if (favoriteColor) {
-      promptText += `
-- Dress them in ${favoriteColor}-colored adventure clothing that fits the magical storybook aesthetic`;
-    }
-    
-    // Add pet companion as a sidekick
+    // Add pet companion instructions
     if (petType && petName) {
       promptText += `
 
-Companion:
-- Include ${petName} the ${petType} as a loyal sidekick standing beside or near the hero
-- The ${petType} should look friendly, playful, and magical
-- Render in the same artistic style as the main character`;
-    }
-    
-    // Add favorite food as whimsical background element
-    if (favoriteFood) {
-      promptText += `
-
-Background Elements:
-- Add ${favoriteFood} as a whimsical detail somewhere in the scene (floating with sparkles, on a table, glowing magically)
-- The element should fit naturally into the fairy tale environment`;
-    }
-    
-    // Add story-specific environment if title is provided
-    if (storyTitle) {
-      promptText += `
-- Create a magical fantasy environment that fits the "${storyTitle}" theme`;
+Pet Companion:
+- Change any existing companion animal to ${petName} the ${petType}
+- Keep the ${petType} in the same artistic style as the rest of the cover
+- Position naturally near the hero`;
     }
     
     promptText += `
 
-Composition:
-- Square or 4:3 landscape format suitable for a book cover
-- Warm, magical lighting with a sense of adventure
-- Child-friendly, bright, inviting, and full of wonder
-- The overall scene should feel like the opening of an exciting storybook adventure
+Typography:
+- Add the title "${personalizedTitle}" prominently at the top of the cover
+- Use a whimsical, playful storybook font that feels magical and enchanting
+- The text should have excellent contrast and be clearly legible
+- Style the typography to match the illustration's aesthetic (${baseStyle})
+- Make the title feel like an integral part of the cover design
 
-IMPORTANT: Do NOT include any text, words, letters, titles, captions, or typography anywhere in the illustration. The image should be purely visual with no written content whatsoever.`;
+IMPORTANT Guidelines:
+- Maintain the EXACT same illustration style, lighting, and color palette as the original cover
+- Keep the background, environment, and composition intact
+- Only modify: the main character, the companion pet, and add the title
+- The result should look like a professionally produced personalized children's book cover
+- Do NOT add any other text, labels, or captions besides the title`;
 
     console.log("AI Prompt:", promptText);
 
-    // Call Lovable AI to illustrate the hero photo
+    // Call Lovable AI with multi-image input (cover + hero photo)
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -157,6 +147,10 @@ IMPORTANT: Do NOT include any text, words, letters, titles, captions, or typogra
               {
                 type: "text",
                 text: promptText,
+              },
+              {
+                type: "image_url",
+                image_url: { url: coverImageUrl },
               },
               {
                 type: "image_url",
@@ -178,23 +172,23 @@ IMPORTANT: Do NOT include any text, words, letters, titles, captions, or typogra
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      throw new Error("Failed to illustrate character");
+      throw new Error("Failed to generate personalized cover");
     }
 
     const data = await response.json();
-    const illustratedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const personalizedCoverImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    if (!illustratedImageUrl) {
-      throw new Error("No illustrated image generated");
+    if (!personalizedCoverImageUrl) {
+      throw new Error("No personalized cover image generated");
     }
 
-    console.log("Character illustration generated. Uploading to storage...");
+    console.log("Personalized cover generated. Uploading to storage...");
 
     // Convert base64 to blob and upload to storage
-    const base64Data = illustratedImageUrl.split(",")[1];
+    const base64Data = personalizedCoverImageUrl.split(",")[1];
     const imageBytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
-    const fileName = `illustrated-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+    const fileName = `personalized-cover-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
     const { error: uploadError } = await supabase.storage
       .from("hero-photos")
       .upload(fileName, imageBytes, {
@@ -203,7 +197,7 @@ IMPORTANT: Do NOT include any text, words, letters, titles, captions, or typogra
       });
 
     if (uploadError) {
-      throw new Error(`Failed to upload illustrated character: ${uploadError.message}`);
+      throw new Error(`Failed to upload personalized cover: ${uploadError.message}`);
     }
 
     // Get public URL
@@ -211,12 +205,12 @@ IMPORTANT: Do NOT include any text, words, letters, titles, captions, or typogra
       .from("hero-photos")
       .getPublicUrl(fileName);
 
-    console.log("✅ Character illustration complete!");
+    console.log("✅ Personalized cover generation complete!");
 
     return new Response(
       JSON.stringify({
         success: true,
-        illustratedCharacterUrl: urlData.publicUrl,
+        personalizedCoverUrl: urlData.publicUrl,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

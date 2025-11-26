@@ -23,7 +23,7 @@ interface PaymentRequest {
     favoriteFood: string;
     city: string;
     originalPhotoUrl: string;
-    illustratedCharacterUrl?: string;
+    personalizedCoverUrl?: string;
   };
   storyId: string;
 }
@@ -57,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
         story_id: paymentRequest.storyId,
         personalization_data: paymentRequest.personalizationData,
         hero_photo_url: paymentRequest.personalizationData.originalPhotoUrl,
-        illustrated_hero_url: paymentRequest.personalizationData.illustratedCharacterUrl,
+        personalized_cover_url: paymentRequest.personalizationData.personalizedCoverUrl,
         amount_paid: paymentRequest.amount,
         discount_applied: paymentRequest.discountApplied,
         discount_code: paymentRequest.discountCode,
