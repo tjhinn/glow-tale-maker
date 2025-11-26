@@ -153,7 +153,7 @@ const ThankYou = () => {
               {/* Code-based title overlay - pixel perfect typography (no watermark on thank you page) */}
               {personalization?.personalizedCoverUrl && selectedStory && (
                 <div className="absolute top-[8%] left-0 right-0 px-6 pointer-events-none">
-                  <h1 className="font-playfair text-2xl sm:text-3xl md:text-4xl font-bold text-center leading-tight"
+                  <h1 className="font-fredoka text-2xl sm:text-3xl md:text-4xl text-center leading-tight"
                       style={{
                         textShadow: '3px 3px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,139,0,0.5)',
                         color: '#FFE97F',
