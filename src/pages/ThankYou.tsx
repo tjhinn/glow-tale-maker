@@ -147,7 +147,7 @@ const ThankYou = () => {
               <img 
                 src={personalization?.personalizedCoverUrl || sample1} 
                 alt="Preview of your personalized storybook cover featuring your child as the hero" 
-                className="w-full h-auto block rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
+                className="w-full aspect-[4/3] object-cover block rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
               />
               
               {/* Code-based title overlay - pixel perfect typography (no watermark on thank you page) */}
