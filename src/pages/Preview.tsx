@@ -276,7 +276,7 @@ const Preview = () => {
                 <img 
                   src={personalization.personalizedCoverUrl}
                   alt={`${personalization.heroName}'s magical adventure`}
-                  className="w-full h-auto block"
+                  className="w-full aspect-[4/3] object-cover block"
                 />
                 
                 {/* Code-based title overlay - pixel perfect typography */}
