@@ -16,12 +16,38 @@ const Checkout = () => {
   const { toast } = useToast();
   const [processing, setProcessing] = useState(false);
   const [email, setEmail] = useState("");
+  const [personalization, setPersonalization] = useState<any>(null);
+  const [selectedStory, setSelectedStory] = useState<any>(null);
   const hasDiscount = localStorage.getItem("shareDiscount") === "true";
   
   const basePrice = 999; // $9.99 USD in cents
   const discount = hasDiscount ? Math.round(basePrice * 0.1) : 0;
   const finalPrice = basePrice - discount;
 
+  // Load personalization and story data
+  useEffect(() => {
+    const personalizationData = localStorage.getItem("personalizationData");
+    const storyData = localStorage.getItem("selectedStory");
+    
+    if (personalizationData) {
+      setPersonalization(JSON.parse(personalizationData));
+    }
+    if (storyData) {
+      setSelectedStory(JSON.parse(storyData));
+    }
+  }, []);
+
+  // Replace placeholders in story text with personalization data
+  const replaceStoryPlaceholders = (text: string) => {
+    if (!text || !personalization) return text;
+    return text
+      .replace(/{heroName}/g, personalization.heroName || '')
+      .replace(/{petName}/g, personalization.petName || '')
+      .replace(/{petType}/g, personalization.petType || '')
+      .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
+      .replace(/{favoriteFood}/g, personalization.favoriteFood || '')
+      .replace(/{city}/g, personalization.city || '');
+  };
 
   const handlePayment = async () => {
     if (!email) {
@@ -103,10 +129,25 @@ const Checkout = () => {
             <CardContent>
               <div className="relative mb-4">
                 <img
-                  src={sample1}
+                  src={personalization?.personalizedCoverUrl || sample1}
                   alt="Story cover preview"
                   className="w-full rounded-lg shadow-lg"
                 />
+                
+                {/* Code-based title overlay - pixel perfect typography */}
+                {personalization?.personalizedCoverUrl && selectedStory && (
+                  <div className="absolute top-[8%] left-0 right-0 px-6 pointer-events-none">
+                    <h1 className="font-playfair text-2xl sm:text-3xl md:text-4xl font-bold text-center leading-tight"
+                        style={{
+                          textShadow: '3px 3px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,139,0,0.5)',
+                          color: '#FFE97F',
+                          WebkitTextStroke: '2px rgba(0,0,0,0.3)'
+                        }}>
+                      {replaceStoryPlaceholders(selectedStory.title)}
+                    </h1>
+                  </div>
+                )}
+                
                 {/* Watermark overlay - scattered for visibility */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
                   {/* Top-left watermark */}

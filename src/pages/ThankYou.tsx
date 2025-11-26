@@ -14,6 +14,20 @@ const ThankYou = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [heroName, setHeroName] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [personalization, setPersonalization] = useState<any>(null);
+  const [selectedStory, setSelectedStory] = useState<any>(null);
+  
+  // Replace placeholders in story text with personalization data
+  const replaceStoryPlaceholders = (text: string) => {
+    if (!text || !personalization) return text;
+    return text
+      .replace(/{heroName}/g, personalization.heroName || '')
+      .replace(/{petName}/g, personalization.petName || '')
+      .replace(/{petType}/g, personalization.petType || '')
+      .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
+      .replace(/{favoriteFood}/g, personalization.favoriteFood || '')
+      .replace(/{city}/g, personalization.city || '');
+  };
   
   useEffect(() => {
     setShowConfetti(true);
@@ -35,6 +49,7 @@ const ThankYou = () => {
           if (!error && order) {
             const personalizationData = order.personalization_data as any;
             setHeroName(personalizationData?.heroName || "your little hero");
+            setPersonalization(personalizationData);
           } else {
             // Fallback to localStorage if database fetch fails
             tryLocalStorage();
@@ -52,12 +67,19 @@ const ThankYou = () => {
     };
     
     const tryLocalStorage = () => {
-      const personalizationData = localStorage.getItem("personalizationData");
-      if (personalizationData) {
-        const data = JSON.parse(personalizationData);
-        setHeroName(data.heroName || "your little hero");
+      const savedData = localStorage.getItem("personalizationData");
+      const storyData = localStorage.getItem("selectedStory");
+      
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        setHeroName(data?.heroName || "your little hero");
+        setPersonalization(data);
       } else {
         setHeroName("your little hero");
+      }
+      
+      if (storyData) {
+        setSelectedStory(JSON.parse(storyData));
       }
     };
     
@@ -122,7 +144,26 @@ const ThankYou = () => {
           </CardHeader>
           <CardContent className="p-8 text-center space-y-6">
             <div className="mb-6 relative group">
-              <img src={sample1} alt="Preview of your personalized storybook cover featuring your child as the hero" className="w-full max-w-md mx-auto rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" />
+              <img 
+                src={personalization?.personalizedCoverUrl || sample1} 
+                alt="Preview of your personalized storybook cover featuring your child as the hero" 
+                className="w-full max-w-md mx-auto rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
+              />
+              
+              {/* Code-based title overlay - pixel perfect typography (no watermark on thank you page) */}
+              {personalization?.personalizedCoverUrl && selectedStory && (
+                <div className="absolute top-[8%] left-0 right-0 px-6 pointer-events-none">
+                  <h1 className="font-playfair text-2xl sm:text-3xl md:text-4xl font-bold text-center leading-tight"
+                      style={{
+                        textShadow: '3px 3px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,139,0,0.5)',
+                        color: '#FFE97F',
+                        WebkitTextStroke: '2px rgba(0,0,0,0.3)'
+                      }}>
+                    {replaceStoryPlaceholders(selectedStory.title)}
+                  </h1>
+                </div>
+              )}
+              
               <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
             </div>
             
