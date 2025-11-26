@@ -115,12 +115,16 @@ Pet Companion:
     
     promptText += `
 
-Typography:
-- Add the title "${personalizedTitle}" prominently at the top of the cover
-- Use a whimsical, playful storybook font that feels magical and enchanting
-- The text should have excellent contrast and be clearly legible
-- Style the typography to match the illustration's aesthetic (${baseStyle})
-- Make the title feel like an integral part of the cover design
+Typography - Make it POP!:
+- Add the title "${personalizedTitle}" as the HERO ELEMENT at the top of the cover
+- Make the title LARGE, bold, and impossible to miss - it should command attention
+- Use a bouncy, hand-drawn storybook font with playful, uneven letter heights
+- Add visual depth: soft drop shadow, gentle glow, or a subtle outline to make letters pop
+- Letters should feel alive - slightly tilted, dancing, or whimsical in arrangement
+- Consider adding tiny decorative elements around the title: small stars, sparkles, or magical swirls
+- Use colors that complement the cover art but ensure MAXIMUM contrast for readability
+- The title should feel like it's bursting with joy and adventure
+- Think classic Disney/Pixar movie poster typography - eye-catching and full of personality
 
 IMPORTANT Guidelines:
 - Maintain the EXACT same illustration style, lighting, and color palette as the original cover
