@@ -55,13 +55,13 @@ export type Database = {
           email_sent_at: string | null
           hero_photo_url: string | null
           id: string
-          illustrated_hero_url: string | null
           payment_provider: string | null
           payment_provider_id: string | null
           payment_transaction_id: string | null
           pdf_generated_at: string | null
           pdf_url: string | null
           personalization_data: Json
+          personalized_cover_url: string | null
           personalized_story: Json | null
           status: Database["public"]["Enums"]["order_status"]
           story_id: string
@@ -78,13 +78,13 @@ export type Database = {
           email_sent_at?: string | null
           hero_photo_url?: string | null
           id?: string
-          illustrated_hero_url?: string | null
           payment_provider?: string | null
           payment_provider_id?: string | null
           payment_transaction_id?: string | null
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data: Json
+          personalized_cover_url?: string | null
           personalized_story?: Json | null
           status?: Database["public"]["Enums"]["order_status"]
           story_id: string
@@ -101,13 +101,13 @@ export type Database = {
           email_sent_at?: string | null
           hero_photo_url?: string | null
           id?: string
-          illustrated_hero_url?: string | null
           payment_provider?: string | null
           payment_provider_id?: string | null
           payment_transaction_id?: string | null
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data?: Json
+          personalized_cover_url?: string | null
           personalized_story?: Json | null
           status?: Database["public"]["Enums"]["order_status"]
           story_id?: string

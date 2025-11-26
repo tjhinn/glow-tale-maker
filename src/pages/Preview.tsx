@@ -274,7 +274,7 @@ const Preview = () => {
               {/* Main image with frame */}
               <div className="relative rounded-2xl overflow-hidden border-4 border-primary/40 shadow-2xl">
                 <img 
-                  src={personalization.illustratedCharacterUrl}
+                  src={personalization.personalizedCoverUrl}
                   alt={`${personalization.heroName}'s magical adventure`}
                   className="w-full h-auto"
                 />
@@ -405,11 +405,11 @@ const Preview = () => {
             variant="outline"
             size="lg"
             onClick={() => {
-              // Clear the old illustration when going back to choose a different story
+              // Clear the personalized cover when going back to choose a different story
               const saved = localStorage.getItem("personalizationData");
               if (saved) {
                 const data = JSON.parse(saved);
-                delete data.illustratedCharacterUrl;
+                delete data.personalizedCoverUrl;
                 localStorage.setItem("personalizationData", JSON.stringify(data));
               }
               navigate("/stories");

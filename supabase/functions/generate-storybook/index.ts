@@ -70,7 +70,7 @@ serve(async (req) => {
 
     const personalization = order.personalization_data as any;
     const heroPhotoUrl = order.hero_photo_url;
-    let illustratedHeroUrl = order.illustrated_hero_url;
+    let personalizedCoverUrl = order.personalized_cover_url;
     
     if (!personalization) {
       throw new Error(`No personalization data found for order ${orderId}`);
@@ -81,9 +81,9 @@ serve(async (req) => {
     
     console.log(`[${orderId}] Personalization data:`, JSON.stringify(personalization));
 
-    // Step 1: Check if we already have an illustrated hero, otherwise create one
-    if (illustratedHeroUrl) {
-      console.log(`[${orderId}] Using pre-generated illustrated character`);
+    // Step 1: Check if we already have a personalized cover, otherwise create one
+    if (personalizedCoverUrl) {
+      console.log(`[${orderId}] Using pre-generated personalized cover`);
     } else if (heroPhotoUrl) {
       console.log(`[${orderId}] Step 1: Illustrating hero photo (fallback)...`);
       
@@ -94,19 +94,19 @@ serve(async (req) => {
         }
       );
 
-      if (illustrateError || !illustrateData?.illustratedHeroUrl) {
-        throw new Error(`Failed to illustrate hero: ${illustrateError?.message || 'No illustrated hero returned'}`);
+      if (illustrateError || !illustrateData?.personalizedCoverUrl) {
+        throw new Error(`Failed to generate personalized cover: ${illustrateError?.message || 'No personalized cover returned'}`);
       }
 
-      illustratedHeroUrl = illustrateData.illustratedHeroUrl;
+      personalizedCoverUrl = illustrateData.personalizedCoverUrl;
       
-      // Update order with illustrated hero URL
+      // Update order with personalized cover URL
       await supabase
         .from("orders")
-        .update({ illustrated_hero_url: illustratedHeroUrl })
+        .update({ personalized_cover_url: personalizedCoverUrl })
         .eq("id", orderId);
     } else {
-      throw new Error(`No hero photo or illustrated character found for order ${orderId}`);
+      throw new Error(`No hero photo or personalized cover found for order ${orderId}`);
     }
 
     console.log(`[${orderId}] Processing ${storyPages?.length || 0} pages...`);
@@ -175,7 +175,7 @@ serve(async (req) => {
                 },
                 {
                   type: "image_url",
-                  image_url: { url: illustratedHeroUrl },
+                  image_url: { url: personalizedCoverUrl },
                 },
               ],
             },
