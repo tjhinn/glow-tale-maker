@@ -273,11 +273,13 @@ const Preview = () => {
               
               {/* Main image with frame */}
               <div className="relative rounded-2xl overflow-hidden border-4 border-primary/40 shadow-2xl">
-                <img 
-                  src={personalization.personalizedCoverUrl}
-                  alt={`${personalization.heroName}'s magical adventure`}
-                  className="w-full h-auto"
-                />
+                <div className="relative aspect-[4/3] w-full">
+                  <img 
+                    src={personalization.personalizedCoverUrl}
+                    alt={`${personalization.heroName}'s magical adventure`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                </div>
                 
                 {/* Code-based title overlay - pixel perfect typography */}
                 <div className="absolute top-[8%] left-0 right-0 px-8 pointer-events-none">
