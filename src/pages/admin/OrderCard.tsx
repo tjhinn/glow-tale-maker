@@ -138,10 +138,35 @@ export function OrderCard({ order, children }: OrderCardProps) {
           </div>
         </div>
 
+        {/* Page Generation Status */}
+        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase">
+            Page Generation Progress
+          </p>
+          {(() => {
+            const generatedPages = (order as any).generated_pages || [];
+            const storyPages = (order as any).story?.pages || [];
+            const totalPages = Array.isArray(storyPages) ? storyPages.length : 12;
+            const generatedCount = generatedPages.length;
+            const approvedCount = generatedPages.filter((p: any) => p.status === "approved").length;
+
+            return (
+              <div className="space-y-1">
+                <p className="text-sm">
+                  <span className="font-medium">{generatedCount}</span> / {totalPages} pages generated
+                </p>
+                <p className="text-sm">
+                  <span className="font-medium">{approvedCount}</span> / {totalPages} pages approved
+                </p>
+              </div>
+            );
+          })()}
+        </div>
+
         {/* PDF Status */}
         <div className="bg-muted/50 rounded-lg p-3 space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase">
-            PDF Generation Status
+            PDF Status
           </p>
           {order.pdf_url && order.pdf_generated_at ? (
             <div className="space-y-1">
@@ -162,7 +187,7 @@ export function OrderCard({ order, children }: OrderCardProps) {
               ❌ Generation Failed (Attempt {order.generation_attempts || 0}/3)
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">Pending generation</p>
+            <p className="text-sm text-muted-foreground">Pending PDF compilation</p>
           )}
         </div>
 

@@ -54,6 +54,7 @@ export type Database = {
           discount_code: string | null
           email_sent_at: string | null
           error_log: string | null
+          generated_pages: Json | null
           generation_attempts: number | null
           hero_photo_url: string | null
           id: string
@@ -79,6 +80,7 @@ export type Database = {
           discount_code?: string | null
           email_sent_at?: string | null
           error_log?: string | null
+          generated_pages?: Json | null
           generation_attempts?: number | null
           hero_photo_url?: string | null
           id?: string
@@ -104,6 +106,7 @@ export type Database = {
           discount_code?: string | null
           email_sent_at?: string | null
           error_log?: string | null
+          generated_pages?: Json | null
           generation_attempts?: number | null
           hero_photo_url?: string | null
           id?: string
@@ -214,6 +217,8 @@ export type Database = {
         | "approved"
         | "email_sent"
         | "cancelled"
+        | "pages_in_progress"
+        | "pages_ready_for_review"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -350,6 +355,8 @@ export const Constants = {
         "approved",
         "email_sent",
         "cancelled",
+        "pages_in_progress",
+        "pages_ready_for_review",
       ],
     },
   },

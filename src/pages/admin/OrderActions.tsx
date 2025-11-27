@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Loader2, FileText, Send, RotateCcw, XCircle } from "lucide-react";
+import { Loader2, FileText, Send, RotateCcw, XCircle, BookOpen } from "lucide-react";
+import { useState } from "react";
+import { PageReview } from "./PageReview";
 
 type OrderStatus =
   | "payment_received"
   | "generating_images"
+  | "pages_in_progress"
+  | "pages_ready_for_review"
   | "pending_admin_review"
   | "approved"
   | "email_sent"
@@ -20,6 +24,9 @@ interface OrderActionsProps {
   onApprove: (orderId: string) => void;
   onForceRegenerate: (orderId: string) => void;
   onRetry: (orderId: string) => void;
+  generatedPages?: any[];
+  totalPages?: number;
+  onRefetch?: () => void;
 }
 
 export function OrderActions({
@@ -33,7 +40,11 @@ export function OrderActions({
   onApprove,
   onForceRegenerate,
   onRetry,
+  generatedPages = [],
+  totalPages = 12,
+  onRefetch,
 }: OrderActionsProps) {
+  const [showPageReview, setShowPageReview] = useState(false);
   const renderActions = () => {
     // If there's an error, only show retry button (don't show status-based actions)
     if (errorLog) {
@@ -43,23 +54,59 @@ export function OrderActions({
     switch (status) {
       case "payment_received":
         return (
-          <Button
-            onClick={() => onGeneratePDF(orderId)}
-            disabled={isGenerating}
-            className="w-full"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <FileText className="mr-2 h-4 w-4" />
-                Generate PDF
-              </>
+          <div className="space-y-2">
+            <Button
+              onClick={() => setShowPageReview(true)}
+              className="w-full"
+              variant="default"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Start Page Generation
+            </Button>
+            {onRefetch && (
+              <PageReview
+                open={showPageReview}
+                onOpenChange={setShowPageReview}
+                orderId={orderId}
+                totalPages={totalPages}
+                generatedPages={generatedPages}
+                onRefetch={onRefetch}
+              />
             )}
-          </Button>
+          </div>
+        );
+      
+      case "pages_in_progress":
+      case "pages_ready_for_review":
+        const approvedCount = generatedPages.filter((p: any) => p.status === "approved").length;
+        const allApproved = approvedCount === totalPages;
+        
+        return (
+          <div className="space-y-2">
+            <Button
+              onClick={() => setShowPageReview(true)}
+              className="w-full"
+              variant="default"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Review Pages ({approvedCount}/{totalPages} approved)
+            </Button>
+            {allApproved && (
+              <p className="text-sm text-center text-green-600 dark:text-green-400">
+                ✅ All pages approved - ready to compile PDF
+              </p>
+            )}
+            {onRefetch && (
+              <PageReview
+                open={showPageReview}
+                onOpenChange={setShowPageReview}
+                orderId={orderId}
+                totalPages={totalPages}
+                generatedPages={generatedPages}
+                onRefetch={onRefetch}
+              />
+            )}
+          </div>
         );
 
       case "generating_images":
