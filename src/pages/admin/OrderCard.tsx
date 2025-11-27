@@ -4,7 +4,7 @@ import { User, Mail, Calendar, DollarSign } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface PersonalizationData {
-  name: string;
+  heroName: string;
   gender: string;
   petType?: string;
   petName?: string;
@@ -65,7 +65,7 @@ export function OrderCard({ order, children }: OrderCardProps) {
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
               <h3 className="font-semibold text-lg">
-                {personalization.name}'s Story
+                {personalization.heroName}'s Story
               </h3>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -12,7 +12,7 @@ import { OrderErrorAlert } from "./admin/OrderErrorAlert";
 import { OrderFilters } from "./admin/OrderFilters";
 
 interface PersonalizationData {
-  name: string;
+  heroName: string;
   gender: string;
   petType?: string;
   petName?: string;
@@ -77,7 +77,7 @@ const AdminOrders = () => {
           const personalization = order.personalization_data as unknown as PersonalizationData;
           return (
             order.user_email.toLowerCase().includes(searchLower) ||
-            personalization.name.toLowerCase().includes(searchLower)
+            personalization.heroName.toLowerCase().includes(searchLower)
           );
         });
       }
