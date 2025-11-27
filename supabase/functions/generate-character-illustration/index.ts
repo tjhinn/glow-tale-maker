@@ -50,7 +50,8 @@ serve(async (req) => {
       petName, 
       favoriteColor, 
       illustrationStyle,
-      heroGender
+      heroGender,
+      storyTheme
     } = await req.json();
     
     if (!heroPhotoUrl || !coverImageUrl || !personalizedTitle) {
@@ -122,7 +123,18 @@ Main Character Transformation:
 - Preserve the child's exact likeness: face shape, eyes, hair color, hairstyle, skin tone
 - The character body, pose, and clothing should clearly represent a ${genderLabel.toLowerCase()}
 - Position them naturally where the original character was
-- Dress them in a ${favoriteColor}-themed costume appropriate for a ${genderLabel.toLowerCase()} that matches the scene's style and adventure theme`;
+- Dress them in a ${favoriteColor}-themed costume appropriate for a ${genderLabel.toLowerCase()} that fits the story's theme
+${storyTheme ? `
+
+STORY THEME (use this to determine the appropriate costume style):
+"${storyTheme}"
+
+The costume MUST match this story's theme - for example:
+- Space/star stories = astronaut suit, space explorer outfit with helmet or space-themed elements
+- Garden/nature stories = woodland clothes, fairy outfit, nature-inspired attire with leaf or flower elements
+- Library/book stories = scholar robes, magical reading attire, wizard or bookworm aesthetic
+- Ocean/underwater stories = sailor outfit, mermaid-inspired clothing, maritime or aquatic theme
+- Make sure the costume naturally fits the story's setting and adventure type` : ''}`;
     
     // Add pet companion instructions
     if (petType && petName) {
