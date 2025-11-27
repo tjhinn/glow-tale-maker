@@ -111,7 +111,7 @@ const Checkout = () => {
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-accent/30 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-playfair">
+            <CardTitle className="text-3xl md:text-4xl text-center font-fredoka">
               Almost there — your story's about to come alive
             </CardTitle>
             <p className="text-center text-sm text-muted-foreground font-poppins mt-2">

@@ -132,7 +132,7 @@ const AdminLogin = () => {
             <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <ShieldCheck className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-playfair">Admin Portal</CardTitle>
+            <CardTitle className="text-2xl font-fredoka">Admin Portal</CardTitle>
             <CardDescription>
               Enter your credentials to access the admin dashboard
             </CardDescription>
