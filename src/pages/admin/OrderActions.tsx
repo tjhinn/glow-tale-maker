@@ -64,8 +64,30 @@ export function OrderActions({
 
       case "generating_images":
         return (
-          <div className="text-sm text-center text-muted-foreground py-2">
-            Generation in progress...
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-2 text-amber-600">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">AI is generating your storybook...</span>
+            </div>
+            <Button
+              onClick={() => onForceRegenerate(orderId)}
+              disabled={isGenerating}
+              variant="outline"
+              size="sm"
+              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Resetting...
+                </>
+              ) : (
+                <>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Cancel & Reset Generation
+                </>
+              )}
+            </Button>
           </div>
         );
 
