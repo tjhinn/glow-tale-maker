@@ -86,6 +86,7 @@ const StorySelection = () => {
             favoriteColor: personalization.favoriteColor,
             illustrationStyle: story.illustration_style,
             heroGender: personalization.gender,
+            storyTheme: story.moral,
           }
         });
         if (error) {
