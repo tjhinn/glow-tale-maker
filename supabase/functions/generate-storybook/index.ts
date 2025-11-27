@@ -64,11 +64,14 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Update order status to generating_images
+    // Update order status to generating_images and clear previous errors
     console.log(`[${orderId}] Starting storybook generation...`);
     await supabase
       .from("orders")
-      .update({ status: "generating_images" })
+      .update({ 
+        status: "generating_images",
+        error_log: null
+      })
       .eq("id", orderId);
 
     // Fetch order and story data
@@ -187,7 +190,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image-preview",
+          model: "google/gemini-3-pro-image-preview",
           messages: [
             {
               role: "user",
@@ -212,15 +215,22 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[${orderId}] AI gateway error:`, {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+          page: storyImage.name,
+          model: "google/gemini-3-pro-image-preview"
+        });
+        
         if (response.status === 429) {
           throw new Error("AI rate limit exceeded. Please try again later.");
         }
         if (response.status === 402) {
           throw new Error("AI credits depleted. Please add funds to your Lovable workspace.");
         }
-        const errorText = await response.text();
-        console.error(`AI gateway error for ${storyImage.name}:`, response.status, errorText);
-        throw new Error(`Failed to composite ${storyImage.name}`);
+        throw new Error(`AI failed for ${storyImage.name}: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -395,9 +405,44 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in generate-storybook:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error(`Error in generate-storybook:`, errorMessage);
+    
+    try {
+      // Extract orderId from request if possible
+      const body = await req.clone().json();
+      const orderId = body?.orderId;
+      
+      if (orderId) {
+        // Save error to order for visibility in admin
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Get current generation attempts
+        const { data: currentOrder } = await supabase
+          .from("orders")
+          .select("generation_attempts")
+          .eq("id", orderId)
+          .single();
+        
+        const attempts = (currentOrder?.generation_attempts || 0) + 1;
+        
+        await supabase
+          .from("orders")
+          .update({ 
+            status: "payment_received",
+            error_log: errorMessage,
+            generation_attempts: attempts
+          })
+          .eq("id", orderId);
+      }
+    } catch (dbError) {
+      console.error("Failed to save error to database:", dbError);
+    }
+    
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

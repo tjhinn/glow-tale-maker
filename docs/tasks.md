@@ -53,6 +53,12 @@
   - Edge function updated to edit story cover with child's likeness, pet, and personalized title typography
   - Multi-image AI input for base cover editing
   - All related code updated across 6 files
+- ✅ Edge function generation failures fixed (2025-11-27)
+  - AI model corrected: google/gemini-2.5-flash-image-preview → google/gemini-3-pro-image-preview
+  - Enhanced error logging with full response details (status, body, page context)
+  - Error persistence to database with attempt counter
+  - Automatic error_log clearing on generation start
+  - Status reset to payment_received for retry capability
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
