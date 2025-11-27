@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { PDFDocument } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, rgb, StandardFonts } from "https://esm.sh/pdf-lib@1.17.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +16,27 @@ function personalizeText(template: string, personalization: any): string {
     .replace(/{city}/g, personalization.city)
     .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
     .replace(/{favoriteFood}/g, personalization.favoriteFood || '');
+}
+
+// Text wrapping helper function for PDF text
+function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+    
+    if (testWidth <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
 }
 
 serve(async (req) => {
@@ -130,10 +151,16 @@ serve(async (req) => {
     }
     
     for (const pageData of personalizedPages) {
-      if (pageData.template_image_url) {
-        const { data } = supabase.storage.from('story-images').getPublicUrl(pageData.template_image_url);
-        storyImages.push({ url: data.publicUrl, name: `page-${pageData.page}`, page: pageData.page });
+      let templateUrl = pageData.template_image_url;
+      
+      // Fallback to predictable path if template_image_url is empty
+      if (!templateUrl) {
+        templateUrl = `${order.story_id}/page-${String(pageData.page).padStart(2, '0')}.jpg`;
+        console.log(`[${orderId}] Using fallback path for page ${pageData.page}: ${templateUrl}`);
       }
+      
+      const { data } = supabase.storage.from('story-images').getPublicUrl(templateUrl);
+      storyImages.push({ url: data.publicUrl, name: `page-${pageData.page}`, page: pageData.page });
     }
 
     if (storyImages.length === 0) {
@@ -231,8 +258,10 @@ serve(async (req) => {
 
     console.log(`[${orderId}] Personalized story saved. Creating PDF...`);
 
-    // Step 5: Create PDF with composited images
+    // Step 5: Create PDF with composited images and text overlays
     const pdfDoc = await PDFDocument.create();
+    const titleFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+    const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     for (let i = 0; i < compositeImages.length; i++) {
       const base64Data = compositeImages[i].split(",")[1];
@@ -247,6 +276,72 @@ serve(async (req) => {
         width: image.width,
         height: image.height,
       });
+
+      // Cover page (index 0) - Add title overlay
+      if (i === 0) {
+        const title = personalizeText(story.title, personalization);
+        const titleSize = 48;
+        const titleWidth = titleFont.widthOfTextAtSize(title, titleSize);
+        
+        page.drawText(title, {
+          x: (image.width - titleWidth) / 2,
+          y: image.height - 80,
+          size: titleSize,
+          font: titleFont,
+          color: rgb(1, 0.91, 0.5), // Golden #FFE97F
+        });
+      } 
+      // Story pages (index 1-12) - Add text overlay
+      else {
+        const pageIndex = i - 1;
+        const pageText = personalizedPages[pageIndex]?.text || '';
+        
+        if (pageText) {
+          const textBoxHeight = 180;
+          const textBoxPadding = 20;
+          const fontSize = 16;
+          const lineHeight = 22;
+          const textBoxX = 40;
+          const textBoxY = 40;
+          const textBoxWidth = image.width - 80;
+          
+          // Draw semi-transparent background for text
+          page.drawRectangle({
+            x: textBoxX,
+            y: textBoxY,
+            width: textBoxWidth,
+            height: textBoxHeight,
+            color: rgb(1, 1, 1),
+            opacity: 0.85,
+          });
+          
+          // Wrap and draw text
+          const wrappedLines = wrapText(pageText, textFont, fontSize, textBoxWidth - 40);
+          let textY = textBoxY + textBoxHeight - textBoxPadding - fontSize;
+          
+          for (const line of wrappedLines) {
+            page.drawText(line, {
+              x: textBoxX + 20,
+              y: textY,
+              size: fontSize,
+              font: textFont,
+              color: rgb(0, 0, 0),
+            });
+            textY -= lineHeight;
+          }
+          
+          // Draw page number
+          const pageNumText = `${i}`;
+          const pageNumWidth = textFont.widthOfTextAtSize(pageNumText, 12);
+          page.drawText(pageNumText, {
+            x: (image.width - pageNumWidth) / 2,
+            y: 20,
+            size: 12,
+            font: textFont,
+            color: rgb(0.5, 0.5, 0.5),
+          });
+        }
+      }
     }
 
     const pdfBytes = await pdfDoc.save();
