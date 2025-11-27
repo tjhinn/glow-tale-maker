@@ -39,13 +39,28 @@ function wrapText(text: string, font: any, fontSize: number, maxWidth: number): 
   return lines;
 }
 
+// Chunked base64 encoding to prevent stack overflow on large images
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunkSize = 8192; // Process in 8KB chunks
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.slice(i, i + chunkSize);
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  return btoa(binary);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let orderId: string | null = null; // Store at function scope for error handling
+
   try {
-    const { orderId } = await req.json();
+    const body = await req.json();
+    orderId = body.orderId;
     
     if (!orderId) {
       return new Response(
@@ -181,7 +196,7 @@ serve(async (req) => {
       const imageResponse = await fetch(storyImage.url);
       const imageBlob = await imageResponse.blob();
       const imageBuffer = await imageBlob.arrayBuffer();
-      const imageBase64 = `data:image/jpeg;base64,${btoa(String.fromCharCode(...new Uint8Array(imageBuffer)))}`;
+      const imageBase64 = `data:image/jpeg;base64,${arrayBufferToBase64(imageBuffer)}`;
 
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -408,13 +423,9 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error(`Error in generate-storybook:`, errorMessage);
     
-    try {
-      // Extract orderId from request if possible
-      const body = await req.clone().json();
-      const orderId = body?.orderId;
-      
-      if (orderId) {
-        // Save error to order for visibility in admin
+    // orderId is now available from function scope
+    if (orderId) {
+      try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const supabase = createClient(supabaseUrl, supabaseKey);
@@ -436,9 +447,11 @@ serve(async (req) => {
             generation_attempts: attempts
           })
           .eq("id", orderId);
+          
+        console.log(`[${orderId}] Error saved to database, status reset to payment_received`);
+      } catch (dbError) {
+        console.error(`[${orderId}] Failed to save error to database:`, dbError);
       }
-    } catch (dbError) {
-      console.error("Failed to save error to database:", dbError);
     }
     
     return new Response(
