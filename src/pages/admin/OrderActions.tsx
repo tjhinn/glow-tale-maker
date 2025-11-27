@@ -35,6 +35,11 @@ export function OrderActions({
   onRetry,
 }: OrderActionsProps) {
   const renderActions = () => {
+    // If there's an error, only show retry button (don't show status-based actions)
+    if (errorLog) {
+      return null; // Retry button is rendered separately below
+    }
+
     switch (status) {
       case "payment_received":
         return (
