@@ -119,16 +119,6 @@ const AdminDashboard = () => {
                 Manage Carousel
               </Button>
             </div>
-
-            <div className="p-6 rounded-lg border bg-card">
-              <h2 className="text-xl font-semibold mb-2">Test Features</h2>
-              <p className="text-muted-foreground mb-4">
-                Test order generation and PDF creation
-              </p>
-              <Button onClick={() => navigate('/admin/test')}>
-                Go to Test Page
-              </Button>
-            </div>
           </div>
         </main>
       </div>
