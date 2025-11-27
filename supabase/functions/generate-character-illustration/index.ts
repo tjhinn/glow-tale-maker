@@ -139,12 +139,29 @@ ${storyTheme ? `
 STORY THEME (use this to determine the appropriate costume style):
 "${storyTheme}"
 
-The costume MUST match this story's theme - for example:
-- Space/star stories = astronaut suit, space explorer outfit with helmet or space-themed elements
-- Garden/nature stories = woodland clothes, fairy outfit, nature-inspired attire with leaf or flower elements
-- Library/book stories = scholar robes, magical reading attire, wizard or bookworm aesthetic
-- Ocean/underwater stories = sailor outfit, mermaid-inspired clothing, maritime or aquatic theme
-- Make sure the costume naturally fits the story's setting and adventure type` : ''}`;
+The costume MUST match this story's theme AND the character's gender (${genderLabel}):
+${normalizedGender === 'boy' ? `
+BOY COSTUME EXAMPLES by theme:
+- Space/star stories = astronaut suit, space explorer jumpsuit, rocket pilot outfit
+- Garden/nature stories = woodland adventurer clothes, forest ranger outfit, leaf-patterned tunic
+- Library/book stories = young wizard robes, scholar outfit, magical apprentice attire
+- Ocean/underwater stories = sailor suit, pirate outfit, maritime explorer clothes
+- Adventure stories = explorer vest, adventurer's outfit with utility belt` : 
+normalizedGender === 'girl' ? `
+GIRL COSTUME EXAMPLES by theme:
+- Space/star stories = sparkly astronaut dress, star princess gown, cosmic explorer outfit with tutu elements
+- Garden/nature stories = fairy dress, flower princess gown, woodland sprite outfit with petal details
+- Library/book stories = enchanted scholar dress, magical bookkeeper outfit, wizard apprentice gown
+- Ocean/underwater stories = mermaid-inspired dress, sailor dress, sea princess outfit
+- Adventure stories = explorer dress, adventurer's outfit with flowing elements, princess explorer attire` : `
+GENDER-NEUTRAL COSTUME EXAMPLES by theme:
+- Space/star stories = astronaut suit, space explorer outfit
+- Garden/nature stories = woodland clothes, nature-inspired attire
+- Library/book stories = scholar robes, magical reading attire
+- Ocean/underwater stories = sailor outfit, maritime clothing
+- Adventure stories = explorer outfit, adventurer's attire`}
+
+Make sure the costume naturally fits BOTH the story's setting AND looks appropriate for a ${genderLabel.toLowerCase()}` : ''}`;
     
     // Add pet companion instructions
     if (petType && petName) {
