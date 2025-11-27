@@ -11,7 +11,6 @@ import Checkout from "./pages/Checkout";
 import ThankYou from "./pages/ThankYou";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminTest from "./pages/AdminTest";
 import AdminOrders from "./pages/AdminOrders";
 import AdminStories from "./pages/AdminStories";
 import AdminCarousel from "./pages/AdminCarousel";
@@ -34,7 +33,6 @@ const App = () => (
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/test" element={<AdminTest />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/stories" element={<AdminStories />} />
           <Route path="/admin/carousel" element={<AdminCarousel />} />
