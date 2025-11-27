@@ -113,6 +113,16 @@ OUTPUT FORMAT: Generate the result as a 4:3 LANDSCAPE image (e.g., 1024x768 or s
 
 REFERENCE IMAGE: I'm also providing a photo of the child who should become the hero.
 
+**CRITICAL - ILLUSTRATION STYLE (HIGHEST PRIORITY):**
+- You MUST match the EXACT illustration style of the original cover image
+${illustrationStyle ? `- The style is: "${illustrationStyle}"
+- This means: ${baseStyle}` : `- Analyze the original cover and replicate its exact artistic style`}
+- If the cover is 3D/Pixar/CGI style, the character MUST be rendered in 3D with volume, depth, and realistic lighting
+- If the cover is 2D/watercolor/flat illustration, the character MUST be 2D/watercolor/flat
+- DO NOT mix styles - the personalized character must blend seamlessly with the original cover art
+- The character should look like they were always part of this illustration, not pasted in
+- Match the exact rendering technique: brush strokes, shading method, line quality, texture, lighting model
+
 CRITICAL - Character Gender:
 - The hero MUST be a ${genderLabel}
 - If the original cover shows a different gender character, COMPLETELY REPLACE them with a ${genderDescriptor} character
@@ -151,7 +161,12 @@ Pet Companion:
 IMPORTANT Guidelines:
 - **CRITICAL**: Output the image in EXACTLY 4:3 LANDSCAPE aspect ratio (wider than tall)
 - The output dimensions must match the input cover image aspect ratio precisely
-- Maintain the EXACT same illustration style, lighting, and color palette as the original cover
+- **MOST IMPORTANT**: The illustrated character MUST be in the EXACT SAME art style as the original cover
+  - If it's 3D Pixar/CGI style, make a 3D character with proper volume and lighting
+  - If it's 2D watercolor, make a 2D watercolor character with soft edges
+  - If it's flat digital art, make a flat digital art character
+  - The character must look native to the illustration, not like a collage or style mismatch
+- Maintain the EXACT same illustration style, lighting, color palette, and rendering technique as the original cover
 - Keep the background, environment, and composition intact
 - Only modify: the main character and the companion pet
 - The result should look like a professionally produced personalized children's book cover
