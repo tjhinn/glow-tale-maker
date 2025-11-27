@@ -228,7 +228,7 @@ const Preview = () => {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-playfair text-2xl">Did you complete sharing?</AlertDialogTitle>
+            <AlertDialogTitle className="font-fredoka text-2xl">Did you complete sharing?</AlertDialogTitle>
             <AlertDialogDescription className="font-poppins">
               To unlock your 10% discount, please confirm that you shared {personalization?.heroName}'s magical story!
             </AlertDialogDescription>
@@ -248,7 +248,7 @@ const Preview = () => {
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-accent/30 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-playfair">
+            <CardTitle className="text-3xl md:text-4xl text-center font-fredoka">
               ✨ See the Magic
             </CardTitle>
             <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
@@ -260,7 +260,7 @@ const Preview = () => {
         {/* Personalized Scene Illustration Showcase */}
         <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5 mb-8">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl md:text-3xl font-playfair flex items-center justify-center gap-3">
+            <CardTitle className="text-2xl md:text-3xl font-fredoka flex items-center justify-center gap-3">
               <Sparkles className="w-6 h-6 text-primary" />
               {personalization.heroName}'s Adventure Awaits
               <Sparkles className="w-6 h-6 text-primary" />
@@ -310,7 +310,7 @@ const Preview = () => {
             </div>
             
             {/* Caption */}
-            <p className="text-center mt-6 font-playfair text-xl text-primary">
+            <p className="text-center mt-6 font-fredoka text-xl text-primary">
               {personalizeSimpleText(selectedStory.title)}
             </p>
             <p className="text-center mt-2 text-sm text-muted-foreground">
@@ -325,7 +325,7 @@ const Preview = () => {
           {/* Story Preview: First 3 Pages Only */}
           <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/5 to-background">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-playfair">
+              <CardTitle className="text-2xl font-fredoka">
                 ✨ Story Preview
               </CardTitle>
               <p className="text-sm text-muted-foreground font-poppins mt-2">
@@ -338,7 +338,7 @@ const Preview = () => {
                   key={index}
                   className="bg-background/95 backdrop-blur-sm p-6 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
                 >
-                  <h3 className="text-lg font-playfair text-primary mb-3">
+                  <h3 className="text-lg font-fredoka text-primary mb-3">
                     Page {page.page}
                   </h3>
                   <p className="text-base leading-relaxed font-poppins">
@@ -350,7 +350,7 @@ const Preview = () => {
               {/* Teaser for remaining pages */}
               <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-dashed border-primary/30 rounded-xl p-8 text-center space-y-3">
                 <Sparkles className="w-12 h-12 text-primary mx-auto animate-pulse" />
-                <p className="font-playfair text-xl text-foreground">
+                <p className="font-fredoka text-xl text-foreground">
                   9 more magical pages await!
                 </p>
                 <p className="text-sm text-muted-foreground font-poppins">
@@ -365,7 +365,7 @@ const Preview = () => {
         {/* Share Card - Full Width */}
         <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300 mb-8">
           <CardHeader>
-            <CardTitle className="text-xl font-playfair flex items-center gap-2">
+            <CardTitle className="text-xl font-fredoka flex items-center gap-2">
               <Share2 className="w-5 h-5 text-accent" />
               Share & Save
             </CardTitle>
@@ -375,7 +375,7 @@ const Preview = () => {
               <div className="p-8 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 border-2 border-success text-center space-y-3">
                 <Sparkles className="w-16 h-16 text-success mx-auto animate-pulse" />
                 <div>
-                  <p className="text-success font-bold text-xl mb-2 font-playfair">
+                  <p className="text-success font-bold text-xl mb-2 font-fredoka">
                     🎉 Discount Unlocked!
                   </p>
                   <p className="text-sm text-muted-foreground font-poppins">
