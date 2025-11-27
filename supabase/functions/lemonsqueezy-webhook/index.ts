@@ -83,9 +83,89 @@ const handler = async (req: Request): Promise<Response> => {
     if (eventName === "order_created") {
       orderStatus = "payment_received";
       console.log(`Payment successful for order ${orderId}`);
+      
+      // Update order in database
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          status: orderStatus,
+          payment_provider_id: payload.data?.id,
+          payment_transaction_id: payload.data?.attributes?.identifier,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId);
+
+      if (updateError) {
+        console.error("Error updating order:", updateError);
+        throw new Error("Failed to update order");
+      }
+
+      console.log(`Order ${orderId} updated to status: ${orderStatus}`);
+      
+      // Trigger storybook generation as background task
+      console.log(`Triggering storybook generation for order ${orderId}`);
+      
+      try {
+        const { data: invokeData, error: invokeError } = await supabase.functions.invoke(
+          'generate-storybook',
+          {
+            body: { orderId }
+          }
+        );
+        
+        if (invokeError) {
+          console.error(`Failed to invoke generate-storybook for order ${orderId}:`, invokeError);
+          
+          // Update order with error details
+          await supabase
+            .from("orders")
+            .update({
+              status: "pending_admin_review",
+              error_log: `Generation invocation failed: ${invokeError.message}`,
+              generation_attempts: 1,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", orderId);
+        } else {
+          console.log(`Successfully triggered generation for order ${orderId}`, invokeData);
+        }
+      } catch (generationError: any) {
+        console.error(`Exception triggering generation for order ${orderId}:`, generationError);
+        
+        // Update order with error details
+        await supabase
+          .from("orders")
+          .update({
+            status: "pending_admin_review",
+            error_log: `Generation exception: ${generationError.message}`,
+            generation_attempts: 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", orderId);
+      }
+      
     } else if (eventName === "order_refunded") {
       orderStatus = "refunded";
       console.log(`Refund processed for order ${orderId}`);
+      
+      // Update order in database
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          status: orderStatus,
+          payment_provider_id: payload.data?.id,
+          payment_transaction_id: payload.data?.attributes?.identifier,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId);
+
+      if (updateError) {
+        console.error("Error updating order:", updateError);
+        throw new Error("Failed to update order");
+      }
+
+      console.log(`Order ${orderId} updated to status: ${orderStatus}`);
+      
     } else {
       console.log(`Unhandled event: ${eventName}`);
       return new Response(JSON.stringify({ success: true, message: "Event not processed" }), {
@@ -93,24 +173,6 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
-
-    // Update order in database
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({
-        status: orderStatus,
-        payment_provider_id: payload.data?.id,
-        payment_transaction_id: payload.data?.attributes?.identifier,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", orderId);
-
-    if (updateError) {
-      console.error("Error updating order:", updateError);
-      throw new Error("Failed to update order");
-    }
-
-    console.log(`Order ${orderId} updated to status: ${orderStatus}`);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
