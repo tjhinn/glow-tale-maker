@@ -24,6 +24,8 @@ interface PersonalizationData {
 type OrderStatus =
   | "payment_received"
   | "generating_images"
+  | "pages_in_progress"
+  | "pages_ready_for_review"
   | "pending_admin_review"
   | "approved"
   | "email_sent"
@@ -240,6 +242,9 @@ const AdminOrders = () => {
                   onApprove={handleApprove}
                   onForceRegenerate={handleForceRegenerate}
                   onRetry={handleRetry}
+                  generatedPages={(order as any).generated_pages || []}
+                  totalPages={Array.isArray((order as any).story?.pages) ? (order as any).story.pages.length : 12}
+                  onRefetch={refetch}
                 />
               </OrderCard>
             </div>
