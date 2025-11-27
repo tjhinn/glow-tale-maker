@@ -173,6 +173,25 @@ Pet Companion:
 - Position naturally near the hero`;
     }
     
+    // Add favorite color accent instructions
+    if (favoriteColor) {
+      promptText += `
+
+PERSONALIZATION - FAVORITE COLOR ACCENTS (${favoriteColor}):
+- Add SUBTLE touches of ${favoriteColor} as accent colors throughout the cover
+- These should be small, tasteful additions that don't overwhelm the original color palette
+- Examples of where to add ${favoriteColor} accents:
+  - Magical sparkles, glows, or light effects can have a ${favoriteColor} tint
+  - Small environmental details (flowers, gems, stars, butterflies) can be ${favoriteColor}
+  - Subtle highlights on existing objects (book spines, clouds, leaves)
+  - Rim lighting or ambient glow effects
+  - Accessories or small props near the character
+- IMPORTANT: Keep the overall color palette of the original cover intact
+- The ${favoriteColor} accents should feel like natural additions, not painted over
+- Do NOT recolor major background elements - only add accent touches
+- The costume is already ${favoriteColor}-themed, so focus accents on the environment`;
+    }
+    
     promptText += `
 
 IMPORTANT Guidelines:
