@@ -53,6 +53,8 @@ export type Database = {
           discount_applied: boolean | null
           discount_code: string | null
           email_sent_at: string | null
+          error_log: string | null
+          generation_attempts: number | null
           hero_photo_url: string | null
           id: string
           payment_provider: string | null
@@ -76,6 +78,8 @@ export type Database = {
           discount_applied?: boolean | null
           discount_code?: string | null
           email_sent_at?: string | null
+          error_log?: string | null
+          generation_attempts?: number | null
           hero_photo_url?: string | null
           id?: string
           payment_provider?: string | null
@@ -99,6 +103,8 @@ export type Database = {
           discount_applied?: boolean | null
           discount_code?: string | null
           email_sent_at?: string | null
+          error_log?: string | null
+          generation_attempts?: number | null
           hero_photo_url?: string | null
           id?: string
           payment_provider?: string | null
