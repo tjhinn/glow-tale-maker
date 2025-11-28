@@ -44,9 +44,6 @@ const AdminOrders = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [generatingOrders, setGeneratingOrders] = useState<Set<string>>(
-    new Set()
-  );
   const [approvingOrders, setApprovingOrders] = useState<Set<string>>(
     new Set()
   );
@@ -88,35 +85,6 @@ const AdminOrders = () => {
     },
   });
 
-  const handleGeneratePDF = async (orderId: string) => {
-    setGeneratingOrders((prev) => new Set(prev).add(orderId));
-    try {
-      const { error } = await supabase.functions.invoke("generate-storybook", {
-        body: { orderId },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "PDF generation started",
-      });
-      refetch();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF",
-        variant: "destructive",
-      });
-      console.error("Error generating PDF:", error);
-    } finally {
-      setGeneratingOrders((prev) => {
-        const next = new Set(prev);
-        next.delete(orderId);
-        return next;
-      });
-    }
-  };
 
   const handleRetry = async (orderId: string) => {
     // Just clear the error - admin will use "Start Page Generation" for new flow
@@ -142,26 +110,32 @@ const AdminOrders = () => {
   };
 
   const handleForceRegenerate = async (orderId: string) => {
-    // Clear PDF data and regenerate
+    // Reset order to initial state - admin will use page-by-page generation
     const { error: updateError } = await supabase
       .from("orders")
       .update({
         pdf_url: null,
         pdf_generated_at: null,
         error_log: null,
+        generated_pages: [],
+        status: "payment_received",
       })
       .eq("id", orderId);
 
     if (updateError) {
       toast({
         title: "Error",
-        description: "Failed to reset PDF status",
+        description: "Failed to reset order",
         variant: "destructive",
       });
       return;
     }
 
-    await handleGeneratePDF(orderId);
+    toast({
+      title: "Success",
+      description: "Order reset. Click 'Start Page Generation' to begin.",
+    });
+    refetch();
   };
 
   const handleApprove = async (orderId: string) => {
@@ -240,9 +214,8 @@ const AdminOrders = () => {
                   status={order.status as OrderStatus}
                   pdfUrl={order.pdf_url}
                   errorLog={order.error_log}
-                  isGenerating={generatingOrders.has(order.id)}
+                  isGenerating={false}
                   isApproving={approvingOrders.has(order.id)}
-                  onGeneratePDF={handleGeneratePDF}
                   onApprove={handleApprove}
                   onForceRegenerate={handleForceRegenerate}
                   onRetry={handleRetry}
