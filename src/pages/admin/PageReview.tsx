@@ -243,6 +243,7 @@ export function PageReview({
                 pageNumber={page.page}
                 imageUrl={page.image_url}
                 status={page.status}
+                text={page.text}
                 isGenerating={generatingPages.has(page.page)}
                 onGenerate={() => handleGeneratePage(page.page)}
                 onApprove={() => handleApprovePage(page.page)}

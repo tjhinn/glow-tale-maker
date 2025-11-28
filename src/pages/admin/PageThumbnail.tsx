@@ -8,6 +8,7 @@ interface PageThumbnailProps {
   imageUrl: string | null;
   status: "not_generated" | "pending_review" | "approved";
   isGenerating: boolean;
+  text?: string;
   onGenerate: () => void;
   onApprove: () => void;
   onReject: () => void;
@@ -29,6 +30,7 @@ export function PageThumbnail({
   imageUrl,
   status,
   isGenerating,
+  text,
   onGenerate,
   onApprove,
   onReject,
@@ -56,6 +58,14 @@ export function PageThumbnail({
             </div>
           )}
         </div>
+
+        {/* Text Preview */}
+        {text && (
+          <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground max-h-24 overflow-y-auto">
+            <p className="font-medium text-foreground mb-1">Page Text:</p>
+            <p className="whitespace-pre-wrap">{text}</p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="space-y-2">
