@@ -100,12 +100,16 @@ const StorySelection = () => {
           return;
         }
         if (data?.personalizedCoverUrl) {
-          // Import the flattening utility
+          // Import utilities
           const { flattenCoverWithTitle } = await import("@/lib/flattenCoverWithTitle");
+          const { enforceAspectRatio } = await import("@/lib/enforceAspectRatio");
+          
+          // Enforce 4:3 aspect ratio (safety net in case AI doesn't respect parameter)
+          const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
           
           // Flatten the cover with title text
           const flattenedBlob = await flattenCoverWithTitle(
-            data.personalizedCoverUrl,
+            aspectRatioCorrectedUrl,
             personalizedTitle
           );
           
