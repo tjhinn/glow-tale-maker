@@ -11,6 +11,10 @@ const rateLimitMap = new Map<string, number[]>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 const MAX_REQUESTS_PER_WINDOW = 3;
 
+// Retry configuration for AI calls
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2000; // Start with 2 seconds
+
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const requests = rateLimitMap.get(ip) || [];
@@ -210,55 +214,115 @@ IMPORTANT Guidelines:
 - Do NOT crop or change the aspect ratio of the scene - keep it landscape 4:3`;
     console.log("AI Prompt:", promptText);
 
-    // Call Lovable AI with multi-image input (cover + hero photo)
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
+    // Call Lovable AI with retry logic
+    let personalizedCoverImageUrl: string | undefined;
+    let lastError: Error | undefined;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`[Attempt ${attempt}/${MAX_RETRIES}] Calling AI gateway...`);
+        
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${lovableApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3-pro-image-preview",
+            messages: [
               {
-                type: "text",
-                text: promptText,
-              },
-              {
-                type: "image_url",
-                image_url: { url: coverImageUrl },
-              },
-              {
-                type: "image_url",
-                image_url: { url: heroPhotoUrl },
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: promptText,
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: coverImageUrl },
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: heroPhotoUrl },
+                  },
+                ],
               },
             ],
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
+            modalities: ["image", "text"],
+          }),
+        });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error("AI rate limit exceeded. Please try again later.");
+        if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error("AI rate limit exceeded. Please try again later.");
+          }
+          if (response.status === 402) {
+            throw new Error("AI credits depleted. Please add funds to your Lovable workspace.");
+          }
+          const errorText = await response.text();
+          console.error("AI gateway error:", response.status, errorText);
+          throw new Error("Failed to generate personalized cover");
+        }
+
+        const data = await response.json();
+        
+        // Log detailed response structure for debugging
+        console.log(`[Attempt ${attempt}] AI response structure:`, JSON.stringify({
+          hasChoices: !!data.choices,
+          choicesLength: data.choices?.length,
+          hasMessage: !!data.choices?.[0]?.message,
+          hasImages: !!data.choices?.[0]?.message?.images,
+          imagesLength: data.choices?.[0]?.message?.images?.length,
+          hasContent: !!data.choices?.[0]?.message?.content,
+          contentPreview: data.choices?.[0]?.message?.content?.substring(0, 200)
+        }));
+
+        personalizedCoverImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+        if (personalizedCoverImageUrl) {
+          console.log(`[Attempt ${attempt}] ✅ Image generated successfully!`);
+          break; // Success! Exit retry loop
+        }
+
+        // Log what we got instead of an image
+        if (data.choices?.[0]?.message?.content) {
+          console.log(`[Attempt ${attempt}] ⚠️ AI returned text instead of image:`, 
+            data.choices[0].message.content.substring(0, 500));
+        }
+
+        // If no image and we have retries left, wait and try again
+        if (attempt < MAX_RETRIES) {
+          const delay = RETRY_DELAY_MS * attempt; // Exponential backoff
+          console.log(`[Attempt ${attempt}] No image in response. Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          lastError = new Error("AI returned text response instead of image");
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error("Unknown error");
+        console.error(`[Attempt ${attempt}] Error:`, lastError.message);
+        
+        // Don't retry on rate limit or payment errors
+        if (lastError.message.includes("rate limit") || lastError.message.includes("credits depleted")) {
+          throw lastError;
+        }
+        
+        // If we have retries left, wait and try again
+        if (attempt < MAX_RETRIES) {
+          const delay = RETRY_DELAY_MS * attempt;
+          console.log(`[Attempt ${attempt}] Error occurred. Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
       }
-      if (response.status === 402) {
-        throw new Error("AI credits depleted. Please add funds to your Lovable workspace.");
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("Failed to generate personalized cover");
     }
 
-    const data = await response.json();
-    const personalizedCoverImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
     if (!personalizedCoverImageUrl) {
-      throw new Error("No personalized cover image generated");
+      const errorMessage = `No personalized cover image generated after ${MAX_RETRIES} attempts. ${
+        lastError ? `Last error: ${lastError.message}` : 'The AI may have returned text instead of an image.'
+      }`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
     }
 
     console.log("Personalized cover generated. Uploading to storage...");
