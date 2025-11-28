@@ -63,7 +63,9 @@ serve(async (req) => {
         *,
         stories (
           title,
-          pages
+          pages,
+          illustration_style,
+          hero_gender
         )
       `)
       .eq("id", orderId)
@@ -103,8 +105,71 @@ serve(async (req) => {
     const imageBuffer = await imageBlob.arrayBuffer();
     const imageBase64 = `data:image/jpeg;base64,${arrayBufferToBase64(imageBuffer)}`;
 
-    // Composite hero into the page scene using AI
+    // Build comprehensive character replacement prompt
+    const illustrationStyle = story.illustration_style || 'whimsical storybook';
+    
+    let promptText = `Edit this storybook page to create a personalized version:
+
+**IMAGES PROVIDED:**
+- IMAGE 1 (Template Page): The original storybook page with a generic child character
+- IMAGE 2 (Personalized Cover): Shows EXACTLY what the personalized hero and companion look like
+
+**YOUR TASK:**
+Replace the generic hero in the template page with the personalized hero shown in the cover image.
+
+**CRITICAL - ILLUSTRATION STYLE (${illustrationStyle}):**
+- Match the EXACT art style of the template page
+- The character must look native to the illustration, not pasted in
+- Match: brush strokes, shading, texture, line quality, lighting
+- Blend seamlessly with the existing artwork
+
+**CHARACTER REPLACEMENT:**
+- Find the generic child character in the template page
+- Replace them with ${personalization.heroName} (a ${personalization.gender})
+- The replacement character MUST match the hero in Image 2 exactly:
+  - Same face, hair color, hairstyle, skin tone
+  - Same ${personalization.favoriteColor || 'colorful'}-themed costume
+  - Same body type and proportions for a ${personalization.gender}
+- Keep the character in the same position and pose as the original
+`;
+
+    // Add pet replacement instructions if applicable
+    if (personalization.petName && personalization.petType) {
+      promptText += `
+**PET COMPANION REPLACEMENT:**
+- Replace any existing companion animal with ${personalization.petName} the ${personalization.petType}
+- The pet must match exactly how it appears in Image 2
+- Keep the same relative position to the hero
+- Match the illustration style perfectly
+`;
+    }
+
+    // Add color accent instructions
+    if (personalization.favoriteColor) {
+      promptText += `
+**COLOR ACCENTS:**
+- Add subtle ${personalization.favoriteColor} accents where appropriate
+- The hero's costume should feature ${personalization.favoriteColor} prominently (as shown in Image 2)
+`;
+    }
+
+    promptText += `
+**WHAT TO PRESERVE (DO NOT CHANGE):**
+- Background and environment: Keep exactly as is
+- Scene composition and layout: Maintain completely
+- Lighting and atmosphere: Preserve
+- All other elements besides the hero and pet: Leave untouched
+- Any text or story elements: Preserve
+
+**OUTPUT REQUIREMENTS:**
+- Same aspect ratio as the input template page
+- No text overlays or labels
+- Professional children's book quality
+- The personalized characters should look like they were always part of this scene
+`;
+
     console.log(`[${orderId}] Compositing page ${pageNumber} with AI...`);
+    console.log(`[${orderId}] Illustration style: ${illustrationStyle}`);
     
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -120,7 +185,7 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: `Composite this illustrated character into the storybook scene as the main hero. Blend the character naturally into the scene, matching the art style, lighting, and perspective. The character should appear in an appropriate location based on the scene context (foreground if they're the focus, integrated into the action). Maintain the whimsical storybook aesthetic. Hero details: ${personalization.heroName}, ${personalization.gender}.`,
+                text: promptText,
               },
               {
                 type: "image_url",
