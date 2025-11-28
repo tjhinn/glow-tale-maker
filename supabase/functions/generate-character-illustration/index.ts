@@ -111,27 +111,47 @@ serve(async (req) => {
     console.log("Gender Label:", genderLabel);
     console.log("Gender Descriptor:", genderDescriptor);
     
-    let promptText = `Create a personalized storybook cover by editing the provided cover image.
+    let promptText = `Edit this storybook cover image to create a personalized version.
 
-REFERENCE IMAGES: You have the original cover + a photo of the child hero.
+TASK: Replace the existing child character with a personalized illustrated version based on the photo reference.
 
-STYLE MATCHING:
-- Match the exact illustration style of the original cover (${illustrationStyle || 'analyze and replicate the style'})
-- Keep the character in the same art style as the background (3D with 3D, 2D with 2D, watercolor with watercolor)
+REFERENCE IMAGES PROVIDED:
+1. FIRST IMAGE: Original storybook cover (contains the character to be replaced)
+2. SECOND IMAGE: Photo of the real child (use as reference for the new character)
 
-CHARACTER:
-- Replace the main character with a ${genderLabel} version based on the child photo
-- Preserve face shape, eyes, hair, and skin tone from the photo
-- Dress in ${favoriteColor}-themed costume that fits the story${storyTheme ? ': ' + storyTheme : ''}
+=== CRITICAL: CHARACTER REPLACEMENT ===
+- REMOVE/DELETE the original child character completely
+- There must be ONLY ONE CHILD in the final image
+- Create a NEW illustrated child based on the photo reference
+- Place the new child in the SAME POSITION and POSE as the original character was
+- The new child is a ${genderLabel} (${genderDescriptor})
 
-${petType ? `PET: Replace any companion animal with ${petName} the ${petType} in the same art style` : ''}
+VISUAL REFERENCE FROM PHOTO:
+- Match the child's face shape, facial features, and expression
+- Match their hair color, style, and length exactly
+- Match their skin tone accurately
+- Preserve their unique characteristics
 
-${favoriteColor ? `ACCENTS: Add subtle ${favoriteColor} touches (sparkles, small objects, highlights)` : ''}
+STYLE REQUIREMENTS:
+- The new character MUST match the illustration style of the cover: ${illustrationStyle || 'analyze and replicate the existing art style'}
+- If the cover is 3D rendered, make the character 3D
+- If the cover is 2D/painted/watercolor, make the character 2D/painted/watercolor
+- The character should look like they naturally belong in this artwork
 
-OUTPUT:
-- 4:3 landscape aspect ratio matching the original cover
-- No text or titles on the image
-- Character blends seamlessly with the original art style`;
+${favoriteColor ? `COSTUME: Dress the child in ${favoriteColor}-colored clothing appropriate for the story${storyTheme ? ' theme: ' + storyTheme : ''}` : ''}
+
+${petType ? `=== CRITICAL: PET REPLACEMENT ===
+- If there is a companion animal in the original cover, REMOVE it completely
+- Replace with ONLY ONE pet: ${petName} the ${petType}
+- There must be ONLY ONE PET in the final image
+- The pet must match the illustration style of the cover` : ''}
+
+${favoriteColor ? `COLOR ACCENTS: Add subtle ${favoriteColor} touches (sparkles, glowing effects, small objects) throughout the scene` : ''}
+
+OUTPUT REQUIREMENTS:
+- 4:3 landscape aspect ratio
+- No text, titles, or watermarks on the image
+- Final image should look like a professional storybook cover with the personalized character`;
     console.log("AI Prompt:", promptText);
 
     // Call Lovable AI with retry logic
