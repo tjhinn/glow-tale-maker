@@ -247,30 +247,31 @@ Replace the generic hero in the template page with the personalized hero shown i
       .from('story-images')
       .getPublicUrl(fileName);
 
-    // Update generated_pages array in the order
-    const generatedPages = (order.generated_pages as any[]) || [];
-    const existingPageIndex = generatedPages.findIndex((p: any) => p.page === pageNumber);
+    // Use atomic update to prevent race conditions
+    const personalizedText = personalizeText(pageData.text, personalization);
     
-    const pageUpdate = {
-      page: pageNumber,
-      image_url: publicUrlData.publicUrl,
-      status: "pending_review",
-      generated_at: new Date().toISOString(),
-      text: personalizeText(pageData.text, personalization),
-    };
+    const { error: updateError } = await supabase.rpc('update_generated_page', {
+      p_order_id: orderId,
+      p_page_number: pageNumber,
+      p_image_url: publicUrlData.publicUrl,
+      p_status: 'pending_review',
+      p_generated_at: new Date().toISOString(),
+      p_text: personalizedText,
+    });
 
-    if (existingPageIndex >= 0) {
-      generatedPages[existingPageIndex] = pageUpdate;
-    } else {
-      generatedPages.push(pageUpdate);
+    if (updateError) {
+      throw new Error(`Failed to update page: ${updateError.message}`);
     }
 
-    // Sort by page number
-    generatedPages.sort((a: any, b: any) => a.page - b.page);
+    // Determine new status based on progress
+    const { data: updatedOrder } = await supabase
+      .from("orders")
+      .select("generated_pages")
+      .eq("id", orderId)
+      .single();
 
-    // Determine new status
     const totalPages = storyPages.length;
-    const generatedCount = generatedPages.length;
+    const generatedCount = (updatedOrder?.generated_pages as any[])?.length || 0;
     let newStatus = order.status;
     
     if (generatedCount === totalPages) {
@@ -279,14 +280,13 @@ Replace the generic hero in the template page with the personalized hero shown i
       newStatus = "pages_in_progress";
     }
 
-    // Update order
-    await supabase
-      .from("orders")
-      .update({
-        generated_pages: generatedPages,
-        status: newStatus,
-      })
-      .eq("id", orderId);
+    // Update status if changed
+    if (newStatus !== order.status) {
+      await supabase
+        .from("orders")
+        .update({ status: newStatus })
+        .eq("id", orderId);
+    }
 
     console.log(`[${orderId}] ✅ Page ${pageNumber} generated successfully (${generatedCount}/${totalPages})`);
 

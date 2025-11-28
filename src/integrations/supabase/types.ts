@@ -206,6 +206,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_generated_page: {
+        Args: {
+          p_generated_at?: string
+          p_image_url?: string
+          p_order_id: string
+          p_page_number: number
+          p_status?: string
+          p_text?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
