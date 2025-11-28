@@ -59,6 +59,11 @@
   - Error persistence to database with attempt counter
   - Automatic error_log clearing on generation start
   - Status reset to payment_received for retry capability
+- ✅ Webhook timeout on first-run generation fixed (2025-11-28)
+  - Removed auto-generation trigger from LemonSqueezy webhook
+  - Webhook now returns 200 immediately after updating order status
+  - Admin manually starts page generation from Orders dashboard
+  - Eliminates false timeout errors and gives admin full control over generation timing
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)

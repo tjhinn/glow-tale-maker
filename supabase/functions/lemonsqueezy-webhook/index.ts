@@ -101,48 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       console.log(`Order ${orderId} updated to status: ${orderStatus}`);
-      
-      // Trigger storybook generation as background task
-      console.log(`Triggering storybook generation for order ${orderId}`);
-      
-      try {
-        const { data: invokeData, error: invokeError } = await supabase.functions.invoke(
-          'generate-storybook',
-          {
-            body: { orderId }
-          }
-        );
-        
-        if (invokeError) {
-          console.error(`Failed to invoke generate-storybook for order ${orderId}:`, invokeError);
-          
-          // Update order with error details
-          await supabase
-            .from("orders")
-            .update({
-              status: "pending_admin_review",
-              error_log: `Generation invocation failed: ${invokeError.message}`,
-              generation_attempts: 1,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", orderId);
-        } else {
-          console.log(`Successfully triggered generation for order ${orderId}`, invokeData);
-        }
-      } catch (generationError: any) {
-        console.error(`Exception triggering generation for order ${orderId}:`, generationError);
-        
-        // Update order with error details
-        await supabase
-          .from("orders")
-          .update({
-            status: "pending_admin_review",
-            error_log: `Generation exception: ${generationError.message}`,
-            generation_attempts: 1,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", orderId);
-      }
+      console.log(`Admin should manually start page generation from the Orders dashboard`);
       
     } else if (eventName === "order_refunded") {
       orderStatus = "refunded";
