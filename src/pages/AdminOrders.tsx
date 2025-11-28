@@ -119,7 +119,7 @@ const AdminOrders = () => {
   };
 
   const handleRetry = async (orderId: string) => {
-    // Reset error and retry
+    // Just clear the error - admin will use "Start Page Generation" for new flow
     const { error: updateError } = await supabase
       .from("orders")
       .update({ error_log: null, status: "payment_received" })
@@ -134,7 +134,11 @@ const AdminOrders = () => {
       return;
     }
 
-    await handleGeneratePDF(orderId);
+    toast({
+      title: "Success",
+      description: "Error cleared. Use 'Start Page Generation' to begin page-by-page generation.",
+    });
+    refetch();
   };
 
   const handleForceRegenerate = async (orderId: string) => {
