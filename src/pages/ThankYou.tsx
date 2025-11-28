@@ -163,19 +163,7 @@ const ThankYou = () => {
                 className="w-full aspect-[4/3] object-cover block rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
               />
               
-              {/* Code-based title overlay - pixel perfect typography matching Preview page */}
-              {personalization?.personalizedCoverUrl && selectedStory && (
-                <div className="absolute top-[8%] left-0 right-0 px-8 pointer-events-none">
-                  <h1 className="font-fredoka text-3xl sm:text-4xl md:text-5xl text-center leading-tight"
-                      style={{
-                        textShadow: '3px 3px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,139,0,0.5)',
-                        color: '#FFE97F',
-                        WebkitTextStroke: '2px rgba(0,0,0,0.3)'
-                      }}>
-                    {replaceStoryPlaceholders(selectedStory.title)}
-                  </h1>
-                </div>
-              )}
+              {/* Title is now baked into the image - no overlay needed */}
               
               <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
             </div>
