@@ -279,17 +279,7 @@ const Preview = () => {
                   className="w-full aspect-[4/3] object-cover block"
                 />
                 
-                {/* Code-based title overlay - pixel perfect typography */}
-                <div className="absolute top-[8%] left-0 right-0 px-8 pointer-events-none">
-                  <h1 className="font-fredoka text-3xl sm:text-4xl md:text-5xl text-center leading-tight"
-                      style={{
-                        textShadow: '3px 3px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,139,0,0.5)',
-                        color: '#FFE97F',
-                        WebkitTextStroke: '2px rgba(0,0,0,0.3)'
-                      }}>
-                    {personalizeSimpleText(selectedStory.title)}
-                  </h1>
-                </div>
+                {/* Title is now baked into the image - no overlay needed */}
                 
                 {/* Watermark overlay - scattered for visibility */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">

@@ -100,13 +100,42 @@ const StorySelection = () => {
           return;
         }
         if (data?.personalizedCoverUrl) {
-          // Update personalization data with personalized cover
-          const updatedPersonalization = {
-            ...personalization,
-            personalizedCoverUrl: data.personalizedCoverUrl
-          };
-          localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
-          console.log("Personalized cover generated:", data.personalizedCoverUrl);
+          // Import the flattening utility
+          const { flattenCoverWithTitle } = await import("@/lib/flattenCoverWithTitle");
+          
+          // Flatten the cover with title text
+          const flattenedBlob = await flattenCoverWithTitle(
+            data.personalizedCoverUrl,
+            personalizedTitle
+          );
+          
+          // Upload flattened image to storage
+          const fileName = `flattened-cover-${Date.now()}.png`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('hero-photos')
+            .upload(fileName, flattenedBlob, { contentType: 'image/png' });
+          
+          if (uploadError) {
+            console.error("Error uploading flattened cover:", uploadError);
+            // Fall back to using the original personalized cover
+            const updatedPersonalization = {
+              ...personalization,
+              personalizedCoverUrl: data.personalizedCoverUrl
+            };
+            localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+          } else {
+            // Get public URL of the flattened image
+            const { data: urlData } = supabase.storage
+              .from('hero-photos')
+              .getPublicUrl(fileName);
+            
+            const updatedPersonalization = {
+              ...personalization,
+              personalizedCoverUrl: urlData.publicUrl
+            };
+            localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+            console.log("Flattened cover with title uploaded:", urlData.publicUrl);
+          }
         }
       }
 
