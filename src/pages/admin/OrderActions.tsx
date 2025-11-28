@@ -20,7 +20,6 @@ interface OrderActionsProps {
   errorLog: string | null;
   isGenerating: boolean;
   isApproving: boolean;
-  onGeneratePDF: (orderId: string) => void;
   onApprove: (orderId: string) => void;
   onForceRegenerate: (orderId: string) => void;
   onRetry: (orderId: string) => void;
@@ -36,7 +35,6 @@ export function OrderActions({
   errorLog,
   isGenerating,
   isApproving,
-  onGeneratePDF,
   onApprove,
   onForceRegenerate,
   onRetry,
