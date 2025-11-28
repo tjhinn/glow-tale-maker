@@ -134,20 +134,6 @@ const Checkout = () => {
                   className="w-full rounded-lg shadow-lg"
                 />
                 
-                {/* Code-based title overlay - pixel perfect typography */}
-                {personalization?.personalizedCoverUrl && selectedStory && (
-                  <div className="absolute top-[8%] left-0 right-0 px-6 pointer-events-none">
-                    <h1 className="font-fredoka text-2xl sm:text-3xl md:text-4xl text-center leading-tight"
-                        style={{
-                          textShadow: '3px 3px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,139,0,0.5)',
-                          color: '#FFE97F',
-                          WebkitTextStroke: '2px rgba(0,0,0,0.3)'
-                        }}>
-                      {replaceStoryPlaceholders(selectedStory.title)}
-                    </h1>
-                  </div>
-                )}
-                
                 {/* Watermark overlay - scattered for visibility */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
                   {/* Top-left watermark */}
