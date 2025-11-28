@@ -39,6 +39,38 @@ function personalizeText(template: string, personalization: any): string {
     .replace(/{favoriteFood}/g, personalization.favoriteFood || '');
 }
 
+// Detect image format from magic bytes
+function detectImageFormat(bytes: Uint8Array): 'png' | 'jpg' | 'unknown' {
+  // PNG magic bytes: 137 80 78 71 (hex: 89 50 4E 47)
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+    return 'png';
+  }
+  // JPEG magic bytes: 255 216 255 (hex: FF D8 FF)
+  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+    return 'jpg';
+  }
+  return 'unknown';
+}
+
+// Embed image with automatic format detection
+async function embedImage(pdfDoc: any, bytes: Uint8Array, logPrefix: string) {
+  const format = detectImageFormat(bytes);
+  console.log(`${logPrefix} Detected image format: ${format}`);
+  
+  if (format === 'png') {
+    return await pdfDoc.embedPng(bytes);
+  } else if (format === 'jpg') {
+    return await pdfDoc.embedJpg(bytes);
+  } else {
+    // Try PNG first, then JPEG as fallback
+    try {
+      return await pdfDoc.embedPng(bytes);
+    } catch {
+      return await pdfDoc.embedJpg(bytes);
+    }
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -110,7 +142,7 @@ serve(async (req) => {
     const coverBlob = await coverResponse.blob();
     const coverBuffer = await coverBlob.arrayBuffer();
     const coverBytes = new Uint8Array(coverBuffer);
-    const coverImage = await pdfDoc.embedPng(coverBytes);
+    const coverImage = await embedImage(pdfDoc, coverBytes, `[${orderId}]`);
     const coverPage = pdfDoc.addPage([coverImage.width, coverImage.height]);
     
     coverPage.drawImage(coverImage, {
@@ -143,7 +175,7 @@ serve(async (req) => {
       const imageBlob = await imageResponse.blob();
       const imageBuffer = await imageBlob.arrayBuffer();
       const imageBytes = new Uint8Array(imageBuffer);
-      const image = await pdfDoc.embedPng(imageBytes);
+      const image = await embedImage(pdfDoc, imageBytes, `[${orderId}]`);
       const page = pdfDoc.addPage([image.width, image.height]);
       
       page.drawImage(image, {
@@ -255,7 +287,9 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : '';
     console.error(`Error in compile-storybook-pdf:`, errorMessage);
+    console.error(`Stack trace:`, errorStack);
     
     if (orderId) {
       try {
