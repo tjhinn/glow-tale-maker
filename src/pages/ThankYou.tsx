@@ -42,7 +42,7 @@ const ThankYou = () => {
           // Fetch order from database
           const { data: order, error } = await supabase
             .from('orders')
-            .select('personalization_data')
+            .select('personalization_data, story_id')
             .eq('id', orderId)
             .single();
           
@@ -50,6 +50,19 @@ const ThankYou = () => {
             const personalizationData = order.personalization_data as any;
             setHeroName(personalizationData?.heroName || "your little hero");
             setPersonalization(personalizationData);
+            
+            // Fetch the story using story_id
+            if (order.story_id) {
+              const { data: story } = await supabase
+                .from('stories')
+                .select('id, title, moral')
+                .eq('id', order.story_id)
+                .single();
+              
+              if (story) {
+                setSelectedStory(story);
+              }
+            }
           } else {
             // Fallback to localStorage if database fetch fails
             tryLocalStorage();
@@ -150,10 +163,10 @@ const ThankYou = () => {
                 className="w-full aspect-[4/3] object-cover block rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
               />
               
-              {/* Code-based title overlay - pixel perfect typography (no watermark on thank you page) */}
+              {/* Code-based title overlay - pixel perfect typography matching Preview page */}
               {personalization?.personalizedCoverUrl && selectedStory && (
-                <div className="absolute top-[8%] left-0 right-0 px-6 pointer-events-none">
-                  <h1 className="font-fredoka text-2xl sm:text-3xl md:text-4xl text-center leading-tight"
+                <div className="absolute top-[8%] left-0 right-0 px-8 pointer-events-none">
+                  <h1 className="font-fredoka text-3xl sm:text-4xl md:text-5xl text-center leading-tight"
                       style={{
                         textShadow: '3px 3px 8px rgba(0,0,0,0.7), 0 0 20px rgba(255,139,0,0.5)',
                         color: '#FFE97F',
