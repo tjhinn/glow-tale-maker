@@ -325,17 +325,6 @@ const Preview = () => {
                   </p>
                 </div>
               ))}
-              
-              {/* Teaser for remaining pages */}
-              <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-dashed border-primary/30 rounded-xl p-4 text-center space-y-2">
-                <Sparkles className="w-8 h-8 text-primary mx-auto animate-pulse" />
-                <p className="font-fredoka text-base text-foreground">
-                  9 more magical pages await!
-                </p>
-                <p className="text-xs text-muted-foreground font-poppins">
-                  Complete your purchase to unlock the full storybook
-                </p>
-              </div>
             </CardContent>
           </Card>
         </div>
@@ -352,20 +341,23 @@ const Preview = () => {
             {discountApplied ? (
               <div className="p-8 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 border-2 border-success text-center space-y-3">
                 <Sparkles className="w-16 h-16 text-success mx-auto animate-pulse" />
-                <div>
-                  <p className="text-success font-bold text-xl mb-2 font-fredoka">
-                    🎉 Discount Unlocked!
-                  </p>
-                  <p className="text-sm text-muted-foreground font-poppins">
-                    10% off will be applied at checkout
-                  </p>
-                </div>
+              <div>
+                <p className="text-success font-bold text-xl mb-2 font-fredoka">
+                  🎉 Discount Unlocked!
+                </p>
+                <p className="text-sm text-muted-foreground font-poppins">
+                  10% off will be applied at checkout
+                </p>
+                <p className="text-sm text-muted-foreground font-poppins mt-1">
+                  9 more magical pages await in the full storybook!
+                </p>
+              </div>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="p-6 rounded-xl bg-primary/5 border border-primary/20">
                   <p className="text-center text-foreground font-poppins leading-relaxed">
-                    Share {personalization.heroName}'s magical story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
+                    ✨ 9 more magical pages await! Share {personalization.heroName}'s story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
                   </p>
                 </div>
                 
