@@ -113,24 +113,36 @@ serve(async (req) => {
     
     let promptText = `Edit this storybook cover image to create a personalized version.
 
-TASK: Replace the existing child character with a personalized illustrated version based on the photo reference.
+CRITICAL INSTRUCTION: PRESERVE THE ENTIRE SCENE
+- Keep the EXACT same composition, zoom level, and framing as the original cover
+- Do NOT crop, zoom in, or change the overall layout
+- The output image must have the same scene scale as the input
+- The background, environment, and spatial relationships must remain IDENTICAL
 
 REFERENCE IMAGES PROVIDED:
-1. FIRST IMAGE: Original storybook cover (contains the character to be replaced)
-2. SECOND IMAGE: Photo of the real child (use as reference for the new character)
+1. FIRST IMAGE: Original storybook cover (the ENTIRE composition must be preserved)
+2. SECOND IMAGE: Photo of the real child (use as reference for facial features only)
 
-=== CRITICAL: CHARACTER REPLACEMENT ===
-- REMOVE/DELETE the original child character completely
-- There must be ONLY ONE CHILD in the final image
-- Create a NEW illustrated child based on the photo reference
-- Place the new child in the SAME POSITION and POSE as the original character was
-- The new child is a ${genderLabel} (${genderDescriptor})
+=== CHARACTER REPLACEMENT (SUBTLE EDIT) ===
+- Find the child character in the original cover
+- Replace ONLY their face and features with those matching the photo reference
+- Keep the character in the EXACT SAME position, size, and pose as the original
+- The character should occupy the same amount of space in the frame
+- Do NOT make the character larger or zoom in on them
+- The new character is a ${genderLabel} (${genderDescriptor})
 
 VISUAL REFERENCE FROM PHOTO:
 - Match the child's face shape, facial features, and expression
 - Match their hair color, style, and length exactly
 - Match their skin tone accurately
 - Preserve their unique characteristics
+
+WHAT MUST STAY IDENTICAL:
+- Overall scene composition and layout (DO NOT ZOOM IN)
+- Background elements and environment  
+- Character position and size relative to the scene
+- All other elements (animals, objects, scenery)
+- The "zoom level" and framing of the original cover
 
 STYLE REQUIREMENTS:
 - The new character MUST match the illustration style of the cover: ${illustrationStyle || 'analyze and replicate the existing art style'}
@@ -140,18 +152,19 @@ STYLE REQUIREMENTS:
 
 ${favoriteColor ? `COSTUME: Dress the child in ${favoriteColor}-colored clothing appropriate for the story${storyTheme ? ' theme: ' + storyTheme : ''}` : ''}
 
-${petType ? `=== CRITICAL: PET REPLACEMENT ===
-- If there is a companion animal in the original cover, REMOVE it completely
-- Replace with ONLY ONE pet: ${petName} the ${petType}
+${petType ? `=== PET REPLACEMENT ===
+- If there is a companion animal in the original cover, replace it with ${petName} the ${petType}
+- Keep the pet in the SAME position and size as the original
 - There must be ONLY ONE PET in the final image
 - The pet must match the illustration style of the cover` : ''}
 
 ${favoriteColor ? `COLOR ACCENTS: Add subtle ${favoriteColor} touches (sparkles, glowing effects, small objects) throughout the scene` : ''}
 
 OUTPUT REQUIREMENTS:
-- 4:3 landscape aspect ratio
+- 4:3 landscape aspect ratio (same as input)
 - No text, titles, or watermarks on the image
-- Final image should look like a professional storybook cover with the personalized character`;
+- The output should look nearly identical to the input, just with personalized character features
+- DO NOT crop or zoom the image`;
     console.log("AI Prompt:", promptText);
 
     // Call Lovable AI with retry logic
@@ -169,7 +182,7 @@ OUTPUT REQUIREMENTS:
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image-preview",
+            model: "google/gemini-3-pro-image-preview",
             messages: [
               {
                 role: "user",
