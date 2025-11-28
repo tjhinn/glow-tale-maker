@@ -48,7 +48,7 @@ export function PageReview({
     );
   });
 
-  const handleGeneratePage = async (pageNumber: number) => {
+  const handleGeneratePage = async (pageNumber: number, skipRefetch = false) => {
     setGeneratingPages((prev) => new Set(prev).add(pageNumber));
     try {
       const { error } = await supabase.functions.invoke("generate-single-page", {
@@ -61,7 +61,11 @@ export function PageReview({
         title: "Success",
         description: `Page ${pageNumber} generated`,
       });
-      onRefetch();
+      
+      // Only refetch if not part of a batch operation
+      if (!skipRefetch) {
+        onRefetch();
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -79,13 +83,26 @@ export function PageReview({
   };
 
   const handleGenerateAll = async () => {
-    const notGeneratedPages = allPages
+    // Capture pages to generate at the start (won't change during loop)
+    const pagesToGenerate = allPages
       .filter((p) => p.status === "not_generated")
       .map((p) => p.page);
 
-    for (const pageNum of notGeneratedPages) {
-      await handleGeneratePage(pageNum);
+    if (pagesToGenerate.length === 0) {
+      toast({
+        title: "Info",
+        description: "All pages are already generated",
+      });
+      return;
     }
+
+    // Generate all pages sequentially without refetching between each
+    for (const pageNum of pagesToGenerate) {
+      await handleGeneratePage(pageNum, true); // skipRefetch = true
+    }
+
+    // Single refetch at the end to update UI with all new pages
+    onRefetch();
   };
 
   const handleApprovePage = async (pageNumber: number) => {
