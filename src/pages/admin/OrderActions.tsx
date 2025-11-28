@@ -46,11 +46,9 @@ export function OrderActions({
 }: OrderActionsProps) {
   const [showPageReview, setShowPageReview] = useState(false);
   const renderActions = () => {
-    // If there's an error, only show retry button (don't show status-based actions)
-    if (errorLog) {
-      return null; // Retry button is rendered separately below
-    }
-
+    // Allow status-based actions to show even with errors
+    // (retry button is rendered separately below)
+    
     switch (status) {
       case "payment_received":
         return (
@@ -233,18 +231,18 @@ export function OrderActions({
         <Button
           onClick={() => onRetry(orderId)}
           disabled={isGenerating}
-          variant="destructive"
+          variant="outline"
           className="w-full mb-2"
         >
           {isGenerating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Retrying...
+              Clearing...
             </>
           ) : (
             <>
               <RotateCcw className="mr-2 h-4 w-4" />
-              Retry Generation
+              Clear Error & Reset
             </>
           )}
         </Button>
