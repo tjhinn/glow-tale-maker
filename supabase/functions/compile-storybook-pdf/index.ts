@@ -186,7 +186,14 @@ serve(async (req) => {
       });
 
       // Add text overlay
-      const pageText = pageData.text || '';
+      const rawText = pageData.text || '';
+      // Sanitize text: replace line breaks with spaces and collapse multiple spaces
+      const pageText = rawText
+        .replace(/\r\n/g, ' ')  // Windows line breaks
+        .replace(/\n/g, ' ')     // Unix line breaks
+        .replace(/\r/g, ' ')     // Old Mac line breaks
+        .replace(/\s+/g, ' ')    // Collapse multiple spaces into single space
+        .trim();
       
       if (pageText) {
         const textBoxHeight = 180;
