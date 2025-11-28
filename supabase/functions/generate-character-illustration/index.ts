@@ -111,107 +111,27 @@ serve(async (req) => {
     console.log("Gender Label:", genderLabel);
     console.log("Gender Descriptor:", genderDescriptor);
     
-    let promptText = `Edit this storybook cover to create a personalized version:
+    let promptText = `Create a personalized storybook cover by editing the provided cover image.
 
-OUTPUT FORMAT: Generate the result as a 4:3 LANDSCAPE image (e.g., 1024x768 or similar landscape dimensions). The aspect ratio MUST match the input cover image exactly.
+REFERENCE IMAGES: You have the original cover + a photo of the child hero.
 
-REFERENCE IMAGE: I'm also providing a photo of the child who should become the hero.
+STYLE MATCHING:
+- Match the exact illustration style of the original cover (${illustrationStyle || 'analyze and replicate the style'})
+- Keep the character in the same art style as the background (3D with 3D, 2D with 2D, watercolor with watercolor)
 
-**CRITICAL - ILLUSTRATION STYLE (HIGHEST PRIORITY):**
-- You MUST match the EXACT illustration style of the original cover image
-${illustrationStyle ? `- The style is: "${illustrationStyle}"
-- This means: ${baseStyle}` : `- Analyze the original cover and replicate its exact artistic style`}
-- If the cover is 3D/Pixar/CGI style, the character MUST be rendered in 3D with volume, depth, and realistic lighting
-- If the cover is 2D/watercolor/flat illustration, the character MUST be 2D/watercolor/flat
-- DO NOT mix styles - the personalized character must blend seamlessly with the original cover art
-- The character should look like they were always part of this illustration, not pasted in
-- Match the exact rendering technique: brush strokes, shading method, line quality, texture, lighting model
+CHARACTER:
+- Replace the main character with a ${genderLabel} version based on the child photo
+- Preserve face shape, eyes, hair, and skin tone from the photo
+- Dress in ${favoriteColor}-themed costume that fits the story${storyTheme ? ': ' + storyTheme : ''}
 
-CRITICAL - Character Gender:
-- The hero MUST be a ${genderLabel}
-- If the original cover shows a different gender character, COMPLETELY REPLACE them with a ${genderDescriptor} character
-- The character's body type, pose, and proportions must match a ${genderLabel}
+${petType ? `PET: Replace any companion animal with ${petName} the ${petType} in the same art style` : ''}
 
-Main Character Transformation:
-- Replace the main character with an illustrated ${genderLabel.toLowerCase()} version based on the reference photo
-- Preserve the child's exact likeness: face shape, eyes, hair color, hairstyle, skin tone
-- The character body, pose, and clothing should clearly represent a ${genderLabel.toLowerCase()}
-- Position them naturally where the original character was
-- Dress them in a ${favoriteColor}-themed costume appropriate for a ${genderLabel.toLowerCase()} that fits the story's theme
-${storyTheme ? `
+${favoriteColor ? `ACCENTS: Add subtle ${favoriteColor} touches (sparkles, small objects, highlights)` : ''}
 
-STORY THEME (use this to determine the appropriate costume style):
-"${storyTheme}"
-
-The costume MUST match this story's theme AND the character's gender (${genderLabel}):
-${normalizedGender === 'boy' ? `
-BOY COSTUME EXAMPLES by theme:
-- Space/star stories = astronaut suit, space explorer jumpsuit, rocket pilot outfit
-- Garden/nature stories = woodland adventurer clothes, forest ranger outfit, leaf-patterned tunic
-- Library/book stories = young wizard robes, scholar outfit, magical apprentice attire
-- Ocean/underwater stories = sailor suit, pirate outfit, maritime explorer clothes
-- Adventure stories = explorer vest, adventurer's outfit with utility belt` : 
-normalizedGender === 'girl' ? `
-GIRL COSTUME EXAMPLES by theme:
-- Space/star stories = sparkly astronaut dress, star princess gown, cosmic explorer outfit with tutu elements
-- Garden/nature stories = fairy dress, flower princess gown, woodland sprite outfit with petal details
-- Library/book stories = enchanted scholar dress, magical bookkeeper outfit, wizard apprentice gown
-- Ocean/underwater stories = mermaid-inspired dress, sailor dress, sea princess outfit
-- Adventure stories = explorer dress, adventurer's outfit with flowing elements, princess explorer attire` : `
-GENDER-NEUTRAL COSTUME EXAMPLES by theme:
-- Space/star stories = astronaut suit, space explorer outfit
-- Garden/nature stories = woodland clothes, nature-inspired attire
-- Library/book stories = scholar robes, magical reading attire
-- Ocean/underwater stories = sailor outfit, maritime clothing
-- Adventure stories = explorer outfit, adventurer's attire`}
-
-Make sure the costume naturally fits BOTH the story's setting AND looks appropriate for a ${genderLabel.toLowerCase()}` : ''}`;
-    
-    // Add pet companion instructions
-    if (petType && petName) {
-      promptText += `
-
-Pet Companion:
-- Change any existing companion animal to ${petName} the ${petType}
-- Keep the ${petType} in the same artistic style as the rest of the cover
-- Position naturally near the hero`;
-    }
-    
-    // Add favorite color accent instructions
-    if (favoriteColor) {
-      promptText += `
-
-PERSONALIZATION - FAVORITE COLOR ACCENTS (${favoriteColor}):
-- Add SUBTLE touches of ${favoriteColor} as accent colors throughout the cover
-- These should be small, tasteful additions that don't overwhelm the original color palette
-- Examples of where to add ${favoriteColor} accents:
-  - Magical sparkles, glows, or light effects can have a ${favoriteColor} tint
-  - Small environmental details (flowers, gems, stars, butterflies) can be ${favoriteColor}
-  - Subtle highlights on existing objects (book spines, clouds, leaves)
-  - Rim lighting or ambient glow effects
-  - Accessories or small props near the character
-- IMPORTANT: Keep the overall color palette of the original cover intact
-- The ${favoriteColor} accents should feel like natural additions, not painted over
-- Do NOT recolor major background elements - only add accent touches
-- The costume is already ${favoriteColor}-themed, so focus accents on the environment`;
-    }
-    
-    promptText += `
-
-IMPORTANT Guidelines:
-- **CRITICAL**: Output the image in EXACTLY 4:3 LANDSCAPE aspect ratio (wider than tall)
-- The output dimensions must match the input cover image aspect ratio precisely
-- **MOST IMPORTANT**: The illustrated character MUST be in the EXACT SAME art style as the original cover
-  - If it's 3D Pixar/CGI style, make a 3D character with proper volume and lighting
-  - If it's 2D watercolor, make a 2D watercolor character with soft edges
-  - If it's flat digital art, make a flat digital art character
-  - The character must look native to the illustration, not like a collage or style mismatch
-- Maintain the EXACT same illustration style, lighting, color palette, and rendering technique as the original cover
-- Keep the background, environment, and composition intact
-- Only modify: the main character and the companion pet
-- The result should look like a professionally produced personalized children's book cover
-- Do NOT add any text, titles, labels, or captions - leave space at the top for a title overlay
-- Do NOT crop or change the aspect ratio of the scene - keep it landscape 4:3`;
+OUTPUT:
+- 4:3 landscape aspect ratio matching the original cover
+- No text or titles on the image
+- Character blends seamlessly with the original art style`;
     console.log("AI Prompt:", promptText);
 
     // Call Lovable AI with retry logic
