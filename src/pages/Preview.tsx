@@ -257,99 +257,87 @@ const Preview = () => {
           </CardHeader>
         </Card>
 
-        {/* Personalized Scene Illustration Showcase */}
-        <Card className="border-2 border-primary/50 shadow-xl bg-gradient-to-br from-secondary/10 to-primary/5 mb-8">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl md:text-3xl font-fredoka flex items-center justify-center gap-3">
-              <Sparkles className="w-6 h-6 text-primary" />
-              {personalization.heroName}'s Adventure Awaits
-              <Sparkles className="w-6 h-6 text-primary" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-8">
-            <div className="relative max-w-2xl mx-auto">
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-xl"></div>
-              
-              {/* Main image with frame */}
-              <div className="relative rounded-2xl overflow-hidden border-4 border-primary/40 shadow-2xl">
-                <img 
-                  src={personalization.personalizedCoverUrl}
-                  alt={`${personalization.heroName}'s magical adventure`}
-                  className="w-full aspect-[4/3] object-cover block"
-                />
+        {/* Two-column layout: Cover left, Story pages right */}
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
+          {/* LEFT COLUMN: Cover Image */}
+          <Card className="border-2 border-secondary shadow-xl bg-secondary/20">
+            <CardHeader>
+              <CardTitle className="text-xl font-poppins flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                {personalization.heroName}'s Cover
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative">
+                {/* Glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-xl"></div>
                 
-                {/* Title is now baked into the image - no overlay needed */}
-                
-                {/* Watermark overlay - scattered for visibility */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  {/* Top-left watermark */}
-                  <p className="absolute top-[10%] left-[5%] text-4xl font-bold text-white/20 rotate-[-25deg] select-none">
-                    PREVIEW
-                  </p>
-                  {/* Top-right watermark */}
-                  <p className="absolute top-[15%] right-[8%] text-3xl font-bold text-white/20 rotate-[20deg] select-none">
-                    PREVIEW
-                  </p>
-                  {/* Bottom-left watermark */}
-                  <p className="absolute bottom-[12%] left-[10%] text-3xl font-bold text-white/20 rotate-[15deg] select-none">
-                    PREVIEW
-                  </p>
+                {/* Cover image with frame */}
+                <div className="relative rounded-2xl overflow-hidden border-4 border-primary/40 shadow-2xl">
+                  <img 
+                    src={personalization.personalizedCoverUrl}
+                    alt={`${personalization.heroName}'s magical adventure`}
+                    className="w-full aspect-[4/3] object-cover block"
+                  />
+                  
+                  {/* Watermark overlay */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <p className="absolute top-[10%] left-[5%] text-4xl font-bold text-white/20 rotate-[-25deg] select-none">PREVIEW</p>
+                    <p className="absolute top-[15%] right-[8%] text-3xl font-bold text-white/20 rotate-[20deg] select-none">PREVIEW</p>
+                    <p className="absolute bottom-[12%] left-[10%] text-3xl font-bold text-white/20 rotate-[15deg] select-none">PREVIEW</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Caption */}
-            <p className="text-center mt-6 font-fredoka text-xl text-primary">
-              {personalizeSimpleText(selectedStory.title)}
-            </p>
-            <p className="text-center mt-2 text-sm text-muted-foreground">
-              This personalized illustration will appear throughout your storybook
-            </p>
-          </CardContent>
-        </Card>
+              
+              {/* Caption */}
+              <p className="text-center mt-4 font-fredoka text-lg text-primary">
+                {personalizeSimpleText(selectedStory.title)}
+              </p>
+              <p className="text-center mt-1 text-sm text-muted-foreground">
+                Full 12-page storybook without watermark delivered after purchase
+              </p>
+            </CardContent>
+          </Card>
 
-        {/* New Preview Layout */}
-        <div className="space-y-8 mb-8">
-          
-          {/* Story Preview: First 3 Pages Only */}
+          {/* RIGHT COLUMN: Story Preview (Pages 1-3) */}
           <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/5 to-background">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-fredoka">
-                ✨ Story Preview
+            <CardHeader>
+              <CardTitle className="text-xl font-poppins flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-accent" />
+                Story Preview
               </CardTitle>
-              <p className="text-sm text-muted-foreground font-poppins mt-2">
-                Here's a sneak peek of the first 3 pages
+              <p className="text-sm text-muted-foreground font-poppins">
+                Sneak peek of the first 3 pages
               </p>
             </CardHeader>
-            <CardContent className="p-4 md:p-8 space-y-6">
+            <CardContent className="space-y-4">
+              {/* Pages 1-3 with compact styling */}
               {storyPages.slice(0, 3).map((page: any, index: number) => (
                 <div 
                   key={index}
-                  className="bg-background/95 backdrop-blur-sm p-6 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
+                  className="bg-background/95 backdrop-blur-sm p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
                 >
-                  <h3 className="text-lg font-fredoka text-primary mb-3">
+                  <h3 className="text-sm font-fredoka text-primary mb-2">
                     Page {page.page}
                   </h3>
-                  <p className="text-base leading-relaxed font-poppins">
+                  <p className="text-sm leading-relaxed font-poppins">
                     {renderPersonalizedText(page.text)}
                   </p>
                 </div>
               ))}
               
               {/* Teaser for remaining pages */}
-              <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-dashed border-primary/30 rounded-xl p-8 text-center space-y-3">
-                <Sparkles className="w-12 h-12 text-primary mx-auto animate-pulse" />
-                <p className="font-fredoka text-xl text-foreground">
+              <div className="bg-gradient-to-br from-primary/10 to-accent/10 border-2 border-dashed border-primary/30 rounded-xl p-4 text-center space-y-2">
+                <Sparkles className="w-8 h-8 text-primary mx-auto animate-pulse" />
+                <p className="font-fredoka text-base text-foreground">
                   9 more magical pages await!
                 </p>
-                <p className="text-sm text-muted-foreground font-poppins">
-                  Complete your purchase to unlock the full 12-page illustrated storybook
+                <p className="text-xs text-muted-foreground font-poppins">
+                  Complete your purchase to unlock the full storybook
                 </p>
               </div>
             </CardContent>
           </Card>
-          
         </div>
 
         {/* Share Card - Full Width */}
