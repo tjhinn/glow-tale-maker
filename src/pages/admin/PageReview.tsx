@@ -90,6 +90,7 @@ export function PageReview({
 
   const handleApprovePage = async (pageNumber: number) => {
     try {
+      // Get current page data to preserve other fields
       const { data: order } = await supabase
         .from("orders")
         .select("generated_pages")
@@ -99,14 +100,19 @@ export function PageReview({
       if (!order) throw new Error("Order not found");
 
       const pages = (order.generated_pages as unknown as GeneratedPage[]) || [];
-      const updatedPages = pages.map((p) =>
-        p.page === pageNumber ? { ...p, status: "approved" as const } : p
-      );
+      const currentPage = pages.find((p) => p.page === pageNumber);
+      
+      if (!currentPage) throw new Error("Page not found");
 
-      const { error } = await supabase
-        .from("orders")
-        .update({ generated_pages: updatedPages as any })
-        .eq("id", orderId);
+      // Use atomic update to change only the status
+      const { error } = await supabase.rpc('update_generated_page', {
+        p_order_id: orderId,
+        p_page_number: pageNumber,
+        p_image_url: currentPage.image_url,
+        p_status: 'approved',
+        p_generated_at: currentPage.generated_at || new Date().toISOString(),
+        p_text: currentPage.text || '',
+      });
 
       if (error) throw error;
 
@@ -126,25 +132,15 @@ export function PageReview({
 
   const handleRejectPage = async (pageNumber: number) => {
     try {
-      const { data: order } = await supabase
-        .from("orders")
-        .select("generated_pages")
-        .eq("id", orderId)
-        .single();
-
-      if (!order) throw new Error("Order not found");
-
-      const pages = (order.generated_pages as unknown as GeneratedPage[]) || [];
-      const updatedPages = pages.map((p) =>
-        p.page === pageNumber
-          ? { ...p, status: "not_generated" as const, image_url: null }
-          : p
-      );
-
-      const { error } = await supabase
-        .from("orders")
-        .update({ generated_pages: updatedPages as any })
-        .eq("id", orderId);
+      // Use atomic update to reset the page
+      const { error } = await supabase.rpc('update_generated_page', {
+        p_order_id: orderId,
+        p_page_number: pageNumber,
+        p_image_url: null,
+        p_status: 'not_generated',
+        p_generated_at: new Date().toISOString(),
+        p_text: null,
+      });
 
       if (error) throw error;
 
