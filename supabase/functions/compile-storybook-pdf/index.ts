@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { PDFDocument, rgb, StandardFonts } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +38,53 @@ function personalizeText(template: string, personalization: any): string {
     .replace(/{city}/g, personalization.city)
     .replace(/{favoriteColor}/g, personalization.favoriteColor || '')
     .replace(/{favoriteFood}/g, personalization.favoriteFood || '');
+}
+
+// Convert color name to RGB
+function colorNameToRgb(colorName: string): { r: number; g: number; b: number } {
+  const colors: Record<string, { r: number; g: number; b: number }> = {
+    red: { r: 0.9, g: 0.2, b: 0.2 },
+    blue: { r: 0.2, g: 0.4, b: 0.9 },
+    green: { r: 0.2, g: 0.7, b: 0.3 },
+    yellow: { r: 0.95, g: 0.8, b: 0.1 },
+    orange: { r: 1, g: 0.55, b: 0 },
+    purple: { r: 0.6, g: 0.2, b: 0.8 },
+    pink: { r: 1, g: 0.4, b: 0.7 },
+    brown: { r: 0.6, g: 0.4, b: 0.2 },
+    black: { r: 0.1, g: 0.1, b: 0.1 },
+    white: { r: 0.95, g: 0.95, b: 0.95 },
+  };
+  return colors[colorName.toLowerCase()] || { r: 0.2, g: 0.2, b: 0.8 };
+}
+
+// Parse text and identify personalized words
+interface TextSegment {
+  text: string;
+  isPersonalized: boolean;
+}
+
+function parseTextWithPersonalization(text: string, personalization: any): TextSegment[] {
+  const personalizedValues = [
+    personalization.heroName,
+    personalization.petName,
+    personalization.petType,
+    personalization.city,
+    personalization.favoriteColor,
+    personalization.favoriteFood,
+  ].filter(Boolean);
+
+  const segments: TextSegment[] = [];
+  const words = text.split(' ');
+
+  for (const word of words) {
+    const cleanWord = word.replace(/[.,!?;:]/g, '').toLowerCase();
+    const isPersonalized = personalizedValues.some(
+      (val: string) => val && cleanWord === val.toLowerCase()
+    );
+    segments.push({ text: word, isPersonalized });
+  }
+
+  return segments;
 }
 
 // Detect image format from magic bytes
@@ -133,8 +181,19 @@ serve(async (req) => {
 
     // Create PDF
     const pdfDoc = await PDFDocument.create();
-    const titleFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
-    const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    pdfDoc.registerFontkit(fontkit);
+
+    // Embed Poppins fonts
+    const poppinsRegularUrl = 'https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrFJM.ttf';
+    const poppinsBoldUrl = 'https://fonts.gstatic.com/s/poppins/v21/pxiByp8kv8JHgFVrLCz7V1s.ttf';
+    
+    const [regularFontBytes, boldFontBytes] = await Promise.all([
+      fetch(poppinsRegularUrl).then(res => res.arrayBuffer()),
+      fetch(poppinsBoldUrl).then(res => res.arrayBuffer()),
+    ]);
+
+    const regularFont = await pdfDoc.embedFont(regularFontBytes);
+    const boldFont = await pdfDoc.embedFont(boldFontBytes);
 
     // Add cover page
     console.log(`[${orderId}] Adding cover page...`);
@@ -150,19 +209,6 @@ serve(async (req) => {
       y: 0,
       width: coverImage.width,
       height: coverImage.height,
-    });
-
-    // Add title overlay on cover
-    const title = personalizeText(story.title, personalization);
-    const titleSize = 48;
-    const titleWidth = titleFont.widthOfTextAtSize(title, titleSize);
-    
-    coverPage.drawText(title, {
-      x: (coverImage.width - titleWidth) / 2,
-      y: coverImage.height - 80,
-      size: titleSize,
-      font: titleFont,
-      color: rgb(1, 0.91, 0.5), // Golden #FFE97F
     });
 
     // Add story pages
@@ -185,21 +231,21 @@ serve(async (req) => {
         height: image.height,
       });
 
-      // Add text overlay
+      // Add text overlay with personalized word highlighting
       const rawText = pageData.text || '';
-      // Sanitize text: replace line breaks with spaces and collapse multiple spaces
       const pageText = rawText
-        .replace(/\r\n/g, ' ')  // Windows line breaks
-        .replace(/\n/g, ' ')     // Unix line breaks
-        .replace(/\r/g, ' ')     // Old Mac line breaks
-        .replace(/\s+/g, ' ')    // Collapse multiple spaces into single space
+        .replace(/\r\n/g, ' ')
+        .replace(/\n/g, ' ')
+        .replace(/\r/g, ' ')
+        .replace(/\s+/g, ' ')
         .trim();
       
       if (pageText) {
-        const textBoxHeight = 180;
+        const textBoxHeight = 220;
         const textBoxPadding = 20;
-        const fontSize = 16;
-        const lineHeight = 22;
+        const baseFontSize = 24;
+        const personalizedFontSize = 28;
+        const lineHeight = 36;
         const textBoxX = 40;
         const textBoxY = 40;
         const textBoxWidth = image.width - 80;
@@ -214,29 +260,48 @@ serve(async (req) => {
           opacity: 0.85,
         });
         
-        // Wrap and draw text
-        const wrappedLines = wrapText(pageText, textFont, fontSize, textBoxWidth - 40);
-        let textY = textBoxY + textBoxHeight - textBoxPadding - fontSize;
+        // Parse text into segments
+        const segments = parseTextWithPersonalization(pageText, personalization);
+        const favoriteColor = colorNameToRgb(personalization.favoriteColor || 'blue');
         
-        for (const line of wrappedLines) {
-          page.drawText(line, {
-            x: textBoxX + 20,
-            y: textY,
+        // Render text with personalized word highlighting
+        let currentX = textBoxX + 20;
+        let currentY = textBoxY + textBoxHeight - textBoxPadding - baseFontSize;
+        
+        for (const segment of segments) {
+          const font = segment.isPersonalized ? boldFont : regularFont;
+          const fontSize = segment.isPersonalized ? personalizedFontSize : baseFontSize;
+          const color = segment.isPersonalized 
+            ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
+            : rgb(0, 0, 0);
+          
+          const wordWidth = font.widthOfTextAtSize(segment.text + ' ', fontSize);
+          
+          // Check if word fits on current line
+          if (currentX + wordWidth > textBoxX + textBoxWidth - 20) {
+            currentX = textBoxX + 20;
+            currentY -= lineHeight;
+          }
+          
+          page.drawText(segment.text + ' ', {
+            x: currentX,
+            y: currentY,
             size: fontSize,
-            font: textFont,
-            color: rgb(0, 0, 0),
+            font: font,
+            color: color,
           });
-          textY -= lineHeight;
+          
+          currentX += wordWidth;
         }
         
         // Draw page number
         const pageNumText = `${pageData.page}`;
-        const pageNumWidth = textFont.widthOfTextAtSize(pageNumText, 12);
+        const pageNumWidth = regularFont.widthOfTextAtSize(pageNumText, 12);
         page.drawText(pageNumText, {
           x: (image.width - pageNumWidth) / 2,
           y: 20,
           size: 12,
-          font: textFont,
+          font: regularFont,
           color: rgb(0.5, 0.5, 0.5),
         });
       }

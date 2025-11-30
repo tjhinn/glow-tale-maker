@@ -80,12 +80,12 @@
   - Personalized words (name, pet, city, etc.) are now 28px, bold, and colored with child's favorite color
   - Increased line height to 36px and text box to 220px for better readability
   - Implemented segment-based rendering to highlight personalized content dynamically
-- ✅ Enhanced storybook text for children (2025-11-30)
-  - Increased base font size from 16px to 24px for easy reading
-  - Embedded Poppins font (Regular & Bold) from Google Fonts to match webapp
-  - Personalized words (name, pet, city, etc.) are now 28px, bold, and colored with child's favorite color
-  - Increased line height to 36px and text box to 220px for better readability
-  - Implemented segment-based rendering to highlight personalized content dynamically
+- ✅ Fixed compile-storybook-pdf typography and double title (2025-11-30)
+  - Updated compile-storybook-pdf edge function to match generate-storybook typography
+  - Removed duplicate title overlay on PDF cover
+  - Embedded Poppins fonts (Regular & Bold) for child-friendly text
+  - Implemented personalized word highlighting with favorite color
+  - Updated font sizes: base 24px, personalized 28px, line height 36px
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
