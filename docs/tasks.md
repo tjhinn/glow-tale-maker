@@ -64,6 +64,12 @@
   - Webhook now returns 200 immediately after updating order status
   - Admin manually starts page generation from Orders dashboard
   - Eliminates false timeout errors and gives admin full control over generation timing
+- ✅ Facial expression and pose variety added to page generation (2025-11-30)
+  - Updated prompt to allow natural expression variation based on story context
+  - Changed position constraint from "same pose" to "approximately same LOCATION"
+  - Added explicit instructions for contextually appropriate expressions (curious, happy, determined, etc.)
+  - Added emotional context guidance based on page number and narrative moment
+  - Enables dynamic, engaging illustrations with natural body language variation
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
