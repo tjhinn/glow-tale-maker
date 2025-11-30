@@ -136,7 +136,7 @@ const Personalize = () => {
         <Card className="shadow-2xl border-2 border-primary/20 relative overflow-hidden">
           <SparklesAnimation count={5} className="opacity-40" />
           <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20 relative">
-            <CardTitle className="text-3xl md:text-4xl text-center font-fredoka">
+            <CardTitle className="text-3xl md:text-4xl text-center font-wonderia">
               Who's our brave little hero?
             </CardTitle>
             <p className="text-center text-sm text-muted-foreground font-poppins mt-2">

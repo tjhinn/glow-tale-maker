@@ -68,7 +68,7 @@ export const GenerationLoadingModal = ({ isOpen, heroName }: GenerationLoadingMo
           </div>
         </div>
         
-        <AlertDialogTitle className="text-2xl font-fredoka text-foreground">
+        <AlertDialogTitle className="text-2xl font-wonderia text-foreground">
           Creating Your Story...
         </AlertDialogTitle>
         
