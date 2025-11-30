@@ -309,6 +309,7 @@ Replace the generic hero in the template page with the personalized hero shown i
         orderId,
         pageNumber,
         imageUrl: publicUrlData.publicUrl,
+        text: personalizedText,
         progress: `${generatedCount}/${totalPages}`,
         status: newStatus,
       }),
