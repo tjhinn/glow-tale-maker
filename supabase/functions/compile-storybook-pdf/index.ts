@@ -252,7 +252,7 @@ serve(async (req) => {
         .trim();
       
       if (pageText) {
-        const textBoxHeight = 160;
+        const textBoxHeight = 200;
         const textBoxPadding = 20;
         const baseFontSize = 28;
         const personalizedFontSize = 32;
