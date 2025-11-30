@@ -101,6 +101,11 @@
   - Added `isGeneratingAll` state to track batch operations
   - Button now shows "Generating..." throughout entire batch
   - State persists even when individual pages fail during batch generation
+- ✅ Fixed story image path preservation bug (2025-11-30)
+  - Added `existingPath` field to page state to preserve original storage paths
+  - Updated `uploadImages` to use existing path when no new file is uploaded
+  - Prevented `template_image_url` from being overwritten with empty strings during edits
+  - Restored lost image URLs for "Journey Beyond the Stars" and "The Sky Garden" stories
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
