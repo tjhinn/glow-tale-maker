@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { PDFDocument, rgb, StandardFonts } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,24 +19,132 @@ function personalizeText(template: string, personalization: any): string {
     .replace(/{favoriteFood}/g, personalization.favoriteFood || '');
 }
 
-// Text wrapping helper function for PDF text
-function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
-  const words = text.split(' ');
+// Helper function to convert color name to RGB
+function colorNameToRgb(colorName: string): { r: number; g: number; b: number } {
+  const colorMap: Record<string, { r: number; g: number; b: number }> = {
+    red: { r: 0.9, g: 0.2, b: 0.2 },
+    blue: { r: 0.2, g: 0.4, b: 0.9 },
+    green: { r: 0.2, g: 0.7, b: 0.3 },
+    pink: { r: 0.95, g: 0.4, b: 0.6 },
+    purple: { r: 0.6, g: 0.3, b: 0.8 },
+    orange: { r: 1.0, g: 0.5, b: 0.0 },
+    yellow: { r: 0.9, g: 0.7, b: 0.0 },
+    brown: { r: 0.6, g: 0.4, b: 0.2 },
+    black: { r: 0.2, g: 0.2, b: 0.2 },
+    white: { r: 0.95, g: 0.95, b: 0.95 },
+    gray: { r: 0.5, g: 0.5, b: 0.5 },
+    turquoise: { r: 0.2, g: 0.8, b: 0.7 },
+    lime: { r: 0.7, g: 0.9, b: 0.2 },
+    magenta: { r: 0.9, g: 0.2, b: 0.7 },
+  };
+  return colorMap[colorName.toLowerCase()] || { r: 0.5, g: 0.2, b: 0.8 }; // Default: magical purple
+}
+
+// Helper function to identify personalized words in text
+interface TextSegment {
+  text: string;
+  isPersonalized: boolean;
+}
+
+function parseTextWithPersonalization(
+  text: string,
+  personalization: any
+): TextSegment[] {
+  const segments: TextSegment[] = [];
+  const personalizedValues = [
+    personalization.heroName,
+    personalization.petName,
+    personalization.petType,
+    personalization.city,
+    personalization.favoriteColor,
+    personalization.favoriteFood,
+  ].filter(Boolean);
+
+  let currentIndex = 0;
+  
+  while (currentIndex < text.length) {
+    let foundMatch = false;
+    
+    // Check if any personalized value starts at current position
+    for (const value of personalizedValues) {
+      if (text.substring(currentIndex, currentIndex + value.length) === value) {
+        // Add personalized segment
+        segments.push({ text: value, isPersonalized: true });
+        currentIndex += value.length;
+        foundMatch = true;
+        break;
+      }
+    }
+    
+    if (!foundMatch) {
+      // Add regular character
+      const char = text[currentIndex];
+      if (segments.length > 0 && !segments[segments.length - 1].isPersonalized) {
+        // Append to previous regular segment
+        segments[segments.length - 1].text += char;
+      } else {
+        // Start new regular segment
+        segments.push({ text: char, isPersonalized: false });
+      }
+      currentIndex++;
+    }
+  }
+  
+  return segments;
+}
+
+// Text wrapping helper function for PDF text with segment awareness
+function wrapText(
+  text: string,
+  regularFont: any,
+  boldFont: any,
+  regularSize: number,
+  boldSize: number,
+  maxWidth: number,
+  personalization: any
+): string[] {
   const lines: string[] = [];
-  let currentLine = '';
+  const words = text.split(" ");
+  let currentLine = "";
+
+  const personalizedValues = [
+    personalization.heroName,
+    personalization.petName,
+    personalization.petType,
+    personalization.city,
+    personalization.favoriteColor,
+    personalization.favoriteFood,
+  ].filter(Boolean);
 
   for (const word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const testWidth = font.widthOfTextAtSize(testLine, fontSize);
     
-    if (testWidth <= maxWidth) {
-      currentLine = testLine;
-    } else {
-      if (currentLine) lines.push(currentLine);
+    // Calculate width considering personalized words use different font/size
+    let testWidth = 0;
+    const testWords = testLine.split(" ");
+    for (let i = 0; i < testWords.length; i++) {
+      const w = testWords[i];
+      const isPersonalized = personalizedValues.includes(w);
+      const font = isPersonalized ? boldFont : regularFont;
+      const size = isPersonalized ? boldSize : regularSize;
+      testWidth += font.widthOfTextAtSize(w, size);
+      if (i < testWords.length - 1) {
+        testWidth += regularFont.widthOfTextAtSize(" ", regularSize);
+      }
+    }
+
+    if (testWidth > maxWidth && currentLine) {
+      lines.push(currentLine);
       currentLine = word;
+    } else {
+      currentLine = testLine;
     }
   }
-  if (currentLine) lines.push(currentLine);
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
   return lines;
 }
 
@@ -285,7 +394,23 @@ serve(async (req) => {
 
     // Step 5: Create PDF with composited images and text overlays
     const pdfDoc = await PDFDocument.create();
-    const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    
+    // Register fontkit for custom fonts
+    pdfDoc.registerFontkit(fontkit);
+    
+    // Embed Poppins fonts from Google Fonts CDN
+    console.log(`[${orderId}] Fetching Poppins fonts...`);
+    const poppinsRegularUrl = 'https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrFJM.ttf';
+    const poppinsBoldUrl = 'https://fonts.gstatic.com/s/poppins/v21/pxiByp8kv8JHgFVrLCz7V1s.ttf';
+    
+    const [regularFontBytes, boldFontBytes] = await Promise.all([
+      fetch(poppinsRegularUrl).then(res => res.arrayBuffer()),
+      fetch(poppinsBoldUrl).then(res => res.arrayBuffer()),
+    ]);
+    
+    const regularFont = await pdfDoc.embedFont(regularFontBytes);
+    const boldFont = await pdfDoc.embedFont(boldFontBytes);
+    console.log(`[${orderId}] Poppins fonts embedded successfully`);
 
     for (let i = 0; i < compositeImages.length; i++) {
       const base64Data = compositeImages[i].split(",")[1];
@@ -308,47 +433,85 @@ serve(async (req) => {
         const pageText = personalizedPages[pageIndex]?.text || '';
         
         if (pageText) {
-          const textBoxHeight = 180;
-          const textBoxPadding = 20;
-          const fontSize = 16;
-          const lineHeight = 22;
-          const textBoxX = 40;
-          const textBoxY = 40;
-          const textBoxWidth = image.width - 80;
+          // Text overlay settings - child-friendly sizing
+          const baseFontSize = 24;
+          const personalizedFontSize = 28;
+          const lineHeight = 36;
+          const maxWidth = image.width - 120;
+          const textBoxHeight = 220;
+          
+          // Get favorite color for personalized words
+          const favoriteColor = colorNameToRgb(personalization.favoriteColor || 'purple');
+          
+          // Wrap text with awareness of personalized segments
+          const lines = wrapText(
+            pageText,
+            regularFont,
+            boldFont,
+            baseFontSize,
+            personalizedFontSize,
+            maxWidth,
+            personalization
+          );
+          
+          // Calculate starting Y position
+          const totalTextHeight = lines.length * lineHeight;
+          let textY = image.height - 80 - ((textBoxHeight - totalTextHeight) / 2);
           
           // Draw semi-transparent background for text
           page.drawRectangle({
-            x: textBoxX,
-            y: textBoxY,
-            width: textBoxWidth,
+            x: 50,
+            y: image.height - 80 - textBoxHeight,
+            width: image.width - 100,
             height: textBoxHeight,
             color: rgb(1, 1, 1),
-            opacity: 0.85,
+            opacity: 0.90,
           });
           
-          // Wrap and draw text
-          const wrappedLines = wrapText(pageText, textFont, fontSize, textBoxWidth - 40);
-          let textY = textBoxY + textBoxHeight - textBoxPadding - fontSize;
-          
-          for (const line of wrappedLines) {
-            page.drawText(line, {
-              x: textBoxX + 20,
-              y: textY,
-              size: fontSize,
-              font: textFont,
-              color: rgb(0, 0, 0),
-            });
+          // Draw text lines with segment-based styling
+          for (const line of lines) {
+            const segments = parseTextWithPersonalization(line, personalization);
+            
+            // Calculate starting X for centered text
+            let totalLineWidth = 0;
+            for (const segment of segments) {
+              const font = segment.isPersonalized ? boldFont : regularFont;
+              const size = segment.isPersonalized ? personalizedFontSize : baseFontSize;
+              totalLineWidth += font.widthOfTextAtSize(segment.text, size);
+            }
+            
+            let currentX = (image.width - totalLineWidth) / 2;
+            
+            // Draw each segment with appropriate styling
+            for (const segment of segments) {
+              const font = segment.isPersonalized ? boldFont : regularFont;
+              const size = segment.isPersonalized ? personalizedFontSize : baseFontSize;
+              const color = segment.isPersonalized 
+                ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
+                : rgb(0.15, 0.15, 0.15);
+              
+              page.drawText(segment.text, {
+                x: currentX,
+                y: textY,
+                size: size,
+                font: font,
+                color: color,
+              });
+              
+              currentX += font.widthOfTextAtSize(segment.text, size);
+            }
+            
             textY -= lineHeight;
           }
           
           // Draw page number
           const pageNumText = `${i}`;
-          const pageNumWidth = textFont.widthOfTextAtSize(pageNumText, 12);
+          const pageNumWidth = regularFont.widthOfTextAtSize(pageNumText, 12);
           page.drawText(pageNumText, {
             x: (image.width - pageNumWidth) / 2,
             y: 20,
             size: 12,
-            font: textFont,
+            font: regularFont,
             color: rgb(0.5, 0.5, 0.5),
           });
         }
