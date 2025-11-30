@@ -252,14 +252,15 @@ serve(async (req) => {
         .trim();
       
       if (pageText) {
-        const textBoxHeight = 220;
+        const textBoxHeight = 160;
         const textBoxPadding = 20;
-        const baseFontSize = 24;
-        const personalizedFontSize = 28;
-        const lineHeight = 36;
+        const baseFontSize = 28;
+        const personalizedFontSize = 32;
+        const lineHeight = 42;
         const textBoxX = 40;
         const textBoxY = 40;
         const textBoxWidth = image.width - 80;
+        const maxTextWidth = textBoxWidth - 40;
         
         // Draw semi-transparent background for text
         page.drawRectangle({
@@ -275,34 +276,64 @@ serve(async (req) => {
         const segments = parseTextWithPersonalization(pageText, personalization);
         const favoriteColor = colorNameToRgb(personalization.favoriteColor || 'blue');
         
-        // Render text with personalized word highlighting
-        let currentX = textBoxX + 20;
-        let currentY = textBoxY + textBoxHeight - textBoxPadding - baseFontSize;
+        // PASS 1: Build lines array with segments and widths
+        interface TextLine {
+          segments: Array<{ text: string; isPersonalized: boolean; width: number }>;
+          totalWidth: number;
+        }
+        
+        const lines: TextLine[] = [];
+        let currentLine: TextLine = { segments: [], totalWidth: 0 };
         
         for (const segment of segments) {
           const font = segment.isPersonalized ? boldFont : regularFont;
           const fontSize = segment.isPersonalized ? personalizedFontSize : baseFontSize;
-          const color = segment.isPersonalized 
-            ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
-            : rgb(0, 0, 0);
-          
           const wordWidth = font.widthOfTextAtSize(segment.text + ' ', fontSize);
           
           // Check if word fits on current line
-          if (currentX + wordWidth > textBoxX + textBoxWidth - 20) {
-            currentX = textBoxX + 20;
-            currentY -= lineHeight;
+          if (currentLine.totalWidth + wordWidth > maxTextWidth && currentLine.segments.length > 0) {
+            lines.push(currentLine);
+            currentLine = { segments: [], totalWidth: 0 };
           }
           
-          page.drawText(segment.text + ' ', {
-            x: currentX,
-            y: currentY,
-            size: fontSize,
-            font: font,
-            color: color,
+          currentLine.segments.push({ 
+            text: segment.text, 
+            isPersonalized: segment.isPersonalized, 
+            width: wordWidth 
           });
+          currentLine.totalWidth += wordWidth;
+        }
+        if (currentLine.segments.length > 0) lines.push(currentLine);
+        
+        // Calculate total text height and vertical start position (centered)
+        const totalTextHeight = lines.length * lineHeight;
+        const verticalPadding = (textBoxHeight - totalTextHeight) / 2;
+        let currentY = textBoxY + textBoxHeight - verticalPadding - baseFontSize;
+        
+        // PASS 2: Render each line centered horizontally
+        for (const line of lines) {
+          const lineStartX = textBoxX + (textBoxWidth - line.totalWidth) / 2;
+          let currentX = lineStartX;
           
-          currentX += wordWidth;
+          for (const seg of line.segments) {
+            const font = seg.isPersonalized ? boldFont : regularFont;
+            const fontSize = seg.isPersonalized ? personalizedFontSize : baseFontSize;
+            const color = seg.isPersonalized 
+              ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
+              : rgb(0, 0, 0);
+            
+            page.drawText(seg.text + ' ', {
+              x: currentX,
+              y: currentY,
+              size: fontSize,
+              font: font,
+              color: color,
+            });
+            
+            currentX += seg.width;
+          }
+          
+          currentY -= lineHeight;
         }
         
         // Draw page number

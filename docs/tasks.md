@@ -91,6 +91,12 @@
   - Fixed "Unknown font format" error during PDF compilation
   - Added error handling for font loading with response status checks
   - Fonts now load successfully: Poppins-Regular.ttf and Poppins-Bold.ttf from github.com/google/fonts
+- ✅ Improved PDF typography (2025-11-30)
+  - Increased font sizes: base 28px, personalized 32px, line height 42px
+  - Reduced white box height from 220px to 160px
+  - Implemented center-justified text (horizontal centering)
+  - Added vertical centering with balanced white space
+  - Two-pass rendering algorithm: calculate lines, then center and render
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
