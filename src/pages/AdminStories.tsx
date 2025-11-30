@@ -50,7 +50,7 @@ const AdminStories = () => {
     is_active: true,
   });
 
-  const [pages, setPages] = useState<Array<{ text: string; image: File | null; imagePrompt: string; imageUrl?: string; page: number }>>(
+  const [pages, setPages] = useState<Array<{ text: string; image: File | null; imagePrompt: string; imageUrl?: string; existingPath?: string; page: number }>>(
     Array(12).fill(null).map((_, i) => ({ text: '', image: null, imagePrompt: '', page: i + 1 }))
   );
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -136,7 +136,7 @@ const AdminStories = () => {
       // Upload page images and build pages data
       for (let i = 0; i < pages.length; i++) {
         const pageData = pages[i];
-        let imageUrl = '';
+        let imageUrl = pageData.existingPath || '';
 
         if (pageData.image) {
           const pagePath = `${storyId}/page-${String(i + 1).padStart(2, '0')}.jpg`;
@@ -274,7 +274,7 @@ const AdminStories = () => {
       illustration_style: 'whimsical_storybook',
       is_active: true,
     });
-    setPages(Array(12).fill(null).map((_, i) => ({ text: '', image: null, imagePrompt: '', imageUrl: '', page: i + 1 })));
+    setPages(Array(12).fill(null).map((_, i) => ({ text: '', image: null, imagePrompt: '', imageUrl: '', existingPath: '', page: i + 1 })));
     setCoverFile(null);
     setCoverPreview('');
     setEditingStory(null);
@@ -309,12 +309,13 @@ const AdminStories = () => {
           image: null,
           imagePrompt: p.image_prompt || '',
           imageUrl,
+          existingPath: p.template_image_url || '',
           page: i + 1,
         };
       });
       // Ensure we always have 12 pages
       while (loadedPages.length < 12) {
-        loadedPages.push({ text: '', image: null, imagePrompt: '', imageUrl: '', page: loadedPages.length + 1 });
+        loadedPages.push({ text: '', image: null, imagePrompt: '', imageUrl: '', existingPath: '', page: loadedPages.length + 1 });
       }
       setPages(loadedPages);
     }
