@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -34,11 +34,17 @@ export function PageReview({
   const { toast } = useToast();
   const [generatingPages, setGeneratingPages] = useState<Set<number>>(new Set());
   const [compilingPdf, setCompilingPdf] = useState(false);
+  const [localGeneratedPages, setLocalGeneratedPages] = useState<GeneratedPage[]>(generatedPages);
+
+  // Sync local state with prop when it changes
+  useEffect(() => {
+    setLocalGeneratedPages(generatedPages);
+  }, [generatedPages]);
 
   // Create array of all pages (1 to totalPages)
   const allPages: GeneratedPage[] = Array.from({ length: totalPages }, (_, i) => {
     const pageNum = i + 1;
-    const existingPage = generatedPages.find((p) => p.page === pageNum);
+    const existingPage = localGeneratedPages.find((p) => p.page === pageNum);
     return (
       existingPage || {
         page: pageNum,
@@ -51,11 +57,26 @@ export function PageReview({
   const handleGeneratePage = async (pageNumber: number, skipRefetch = false) => {
     setGeneratingPages((prev) => new Set(prev).add(pageNumber));
     try {
-      const { error } = await supabase.functions.invoke("generate-single-page", {
+      const { data, error } = await supabase.functions.invoke("generate-single-page", {
         body: { orderId, pageNumber },
       });
 
       if (error) throw error;
+
+      // Update local state immediately with the returned image URL
+      if (data?.imageUrl) {
+        setLocalGeneratedPages((prev) => {
+          const newPages = prev.filter((p) => p.page !== pageNumber);
+          newPages.push({
+            page: pageNumber,
+            image_url: data.imageUrl,
+            status: "pending_review",
+            generated_at: new Date().toISOString(),
+            text: data.text || '',
+          });
+          return newPages.sort((a, b) => a.page - b.page);
+        });
+      }
 
       toast({
         title: "Success",
