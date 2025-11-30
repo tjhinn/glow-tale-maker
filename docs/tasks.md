@@ -70,6 +70,10 @@
   - Added explicit instructions for contextually appropriate expressions (curious, happy, determined, etc.)
   - Added emotional context guidance based on page number and narrative moment
   - Enables dynamic, engaging illustrations with natural body language variation
+- ✅ Fixed double title on PDF cover (2025-11-30)
+  - Removed duplicate title overlay from generate-storybook edge function
+  - Cover now displays only the styled title from flattenCoverWithTitle.ts
+  - Eliminated plain Times Roman Bold title that was appearing over the beautiful Fredoka One title
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)

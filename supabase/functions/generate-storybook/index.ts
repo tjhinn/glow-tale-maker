@@ -285,7 +285,6 @@ serve(async (req) => {
 
     // Step 5: Create PDF with composited images and text overlays
     const pdfDoc = await PDFDocument.create();
-    const titleFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
     const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     for (let i = 0; i < compositeImages.length; i++) {
@@ -302,22 +301,9 @@ serve(async (req) => {
         height: image.height,
       });
 
-      // Cover page (index 0) - Add title overlay
-      if (i === 0) {
-        const title = personalizeText(story.title, personalization);
-        const titleSize = 48;
-        const titleWidth = titleFont.widthOfTextAtSize(title, titleSize);
-        
-        page.drawText(title, {
-          x: (image.width - titleWidth) / 2,
-          y: image.height - 80,
-          size: titleSize,
-          font: titleFont,
-          color: rgb(1, 0.91, 0.5), // Golden #FFE97F
-        });
-      } 
-      // Story pages (index 1-12) - Add text overlay
-      else {
+      // Cover page (index 0) - No overlay needed, title already flattened in image
+      // Story pages (index 1+) - Add text overlay
+      if (i > 0) {
         const pageIndex = i - 1;
         const pageText = personalizedPages[pageIndex]?.text || '';
         
