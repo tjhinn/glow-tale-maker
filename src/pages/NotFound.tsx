@@ -24,11 +24,11 @@ const NotFound = () => {
               <Sparkles className="w-20 h-20 text-accent" />
             </div>
             
-            <h1 className="text-6xl md:text-8xl font-fredoka text-primary">
+            <h1 className="text-6xl md:text-8xl font-wonderia text-primary">
               404
             </h1>
             
-            <h2 className="text-2xl md:text-3xl font-fredoka text-foreground">
+            <h2 className="text-2xl md:text-3xl font-wonderia text-foreground">
               Oops! This page wandered into the enchanted forest...
             </h2>
             

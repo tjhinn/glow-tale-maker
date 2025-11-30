@@ -228,7 +228,7 @@ const Preview = () => {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-fredoka text-2xl">Did you complete sharing?</AlertDialogTitle>
+            <AlertDialogTitle className="font-wonderia text-2xl">Did you complete sharing?</AlertDialogTitle>
             <AlertDialogDescription className="font-poppins">
               To unlock your 10% discount, please confirm that you shared {personalization?.heroName}'s magical story!
             </AlertDialogDescription>
@@ -248,7 +248,7 @@ const Preview = () => {
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-accent/30 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-fredoka">
+            <CardTitle className="text-3xl md:text-4xl text-center font-wonderia">
               ✨ See the Magic
             </CardTitle>
             <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
@@ -290,7 +290,7 @@ const Preview = () => {
               </div>
               
               {/* Caption */}
-              <p className="text-center mt-4 font-fredoka text-lg text-primary">
+              <p className="text-center mt-4 font-wonderia text-lg text-primary">
                 {personalizeSimpleText(selectedStory.title)}
               </p>
               <p className="text-center mt-1 text-sm text-muted-foreground">
@@ -317,7 +317,7 @@ const Preview = () => {
                   key={index}
                   className="bg-background/95 backdrop-blur-sm p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
                 >
-                  <h3 className="text-sm font-fredoka text-primary mb-2">
+                  <h3 className="text-sm font-wonderia text-primary mb-2">
                     Page {page.page}
                   </h3>
                   <p className="text-sm leading-relaxed font-poppins">
@@ -332,7 +332,7 @@ const Preview = () => {
         {/* Share Card - Full Width */}
         <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300 mb-8">
           <CardHeader>
-            <CardTitle className="text-xl font-fredoka flex items-center gap-2">
+            <CardTitle className="text-xl font-wonderia flex items-center gap-2">
               <Share2 className="w-5 h-5 text-accent" />
               Share & Save
             </CardTitle>
@@ -342,7 +342,7 @@ const Preview = () => {
               <div className="p-8 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 border-2 border-success text-center space-y-3">
                 <Sparkles className="w-16 h-16 text-success mx-auto animate-pulse" />
               <div>
-                <p className="text-success font-bold text-xl mb-2 font-fredoka">
+                <p className="text-success font-bold text-xl mb-2 font-wonderia">
                   🎉 Discount Unlocked!
                 </p>
                 <p className="text-sm text-muted-foreground font-poppins">

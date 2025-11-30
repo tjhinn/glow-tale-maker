@@ -66,7 +66,7 @@ const Home = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-primary/20 shadow-sm">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold font-fredoka text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold font-wonderia text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             YourFairyTale.ai
           </h1>
         </div>
@@ -86,7 +86,7 @@ const Home = () => {
               <span className="text-sm font-semibold font-poppins text-accent">Create Magic in Minutes</span>
             </div>
             
-            <h2 className="text-5xl md:text-7xl font-bold font-fredoka leading-tight">
+            <h2 className="text-5xl md:text-7xl font-bold font-wonderia leading-tight">
               Every Child Deserves to Be{" "}
               <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-sparkle">
                 The Hero
@@ -123,7 +123,7 @@ const Home = () => {
           <div className="text-center mb-12 space-y-3 animate-fade-in">
             <div className="inline-flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-primary" />
-              <h3 className="text-4xl md:text-5xl font-bold font-fredoka">
+              <h3 className="text-4xl md:text-5xl font-bold font-wonderia">
                 Magical Illustrations
               </h3>
               <BookOpen className="w-6 h-6 text-primary" />
@@ -191,7 +191,7 @@ const Home = () => {
       <section className="py-20 bg-secondary/20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12 space-y-3 animate-fade-in">
-            <h3 className="text-4xl md:text-5xl font-bold font-fredoka flex items-center justify-center gap-3">
+            <h3 className="text-4xl md:text-5xl font-bold font-wonderia flex items-center justify-center gap-3">
               <Heart className="w-8 h-8 text-success fill-success" />
               Loved by Parents Everywhere
               <Heart className="w-8 h-8 text-success fill-success" />
@@ -264,7 +264,7 @@ const Home = () => {
       <section className="relative py-24 bg-gradient-to-br from-primary/10 via-accent/5 to-background overflow-hidden">
         <SparklesAnimation count={6} />
         <div className="container mx-auto px-4 text-center space-y-6">
-          <h3 className="text-3xl md:text-4xl font-bold font-fredoka">
+          <h3 className="text-3xl md:text-4xl font-bold font-wonderia">
             Ready to Create Magic?
           </h3>
           <p className="text-lg text-muted-foreground font-poppins max-w-xl mx-auto">
@@ -287,7 +287,7 @@ const Home = () => {
         <div className="container mx-auto px-4 text-center space-y-4">
           <div className="flex justify-center items-center gap-2">
             <Sparkles className="w-5 h-5 text-accent" />
-            <p className="text-lg font-semibold font-fredoka">YourFairyTale.ai</p>
+            <p className="text-lg font-semibold font-wonderia">YourFairyTale.ai</p>
           </div>
           <p className="text-sm text-muted-foreground font-poppins">
             Creating magical memories, one story at a time

@@ -17,7 +17,7 @@ export default {
         playfair: ['Playfair Display', 'serif'],
         poppins: ['Poppins', 'sans-serif'],
         sans: ['Inter', 'sans-serif'],
-        fredoka: ['Fredoka One', 'cursive'],
+        wonderia: ['Wonderia', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
