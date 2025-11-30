@@ -86,6 +86,11 @@
   - Embedded Poppins fonts (Regular & Bold) for child-friendly text
   - Implemented personalized word highlighting with favorite color
   - Updated font sizes: base 24px, personalized 28px, line height 36px
+- ✅ Fixed PDF font embedding error (2025-11-30)
+  - Replaced broken Google Fonts static URLs with GitHub raw URLs
+  - Fixed "Unknown font format" error during PDF compilation
+  - Added error handling for font loading with response status checks
+  - Fonts now load successfully: Poppins-Regular.ttf and Poppins-Bold.ttf from github.com/google/fonts
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)

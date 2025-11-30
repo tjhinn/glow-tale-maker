@@ -183,14 +183,25 @@ serve(async (req) => {
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
 
-    // Embed Poppins fonts
-    const poppinsRegularUrl = 'https://fonts.gstatic.com/s/poppins/v21/pxiEyp8kv8JHgFVrFJM.ttf';
-    const poppinsBoldUrl = 'https://fonts.gstatic.com/s/poppins/v21/pxiByp8kv8JHgFVrLCz7V1s.ttf';
-    
-    const [regularFontBytes, boldFontBytes] = await Promise.all([
-      fetch(poppinsRegularUrl).then(res => res.arrayBuffer()),
-      fetch(poppinsBoldUrl).then(res => res.arrayBuffer()),
+    // Embed Poppins fonts from GitHub raw URLs
+    const poppinsRegularUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf';
+    const poppinsBoldUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf';
+
+    const [regularFontResponse, boldFontResponse] = await Promise.all([
+      fetch(poppinsRegularUrl),
+      fetch(poppinsBoldUrl),
     ]);
+
+    if (!regularFontResponse.ok || !boldFontResponse.ok) {
+      throw new Error(`Failed to fetch fonts: Regular=${regularFontResponse.status}, Bold=${boldFontResponse.status}`);
+    }
+
+    const [regularFontBytes, boldFontBytes] = await Promise.all([
+      regularFontResponse.arrayBuffer(),
+      boldFontResponse.arrayBuffer(),
+    ]);
+
+    console.log(`[${orderId}] Fonts loaded: Regular=${regularFontBytes.byteLength} bytes, Bold=${boldFontBytes.byteLength} bytes`);
 
     const regularFont = await pdfDoc.embedFont(regularFontBytes);
     const boldFont = await pdfDoc.embedFont(boldFontBytes);
