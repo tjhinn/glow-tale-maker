@@ -15,36 +15,16 @@ import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-illustration.jpg";
 import Autoplay from "embla-carousel-autoplay";
 
-const reviews = [
-  {
-    name: "Sarah M.",
-    text: "My daughter was absolutely thrilled to see herself as the hero! The quality is stunning.",
-    rating: 5,
-  },
-  {
-    name: "Michael T.",
-    text: "Best gift I've ever given. The personalization makes it so special and unique.",
-    rating: 5,
-  },
-  {
-    name: "Emily R.",
-    text: "The illustrations are beautiful and the story had my son captivated from start to finish!",
-    rating: 5,
-  },
-  {
-    name: "David K.",
-    text: "Worth every penny. My kids ask to read their fairy tale every single night.",
-    rating: 5,
-  },
-];
-
 const Home = () => {
   const navigate = useNavigate();
   const [carouselImages, setCarouselImages] = useState<any[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
   useEffect(() => {
     fetchCarouselImages();
+    fetchReviews();
   }, []);
 
   const fetchCarouselImages = async () => {
@@ -61,6 +41,23 @@ const Home = () => {
       console.error('Error fetching carousel images:', error);
     } finally {
       setLoadingImages(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+      setReviews(data || []);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    } finally {
+      setLoadingReviews(false);
     }
   };
 
@@ -219,25 +216,43 @@ const Home = () => {
             ]}
           >
             <CarouselContent>
-              {reviews.map((review, index) => (
-                <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-                  <Card className="h-full bg-gradient-to-br from-card to-secondary/5 backdrop-blur border-2 border-primary/10 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex gap-1">
-                        {[...Array(review.rating)].map((_, i) => (
-                          <Star key={i} className="w-5 h-5 fill-primary text-primary" />
-                        ))}
-                      </div>
-                      <p className="text-sm leading-relaxed font-poppins italic text-foreground/90">
-                        "{review.text}"
-                      </p>
-                      <p className="text-sm font-semibold font-poppins text-muted-foreground">
-                        — {review.name}
-                      </p>
+              {loadingReviews ? (
+                <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                  <Card className="h-full border-2 border-primary/10">
+                    <CardContent className="p-6 flex items-center justify-center">
+                      <p className="text-muted-foreground">Loading reviews...</p>
                     </CardContent>
                   </Card>
                 </CarouselItem>
-              ))}
+              ) : reviews.length > 0 ? (
+                reviews.map((review, index) => (
+                  <CarouselItem key={review.id || index} className="md:basis-1/2 lg:basis-1/3">
+                    <Card className="h-full bg-gradient-to-br from-card to-secondary/5 backdrop-blur border-2 border-primary/10 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300">
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex gap-1">
+                          {[...Array(review.rating)].map((_, i) => (
+                            <Star key={i} className="w-5 h-5 fill-primary text-primary" />
+                          ))}
+                        </div>
+                        <p className="text-sm leading-relaxed font-poppins italic text-foreground/90">
+                          "{review.review_text}"
+                        </p>
+                        <p className="text-sm font-semibold font-poppins text-muted-foreground">
+                          — {review.reviewer_name}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))
+              ) : (
+                <CarouselItem className="md:basis-1/2 lg:basis-1/3">
+                  <Card className="h-full border-2 border-primary/10">
+                    <CardContent className="p-6 flex items-center justify-center">
+                      <p className="text-muted-foreground">No reviews available</p>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              )}
             </CarouselContent>
             <CarouselPrevious className="hidden md:flex hover:glow-accent" />
             <CarouselNext className="hidden md:flex hover:glow-accent" />

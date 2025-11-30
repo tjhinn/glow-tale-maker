@@ -106,6 +106,14 @@
   - Updated `uploadImages` to use existing path when no new file is uploaded
   - Prevented `template_image_url` from being overwritten with empty strings during edits
   - Restored lost image URLs for "Journey Beyond the Stars" and "The Sky Garden" stories
+- ✅ Added reviews management system (2025-11-30)
+  - Created `reviews` table with RLS policies (anyone can read active, admins can manage)
+  - Built AdminReviews.tsx page with full CRUD operations (add, edit, delete, toggle active)
+  - Seeded initial 4 reviews from hardcoded data
+  - Updated Home.tsx to fetch reviews from database with loading states
+  - Added "Manage Reviews" card to Admin Dashboard
+  - Implemented review rating selector (1-5 stars) and character limits
+  - Added display_order field for custom sorting on homepage
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)

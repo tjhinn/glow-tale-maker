@@ -119,6 +119,16 @@ const AdminDashboard = () => {
                 Manage Carousel
               </Button>
             </div>
+
+            <div className="p-6 rounded-lg border bg-card">
+              <h2 className="text-xl font-semibold mb-2">Manage Reviews</h2>
+              <p className="text-muted-foreground mb-4">
+                Add and edit customer reviews displayed on the homepage
+              </p>
+              <Button onClick={() => navigate('/admin/reviews')}>
+                Manage Reviews
+              </Button>
+            </div>
           </div>
         </main>
       </div>
