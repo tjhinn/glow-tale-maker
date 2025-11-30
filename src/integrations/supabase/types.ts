@@ -133,6 +133,39 @@ export type Database = {
           },
         ]
       }
+      reviews: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          rating: number
+          review_text: string
+          reviewer_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          rating?: number
+          review_text: string
+          reviewer_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          rating?: number
+          review_text?: string
+          reviewer_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stories: {
         Row: {
           cover_image_url: string | null
