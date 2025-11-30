@@ -104,41 +104,55 @@ const StorySelection = () => {
           const { flattenCoverWithTitle } = await import("@/lib/flattenCoverWithTitle");
           const { enforceAspectRatio } = await import("@/lib/enforceAspectRatio");
           
-          // Enforce 4:3 aspect ratio (safety net in case AI doesn't respect parameter)
-          const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
-          
-          // Flatten the cover with title text
-          const flattenedBlob = await flattenCoverWithTitle(
-            aspectRatioCorrectedUrl,
-            personalizedTitle
-          );
-          
-          // Upload flattened image to storage
-          const fileName = `flattened-cover-${Date.now()}.png`;
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('hero-photos')
-            .upload(fileName, flattenedBlob, { contentType: 'image/png' });
-          
-          if (uploadError) {
-            console.error("Error uploading flattened cover:", uploadError);
-            // Fall back to using the original personalized cover
+          try {
+            // Enforce 4:3 aspect ratio (safety net in case AI doesn't respect parameter)
+            const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
+            
+            // Flatten the cover with title text
+            const flattenedBlob = await flattenCoverWithTitle(
+              aspectRatioCorrectedUrl,
+              personalizedTitle
+            );
+            
+            // Upload flattened image to storage
+            const fileName = `flattened-cover-${Date.now()}.png`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('hero-photos')
+              .upload(fileName, flattenedBlob, { contentType: 'image/png' });
+            
+            if (uploadError) {
+              console.error("Error uploading flattened cover:", uploadError);
+              // Fall back to using the original personalized cover
+              const updatedPersonalization = {
+                ...personalization,
+                personalizedCoverUrl: data.personalizedCoverUrl
+              };
+              localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+            } else {
+              // Get public URL of the flattened image
+              const { data: urlData } = supabase.storage
+                .from('hero-photos')
+                .getPublicUrl(fileName);
+              
+              const updatedPersonalization = {
+                ...personalization,
+                personalizedCoverUrl: urlData.publicUrl
+              };
+              localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+              console.log("Flattened cover with title uploaded:", urlData.publicUrl);
+            }
+          } catch (fontError) {
+            console.error("Font/canvas error during cover flattening:", fontError);
+            // Fall back to using the AI-generated cover without title overlay
             const updatedPersonalization = {
               ...personalization,
               personalizedCoverUrl: data.personalizedCoverUrl
             };
             localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
-          } else {
-            // Get public URL of the flattened image
-            const { data: urlData } = supabase.storage
-              .from('hero-photos')
-              .getPublicUrl(fileName);
-            
-            const updatedPersonalization = {
-              ...personalization,
-              personalizedCoverUrl: urlData.publicUrl
-            };
-            localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
-            console.log("Flattened cover with title uploaded:", urlData.publicUrl);
+            toast({
+              title: "Using simplified cover",
+              description: "Title overlay unavailable, but your story is ready!",
+            });
           }
         }
       }
@@ -150,10 +164,11 @@ const StorySelection = () => {
       }));
       navigate("/preview");
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Cover generation error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       toast({
         title: "Something went wrong",
-        description: "Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

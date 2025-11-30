@@ -28,11 +28,19 @@ export async function flattenCoverWithTitle(
         // Calculate responsive font size (5.5% of canvas width)
         const baseFontSize = Math.floor(canvas.width * 0.055);
         
-        // Wait for Wonderia font to load
+        // Explicitly preload Wonderia font
+        try {
+          const fontFace = new FontFace('Wonderia', 'url(/fonts/Wonderia.otf)');
+          await fontFace.load();
+          document.fonts.add(fontFace);
+        } catch (fontError) {
+          console.warn("Wonderia font failed to load, using fallback:", fontError);
+        }
+        
         await document.fonts.ready;
         
-        // Configure text styling to match Preview.tsx exactly
-        ctx.font = `${baseFontSize}px "Wonderia", cursive`;
+        // Configure text styling with fallback fonts
+        ctx.font = `${baseFontSize}px "Wonderia", "Fredoka One", cursive`;
         ctx.fillStyle = '#FFE97F';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
