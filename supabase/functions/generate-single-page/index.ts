@@ -126,11 +126,24 @@ Replace the generic hero in the template page with the personalized hero shown i
 **CHARACTER REPLACEMENT:**
 - Find the generic child character in the template page
 - Replace them with ${personalization.heroName} (a ${personalization.gender})
-- The replacement character MUST match the hero in Image 2 exactly:
-  - Same face, hair color, hairstyle, skin tone
+- The replacement character MUST have the same identity as Image 2:
+  - Same face structure, hair color, hairstyle, skin tone
   - Same ${personalization.favoriteColor || 'colorful'}-themed costume
   - Same body type and proportions for a ${personalization.gender}
-- Keep the character in the same position and pose as the original
+- Keep the character in approximately the same LOCATION in the scene
+
+**EXPRESSION & POSE VARIETY (IMPORTANT):**
+- Give ${personalization.heroName} a NATURAL, CONTEXTUALLY APPROPRIATE facial expression for this scene
+- Vary the expression based on the story moment: curious, happy, surprised, determined, thoughtful, excited, peaceful, etc.
+- Allow natural body pose variation - the character can have different arm positions, head tilts, and gestures
+- The pose should feel dynamic and alive, not stiff or identical to other pages
+- Match the body language to the emotional tone of the scene
+- DO NOT copy the exact same expression/pose from the cover or other pages
+
+**EMOTIONAL CONTEXT FOR THIS PAGE:**
+- This is page ${pageNumber} of the story
+- Interpret the scene and choose an expression that matches the narrative moment
+- Examples: discovering something new = curious/excited; overcoming a challenge = determined/proud; peaceful ending = serene/happy
 `;
 
     // Add pet replacement instructions if applicable
