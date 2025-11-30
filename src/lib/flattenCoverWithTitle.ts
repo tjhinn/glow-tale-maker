@@ -28,11 +28,11 @@ export async function flattenCoverWithTitle(
         // Calculate responsive font size (5.5% of canvas width)
         const baseFontSize = Math.floor(canvas.width * 0.055);
         
-        // Wait for Fredoka font to load
+        // Wait for Wonderia font to load
         await document.fonts.ready;
         
         // Configure text styling to match Preview.tsx exactly
-        ctx.font = `bold ${baseFontSize}px "Fredoka One", cursive`;
+        ctx.font = `${baseFontSize}px "Wonderia", cursive`;
         ctx.fillStyle = '#FFE97F';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
