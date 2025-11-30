@@ -97,6 +97,10 @@
   - Implemented center-justified text (horizontal centering)
   - Added vertical centering with balanced white space
   - Two-pass rendering algorithm: calculate lines, then center and render
+- ✅ Fixed "Generate All" button state persistence (2025-11-30)
+  - Added `isGeneratingAll` state to track batch operations
+  - Button now shows "Generating..." throughout entire batch
+  - State persists even when individual pages fail during batch generation
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)

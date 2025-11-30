@@ -33,6 +33,7 @@ export function PageReview({
 }: PageReviewProps) {
   const { toast } = useToast();
   const [generatingPages, setGeneratingPages] = useState<Set<number>>(new Set());
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [compilingPdf, setCompilingPdf] = useState(false);
   const [localGeneratedPages, setLocalGeneratedPages] = useState<GeneratedPage[]>(generatedPages);
 
@@ -117,13 +118,18 @@ export function PageReview({
       return;
     }
 
-    // Generate all pages sequentially without refetching between each
-    for (const pageNum of pagesToGenerate) {
-      await handleGeneratePage(pageNum, true); // skipRefetch = true
+    setIsGeneratingAll(true);
+    
+    try {
+      // Generate all pages sequentially without refetching between each
+      for (const pageNum of pagesToGenerate) {
+        await handleGeneratePage(pageNum, true); // skipRefetch = true
+      }
+    } finally {
+      setIsGeneratingAll(false);
+      // Single refetch at the end to update UI with all new pages
+      onRefetch();
     }
-
-    // Single refetch at the end to update UI with all new pages
-    onRefetch();
   };
 
   const handleApprovePage = async (pageNumber: number) => {
@@ -241,10 +247,10 @@ export function PageReview({
           <div className="flex gap-2">
             <Button
               onClick={handleGenerateAll}
-              disabled={generatingPages.size > 0}
+              disabled={generatingPages.size > 0 || isGeneratingAll}
               variant="outline"
             >
-              {generatingPages.size > 0 ? (
+              {generatingPages.size > 0 || isGeneratingAll ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Generating...
