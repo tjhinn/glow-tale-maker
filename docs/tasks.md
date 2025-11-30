@@ -74,6 +74,18 @@
   - Removed duplicate title overlay from generate-storybook edge function
   - Cover now displays only the styled title from flattenCoverWithTitle.ts
   - Eliminated plain Times Roman Bold title that was appearing over the beautiful Fredoka One title
+- ✅ Enhanced storybook text for children (2025-11-30)
+  - Increased base font size from 16px to 24px for easy reading
+  - Embedded Poppins font (Regular & Bold) from Google Fonts to match webapp
+  - Personalized words (name, pet, city, etc.) are now 28px, bold, and colored with child's favorite color
+  - Increased line height to 36px and text box to 220px for better readability
+  - Implemented segment-based rendering to highlight personalized content dynamically
+- ✅ Enhanced storybook text for children (2025-11-30)
+  - Increased base font size from 16px to 24px for easy reading
+  - Embedded Poppins font (Regular & Bold) from Google Fonts to match webapp
+  - Personalized words (name, pet, city, etc.) are now 28px, bold, and colored with child's favorite color
+  - Increased line height to 36px and text box to 220px for better readability
+  - Implemented segment-based rendering to highlight personalized content dynamically
 
 **Current State:**
 - 📚 Database: 1 active story ("The Sky Garden" - gender: both)
