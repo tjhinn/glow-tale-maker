@@ -104,51 +104,71 @@ const StorySelection = () => {
           const { flattenCoverWithTitle } = await import("@/lib/flattenCoverWithTitle");
           const { enforceAspectRatio } = await import("@/lib/enforceAspectRatio");
           
-          try {
-            // Enforce 4:3 aspect ratio (safety net in case AI doesn't respect parameter)
-            const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
-            
-            // Flatten the cover with title text
-            const flattenedBlob = await flattenCoverWithTitle(
-              aspectRatioCorrectedUrl,
-              personalizedTitle
-            );
-            
-            // Upload flattened image to storage
-            const fileName = `flattened-cover-${Date.now()}.png`;
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('hero-photos')
-              .upload(fileName, flattenedBlob, { contentType: 'image/png' });
-            
-            if (uploadError) {
-              console.error("Error uploading flattened cover:", uploadError);
-              // Fall back to using the original personalized cover
-              const updatedPersonalization = {
-                ...personalization,
-                personalizedCoverUrl: data.personalizedCoverUrl
-              };
-              localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
-            } else {
+          let flattenedCoverUrl: string | null = null;
+          const MAX_FLATTEN_ATTEMPTS = 2;
+          
+          for (let attempt = 1; attempt <= MAX_FLATTEN_ATTEMPTS; attempt++) {
+            try {
+              console.log(`Cover flattening attempt ${attempt}/${MAX_FLATTEN_ATTEMPTS}...`);
+              
+              // Enforce 4:3 aspect ratio (safety net in case AI doesn't respect parameter)
+              const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
+              
+              // Flatten the cover with title text
+              const flattenedBlob = await flattenCoverWithTitle(
+                aspectRatioCorrectedUrl,
+                personalizedTitle
+              );
+              
+              // Upload flattened image to storage
+              const fileName = `flattened-cover-${Date.now()}.png`;
+              const { error: uploadError } = await supabase.storage
+                .from('hero-photos')
+                .upload(fileName, flattenedBlob, { contentType: 'image/png' });
+              
+              if (uploadError) {
+                throw new Error(`Upload failed: ${uploadError.message}`);
+              }
+              
+              // Verify the upload exists
+              const { data: verifyData } = await supabase.storage
+                .from('hero-photos')
+                .list('', { search: fileName });
+              
+              if (!verifyData || verifyData.length === 0) {
+                throw new Error("Upload verification failed - file not found");
+              }
+              
               // Get public URL of the flattened image
               const { data: urlData } = supabase.storage
                 .from('hero-photos')
                 .getPublicUrl(fileName);
               
-              const updatedPersonalization = {
-                ...personalization,
-                personalizedCoverUrl: urlData.publicUrl
-              };
-              localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
-              console.log("Flattened cover with title uploaded:", urlData.publicUrl);
+              flattenedCoverUrl = urlData.publicUrl;
+              console.log("Flattened cover with title uploaded and verified:", flattenedCoverUrl);
+              break; // Success, exit retry loop
+              
+            } catch (flattenError) {
+              console.error(`Flatten attempt ${attempt} failed:`, flattenError);
+              if (attempt === MAX_FLATTEN_ATTEMPTS) {
+                console.warn("All flatten attempts failed, using raw AI cover");
+              }
             }
-          } catch (fontError) {
-            console.error("Font/canvas error during cover flattening:", fontError);
-            // Fall back to using the AI-generated cover without title overlay
-            const updatedPersonalization = {
-              ...personalization,
-              personalizedCoverUrl: data.personalizedCoverUrl
-            };
-            localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+          }
+          
+          // Save the cover URL (flattened if successful, raw if not)
+          const finalCoverUrl = flattenedCoverUrl || data.personalizedCoverUrl;
+          const updatedPersonalization = {
+            ...personalization,
+            personalizedCoverUrl: finalCoverUrl
+          };
+          localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+          
+          // Verify localStorage was updated correctly
+          const verifiedData = JSON.parse(localStorage.getItem("personalizationData") || "{}");
+          console.log("Verified localStorage cover URL:", verifiedData.personalizedCoverUrl);
+          
+          if (!flattenedCoverUrl) {
             toast({
               title: "Using simplified cover",
               description: "Title overlay unavailable, but your story is ready!",

@@ -11,6 +11,13 @@
 
 ## 🎯 Recent Updates (2026-01-07)
 
+**Cover Image Flattening Fix - COMPLETED:**
+- ✅ Fixed CORS issues by fetching cover images as blobs before canvas drawing
+- ✅ Added retry logic (2 attempts) for flattening failures
+- ✅ Added upload verification to confirm flattened cover was saved
+- ✅ Better error logging throughout the flattening process
+- ✅ Ensured localStorage is properly updated before navigation
+
 **PDF Batch Compilation - COMPLETED:**
 - ✅ Added `pdf_batch_progress` column to orders table
 - ✅ Split PDF compilation into 3 batches to avoid CPU timeout:
