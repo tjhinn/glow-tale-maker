@@ -13,6 +13,13 @@ type OrderStatus =
   | "email_sent"
   | "cancelled";
 
+interface BatchProgress {
+  currentBatch: number;
+  totalBatches: number;
+  completedBatches: number[];
+  partialPdfPath: string;
+}
+
 interface OrderActionsProps {
   orderId: string;
   status: OrderStatus;
@@ -26,6 +33,7 @@ interface OrderActionsProps {
   generatedPages?: any[];
   totalPages?: number;
   onRefetch?: () => void;
+  pdfBatchProgress?: BatchProgress | null;
 }
 
 export function OrderActions({
@@ -41,6 +49,7 @@ export function OrderActions({
   generatedPages = [],
   totalPages = 12,
   onRefetch,
+  pdfBatchProgress,
 }: OrderActionsProps) {
   const [showPageReview, setShowPageReview] = useState(false);
   const renderActions = () => {
@@ -67,6 +76,7 @@ export function OrderActions({
                 totalPages={totalPages}
                 generatedPages={generatedPages}
                 onRefetch={onRefetch}
+                pdfBatchProgress={pdfBatchProgress}
               />
             )}
           </div>
@@ -100,6 +110,7 @@ export function OrderActions({
                 totalPages={totalPages}
                 generatedPages={generatedPages}
                 onRefetch={onRefetch}
+                pdfBatchProgress={pdfBatchProgress}
               />
             )}
           </div>

@@ -14,6 +14,13 @@ interface GeneratedPage {
   text?: string;
 }
 
+interface BatchProgress {
+  currentBatch: number;
+  totalBatches: number;
+  completedBatches: number[];
+  partialPdfPath: string;
+}
+
 interface PageReviewProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,7 +28,10 @@ interface PageReviewProps {
   totalPages: number;
   generatedPages: GeneratedPage[];
   onRefetch: () => void;
+  pdfBatchProgress?: BatchProgress | null;
 }
+
+const TOTAL_BATCHES = 3;
 
 export function PageReview({
   open,
@@ -30,11 +40,13 @@ export function PageReview({
   totalPages,
   generatedPages,
   onRefetch,
+  pdfBatchProgress,
 }: PageReviewProps) {
   const { toast } = useToast();
   const [generatingPages, setGeneratingPages] = useState<Set<number>>(new Set());
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [compilingPdf, setCompilingPdf] = useState(false);
+  const [currentBatch, setCurrentBatch] = useState(0);
   const [localGeneratedPages, setLocalGeneratedPages] = useState<GeneratedPage[]>(generatedPages);
 
   // Sync local state with prop when it changes
@@ -204,33 +216,67 @@ export function PageReview({
 
   const handleCompilePdf = async () => {
     setCompilingPdf(true);
+    setCurrentBatch(0);
+    
+    // Determine starting batch (for retry capability)
+    const completedBatches = pdfBatchProgress?.completedBatches || [];
+    const startBatch = completedBatches.length > 0 
+      ? Math.max(...completedBatches) + 1 
+      : 1;
+    
     try {
-      const { error } = await supabase.functions.invoke("compile-storybook-pdf", {
-        body: { orderId },
-      });
+      for (let batch = startBatch; batch <= TOTAL_BATCHES; batch++) {
+        setCurrentBatch(batch);
+        
+        toast({
+          title: "Compiling PDF",
+          description: `Processing batch ${batch} of ${TOTAL_BATCHES}...`,
+        });
+        
+        const { data, error } = await supabase.functions.invoke("compile-storybook-pdf", {
+          body: { orderId, batch },
+        });
 
-      if (error) throw error;
+        if (error) {
+          throw new Error(`Batch ${batch} failed: ${error.message}`);
+        }
+
+        if (!data?.success) {
+          throw new Error(`Batch ${batch} failed: ${data?.error || 'Unknown error'}`);
+        }
+
+        console.log(`Batch ${batch} complete:`, data);
+      }
 
       toast({
         title: "Success",
-        description: "PDF compiled successfully",
+        description: "PDF compiled successfully!",
       });
       onOpenChange(false);
       onRefetch();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to compile PDF";
       toast({
         title: "Error",
-        description: "Failed to compile PDF",
+        description: errorMessage,
         variant: "destructive",
       });
       console.error("Error compiling PDF:", error);
+      // Refetch to get updated batch progress for retry
+      onRefetch();
     } finally {
       setCompilingPdf(false);
+      setCurrentBatch(0);
     }
   };
 
   const approvedCount = allPages.filter((p) => p.status === "approved").length;
   const allApproved = approvedCount === totalPages;
+  
+  // Check if we can resume from a failed batch
+  const canResume = pdfBatchProgress && 
+    pdfBatchProgress.completedBatches.length > 0 && 
+    pdfBatchProgress.completedBatches.length < TOTAL_BATCHES;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -244,7 +290,7 @@ export function PageReview({
 
         <div className="space-y-4">
           {/* Action Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button
               onClick={handleGenerateAll}
               disabled={generatingPages.size > 0 || isGeneratingAll}
@@ -259,21 +305,63 @@ export function PageReview({
                 "Generate All Remaining"
               )}
             </Button>
-            <Button
-              onClick={handleCompilePdf}
-              disabled={!allApproved || compilingPdf}
-              className="ml-auto"
-            >
-              {compilingPdf ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Compiling...
-                </>
-              ) : (
-                "Compile Final PDF"
+            
+            <div className="ml-auto flex gap-2">
+              {canResume && (
+                <Button
+                  onClick={handleCompilePdf}
+                  disabled={!allApproved || compilingPdf}
+                  variant="outline"
+                >
+                  {compilingPdf ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Batch {currentBatch}/{TOTAL_BATCHES}...
+                    </>
+                  ) : (
+                    `Resume from Batch ${(pdfBatchProgress?.completedBatches?.length || 0) + 1}`
+                  )}
+                </Button>
               )}
-            </Button>
+              
+              <Button
+                onClick={handleCompilePdf}
+                disabled={!allApproved || compilingPdf}
+              >
+                {compilingPdf ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Batch {currentBatch}/{TOTAL_BATCHES}...
+                  </>
+                ) : canResume ? (
+                  "Restart PDF Compilation"
+                ) : (
+                  "Compile Final PDF"
+                )}
+              </Button>
+            </div>
           </div>
+
+          {/* Batch Progress Indicator */}
+          {compilingPdf && (
+            <div className="bg-muted p-3 rounded-lg">
+              <div className="flex items-center gap-2 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>
+                  Processing batch {currentBatch} of {TOTAL_BATCHES}...
+                  {currentBatch === 1 && " (Cover + Pages 1-4)"}
+                  {currentBatch === 2 && " (Pages 5-8)"}
+                  {currentBatch === 3 && " (Pages 9-12)"}
+                </span>
+              </div>
+              <div className="mt-2 h-2 bg-background rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all duration-500"
+                  style={{ width: `${(currentBatch / TOTAL_BATCHES) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* Page Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

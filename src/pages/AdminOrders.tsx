@@ -222,6 +222,7 @@ const AdminOrders = () => {
                   generatedPages={(order as any).generated_pages || []}
                   totalPages={Array.isArray((order as any).story?.pages) ? (order as any).story.pages.length : 12}
                   onRefetch={refetch}
+                  pdfBatchProgress={(order as any).pdf_batch_progress}
                 />
               </OrderCard>
             </div>
