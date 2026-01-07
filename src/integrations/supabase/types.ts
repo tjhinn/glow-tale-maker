@@ -61,6 +61,7 @@ export type Database = {
           payment_provider: string | null
           payment_provider_id: string | null
           payment_transaction_id: string | null
+          pdf_batch_progress: Json | null
           pdf_generated_at: string | null
           pdf_url: string | null
           personalization_data: Json
@@ -87,6 +88,7 @@ export type Database = {
           payment_provider?: string | null
           payment_provider_id?: string | null
           payment_transaction_id?: string | null
+          pdf_batch_progress?: Json | null
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data: Json
@@ -113,6 +115,7 @@ export type Database = {
           payment_provider?: string | null
           payment_provider_id?: string | null
           payment_transaction_id?: string | null
+          pdf_batch_progress?: Json | null
           pdf_generated_at?: string | null
           pdf_url?: string | null
           personalization_data?: Json

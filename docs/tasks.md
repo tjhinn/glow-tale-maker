@@ -9,7 +9,22 @@
 
 ---
 
-## 🎯 Recent Updates (2025-11-25)
+## 🎯 Recent Updates (2026-01-07)
+
+**PDF Batch Compilation - COMPLETED:**
+- ✅ Added `pdf_batch_progress` column to orders table
+- ✅ Split PDF compilation into 3 batches to avoid CPU timeout:
+  - Batch 1: Cover + Pages 1-4
+  - Batch 2: Pages 5-8
+  - Batch 3: Pages 9-12, finalize and upload
+- ✅ Partial PDFs saved to storage between batches
+- ✅ Resume capability if a batch fails (retry from last completed batch)
+- ✅ Progress indicator shows current batch during compilation
+- ✅ Edge function `compile-storybook-pdf` updated with batch parameter
+
+---
+
+## Previous Updates (2025-11-25)
 
 **Phase 0 Foundation - COMPLETED:**
 - ✅ User roles system with `has_role()` security definer function

@@ -8,6 +8,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Batch configuration
+const PAGES_PER_BATCH = 4;
+const TOTAL_BATCHES = 3;
+
 // Text wrapping helper function for PDF text
 function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
   const words = text.split(' ');
@@ -119,6 +123,137 @@ async function embedImage(pdfDoc: any, bytes: Uint8Array, logPrefix: string) {
   }
 }
 
+// Add a story page to the PDF with text overlay
+async function addStoryPage(
+  pdfDoc: any,
+  pageData: any,
+  personalization: any,
+  regularFont: any,
+  boldFont: any,
+  logPrefix: string
+) {
+  // Fetch the composited image
+  const imageResponse = await fetch(pageData.image_url);
+  const imageBlob = await imageResponse.blob();
+  const imageBuffer = await imageBlob.arrayBuffer();
+  const imageBytes = new Uint8Array(imageBuffer);
+  const image = await embedImage(pdfDoc, imageBytes, logPrefix);
+  const page = pdfDoc.addPage([image.width, image.height]);
+  
+  page.drawImage(image, {
+    x: 0,
+    y: 0,
+    width: image.width,
+    height: image.height,
+  });
+
+  // Add text overlay with personalized word highlighting
+  const rawText = pageData.text || '';
+  const pageText = rawText
+    .replace(/\r\n/g, ' ')
+    .replace(/\n/g, ' ')
+    .replace(/\r/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  if (pageText) {
+    const textBoxHeight = 200;
+    const textBoxPadding = 20;
+    const baseFontSize = 28;
+    const personalizedFontSize = 32;
+    const lineHeight = 42;
+    const textBoxX = 40;
+    const textBoxY = 40;
+    const textBoxWidth = image.width - 80;
+    const maxTextWidth = textBoxWidth - 40;
+    
+    // Draw semi-transparent background for text
+    page.drawRectangle({
+      x: textBoxX,
+      y: textBoxY,
+      width: textBoxWidth,
+      height: textBoxHeight,
+      color: rgb(1, 1, 1),
+      opacity: 0.85,
+    });
+    
+    // Parse text into segments
+    const segments = parseTextWithPersonalization(pageText, personalization);
+    const favoriteColor = colorNameToRgb(personalization.favoriteColor || 'blue');
+    
+    // PASS 1: Build lines array with segments and widths
+    interface TextLine {
+      segments: Array<{ text: string; isPersonalized: boolean; width: number }>;
+      totalWidth: number;
+    }
+    
+    const lines: TextLine[] = [];
+    let currentLine: TextLine = { segments: [], totalWidth: 0 };
+    
+    for (const segment of segments) {
+      const font = segment.isPersonalized ? boldFont : regularFont;
+      const fontSize = segment.isPersonalized ? personalizedFontSize : baseFontSize;
+      const wordWidth = font.widthOfTextAtSize(segment.text + ' ', fontSize);
+      
+      // Check if word fits on current line
+      if (currentLine.totalWidth + wordWidth > maxTextWidth && currentLine.segments.length > 0) {
+        lines.push(currentLine);
+        currentLine = { segments: [], totalWidth: 0 };
+      }
+      
+      currentLine.segments.push({ 
+        text: segment.text, 
+        isPersonalized: segment.isPersonalized, 
+        width: wordWidth 
+      });
+      currentLine.totalWidth += wordWidth;
+    }
+    if (currentLine.segments.length > 0) lines.push(currentLine);
+    
+    // Calculate total text height and vertical start position (centered)
+    const totalTextHeight = lines.length * lineHeight;
+    const verticalPadding = (textBoxHeight - totalTextHeight) / 2;
+    let currentY = textBoxY + textBoxHeight - verticalPadding - baseFontSize;
+    
+    // PASS 2: Render each line centered horizontally
+    for (const line of lines) {
+      const lineStartX = textBoxX + (textBoxWidth - line.totalWidth) / 2;
+      let currentX = lineStartX;
+      
+      for (const seg of line.segments) {
+        const font = seg.isPersonalized ? boldFont : regularFont;
+        const fontSize = seg.isPersonalized ? personalizedFontSize : baseFontSize;
+        const color = seg.isPersonalized 
+          ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
+          : rgb(0, 0, 0);
+        
+        page.drawText(seg.text + ' ', {
+          x: currentX,
+          y: currentY,
+          size: fontSize,
+          font: font,
+          color: color,
+        });
+        
+        currentX += seg.width;
+      }
+      
+      currentY -= lineHeight;
+    }
+    
+    // Draw page number
+    const pageNumText = `${pageData.page}`;
+    const pageNumWidth = regularFont.widthOfTextAtSize(pageNumText, 12);
+    page.drawText(pageNumText, {
+      x: (image.width - pageNumWidth) / 2,
+      y: 20,
+      size: 12,
+      font: regularFont,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -129,6 +264,7 @@ serve(async (req) => {
   try {
     const body = await req.json();
     orderId = body.orderId;
+    const batch = body.batch || 1; // Default to batch 1
     
     if (!orderId) {
       return new Response(
@@ -141,7 +277,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`[${orderId}] Starting PDF compilation...`);
+    console.log(`[${orderId}] Starting PDF compilation batch ${batch}/${TOTAL_BATCHES}...`);
 
     // Fetch order and story data
     const { data: order, error: orderError } = await supabase
@@ -163,6 +299,7 @@ serve(async (req) => {
     const personalization = order.personalization_data as any;
     const personalizedCoverUrl = order.personalized_cover_url;
     const generatedPages = (order.generated_pages as any[]) || [];
+    const batchProgress = (order.pdf_batch_progress as any) || {};
     
     if (!personalizedCoverUrl) {
       throw new Error(`No personalized cover found for order ${orderId}`);
@@ -172,233 +309,237 @@ serve(async (req) => {
     const storyPages = story.pages as any[];
 
     // Verify all pages are generated and approved
-    const approvedPages = generatedPages.filter((p: any) => p.status === "approved");
+    const approvedPages = generatedPages
+      .filter((p: any) => p.status === "approved")
+      .sort((a: any, b: any) => a.page - b.page);
+    
     if (approvedPages.length !== storyPages.length) {
       throw new Error(`Not all pages are approved. Approved: ${approvedPages.length}/${storyPages.length}`);
     }
 
-    console.log(`[${orderId}] All ${approvedPages.length} pages approved. Creating PDF...`);
+    // Calculate which pages this batch handles
+    const startPageIndex = (batch - 1) * PAGES_PER_BATCH;
+    const endPageIndex = Math.min(startPageIndex + PAGES_PER_BATCH, approvedPages.length);
+    const batchPages = approvedPages.slice(startPageIndex, endPageIndex);
 
-    // Create PDF
-    const pdfDoc = await PDFDocument.create();
-    pdfDoc.registerFontkit(fontkit);
+    console.log(`[${orderId}] Batch ${batch}: Processing pages ${startPageIndex + 1} to ${endPageIndex}`);
 
-    // Embed Poppins fonts from GitHub raw URLs
-    const poppinsRegularUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf';
-    const poppinsBoldUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf';
+    let pdfDoc;
+    let regularFont;
+    let boldFont;
 
-    const [regularFontResponse, boldFontResponse] = await Promise.all([
-      fetch(poppinsRegularUrl),
-      fetch(poppinsBoldUrl),
-    ]);
+    if (batch === 1) {
+      // BATCH 1: Create new PDF, embed fonts, add cover + first pages
+      console.log(`[${orderId}] Creating new PDF document...`);
+      pdfDoc = await PDFDocument.create();
+      pdfDoc.registerFontkit(fontkit);
 
-    if (!regularFontResponse.ok || !boldFontResponse.ok) {
-      throw new Error(`Failed to fetch fonts: Regular=${regularFontResponse.status}, Bold=${boldFontResponse.status}`);
-    }
+      // Embed Poppins fonts from GitHub raw URLs
+      const poppinsRegularUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf';
+      const poppinsBoldUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf';
 
-    const [regularFontBytes, boldFontBytes] = await Promise.all([
-      regularFontResponse.arrayBuffer(),
-      boldFontResponse.arrayBuffer(),
-    ]);
+      const [regularFontResponse, boldFontResponse] = await Promise.all([
+        fetch(poppinsRegularUrl),
+        fetch(poppinsBoldUrl),
+      ]);
 
-    console.log(`[${orderId}] Fonts loaded: Regular=${regularFontBytes.byteLength} bytes, Bold=${boldFontBytes.byteLength} bytes`);
+      if (!regularFontResponse.ok || !boldFontResponse.ok) {
+        throw new Error(`Failed to fetch fonts: Regular=${regularFontResponse.status}, Bold=${boldFontResponse.status}`);
+      }
 
-    const regularFont = await pdfDoc.embedFont(regularFontBytes);
-    const boldFont = await pdfDoc.embedFont(boldFontBytes);
+      const [regularFontBytes, boldFontBytes] = await Promise.all([
+        regularFontResponse.arrayBuffer(),
+        boldFontResponse.arrayBuffer(),
+      ]);
 
-    // Add cover page
-    console.log(`[${orderId}] Adding cover page...`);
-    const coverResponse = await fetch(personalizedCoverUrl);
-    const coverBlob = await coverResponse.blob();
-    const coverBuffer = await coverBlob.arrayBuffer();
-    const coverBytes = new Uint8Array(coverBuffer);
-    const coverImage = await embedImage(pdfDoc, coverBytes, `[${orderId}]`);
-    const coverPage = pdfDoc.addPage([coverImage.width, coverImage.height]);
-    
-    coverPage.drawImage(coverImage, {
-      x: 0,
-      y: 0,
-      width: coverImage.width,
-      height: coverImage.height,
-    });
+      console.log(`[${orderId}] Fonts loaded: Regular=${regularFontBytes.byteLength} bytes, Bold=${boldFontBytes.byteLength} bytes`);
 
-    // Add story pages
-    for (let i = 0; i < approvedPages.length; i++) {
-      const pageData = approvedPages[i];
-      console.log(`[${orderId}] Adding page ${pageData.page}...`);
+      regularFont = await pdfDoc.embedFont(regularFontBytes);
+      boldFont = await pdfDoc.embedFont(boldFontBytes);
 
-      // Fetch the composited image
-      const imageResponse = await fetch(pageData.image_url);
-      const imageBlob = await imageResponse.blob();
-      const imageBuffer = await imageBlob.arrayBuffer();
-      const imageBytes = new Uint8Array(imageBuffer);
-      const image = await embedImage(pdfDoc, imageBytes, `[${orderId}]`);
-      const page = pdfDoc.addPage([image.width, image.height]);
+      // Add cover page
+      console.log(`[${orderId}] Adding cover page...`);
+      const coverResponse = await fetch(personalizedCoverUrl);
+      const coverBlob = await coverResponse.blob();
+      const coverBuffer = await coverBlob.arrayBuffer();
+      const coverBytes = new Uint8Array(coverBuffer);
+      const coverImage = await embedImage(pdfDoc, coverBytes, `[${orderId}]`);
+      const coverPage = pdfDoc.addPage([coverImage.width, coverImage.height]);
       
-      page.drawImage(image, {
+      coverPage.drawImage(coverImage, {
         x: 0,
         y: 0,
-        width: image.width,
-        height: image.height,
+        width: coverImage.width,
+        height: coverImage.height,
       });
 
-      // Add text overlay with personalized word highlighting
-      const rawText = pageData.text || '';
-      const pageText = rawText
-        .replace(/\r\n/g, ' ')
-        .replace(/\n/g, ' ')
-        .replace(/\r/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+      // Add story pages for batch 1
+      for (const pageData of batchPages) {
+        console.log(`[${orderId}] Adding page ${pageData.page}...`);
+        await addStoryPage(pdfDoc, pageData, personalization, regularFont, boldFont, `[${orderId}]`);
+      }
+
+    } else {
+      // BATCH 2+: Load existing partial PDF and continue
+      const partialPdfPath = batchProgress.partialPdfPath;
+      if (!partialPdfPath) {
+        throw new Error(`No partial PDF found for batch ${batch}. Did batch ${batch - 1} complete?`);
+      }
+
+      console.log(`[${orderId}] Loading partial PDF from storage: ${partialPdfPath}`);
       
-      if (pageText) {
-        const textBoxHeight = 200;
-        const textBoxPadding = 20;
-        const baseFontSize = 28;
-        const personalizedFontSize = 32;
-        const lineHeight = 42;
-        const textBoxX = 40;
-        const textBoxY = 40;
-        const textBoxWidth = image.width - 80;
-        const maxTextWidth = textBoxWidth - 40;
-        
-        // Draw semi-transparent background for text
-        page.drawRectangle({
-          x: textBoxX,
-          y: textBoxY,
-          width: textBoxWidth,
-          height: textBoxHeight,
-          color: rgb(1, 1, 1),
-          opacity: 0.85,
-        });
-        
-        // Parse text into segments
-        const segments = parseTextWithPersonalization(pageText, personalization);
-        const favoriteColor = colorNameToRgb(personalization.favoriteColor || 'blue');
-        
-        // PASS 1: Build lines array with segments and widths
-        interface TextLine {
-          segments: Array<{ text: string; isPersonalized: boolean; width: number }>;
-          totalWidth: number;
-        }
-        
-        const lines: TextLine[] = [];
-        let currentLine: TextLine = { segments: [], totalWidth: 0 };
-        
-        for (const segment of segments) {
-          const font = segment.isPersonalized ? boldFont : regularFont;
-          const fontSize = segment.isPersonalized ? personalizedFontSize : baseFontSize;
-          const wordWidth = font.widthOfTextAtSize(segment.text + ' ', fontSize);
-          
-          // Check if word fits on current line
-          if (currentLine.totalWidth + wordWidth > maxTextWidth && currentLine.segments.length > 0) {
-            lines.push(currentLine);
-            currentLine = { segments: [], totalWidth: 0 };
-          }
-          
-          currentLine.segments.push({ 
-            text: segment.text, 
-            isPersonalized: segment.isPersonalized, 
-            width: wordWidth 
-          });
-          currentLine.totalWidth += wordWidth;
-        }
-        if (currentLine.segments.length > 0) lines.push(currentLine);
-        
-        // Calculate total text height and vertical start position (centered)
-        const totalTextHeight = lines.length * lineHeight;
-        const verticalPadding = (textBoxHeight - totalTextHeight) / 2;
-        let currentY = textBoxY + textBoxHeight - verticalPadding - baseFontSize;
-        
-        // PASS 2: Render each line centered horizontally
-        for (const line of lines) {
-          const lineStartX = textBoxX + (textBoxWidth - line.totalWidth) / 2;
-          let currentX = lineStartX;
-          
-          for (const seg of line.segments) {
-            const font = seg.isPersonalized ? boldFont : regularFont;
-            const fontSize = seg.isPersonalized ? personalizedFontSize : baseFontSize;
-            const color = seg.isPersonalized 
-              ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
-              : rgb(0, 0, 0);
-            
-            page.drawText(seg.text + ' ', {
-              x: currentX,
-              y: currentY,
-              size: fontSize,
-              font: font,
-              color: color,
-            });
-            
-            currentX += seg.width;
-          }
-          
-          currentY -= lineHeight;
-        }
-        
-        // Draw page number
-        const pageNumText = `${pageData.page}`;
-        const pageNumWidth = regularFont.widthOfTextAtSize(pageNumText, 12);
-        page.drawText(pageNumText, {
-          x: (image.width - pageNumWidth) / 2,
-          y: 20,
-          size: 12,
-          font: regularFont,
-          color: rgb(0.5, 0.5, 0.5),
-        });
+      const { data: pdfData, error: downloadError } = await supabase.storage
+        .from("generated-pdfs")
+        .download(partialPdfPath);
+
+      if (downloadError || !pdfData) {
+        throw new Error(`Failed to download partial PDF: ${downloadError?.message}`);
+      }
+
+      const existingPdfBytes = await pdfData.arrayBuffer();
+      pdfDoc = await PDFDocument.load(existingPdfBytes);
+      pdfDoc.registerFontkit(fontkit);
+
+      // Re-embed fonts (required after loading)
+      const poppinsRegularUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf';
+      const poppinsBoldUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf';
+
+      const [regularFontResponse, boldFontResponse] = await Promise.all([
+        fetch(poppinsRegularUrl),
+        fetch(poppinsBoldUrl),
+      ]);
+
+      const [regularFontBytes, boldFontBytes] = await Promise.all([
+        regularFontResponse.arrayBuffer(),
+        boldFontResponse.arrayBuffer(),
+      ]);
+
+      regularFont = await pdfDoc.embedFont(regularFontBytes);
+      boldFont = await pdfDoc.embedFont(boldFontBytes);
+
+      // Add story pages for this batch
+      for (const pageData of batchPages) {
+        console.log(`[${orderId}] Adding page ${pageData.page}...`);
+        await addStoryPage(pdfDoc, pageData, personalization, regularFont, boldFont, `[${orderId}]`);
       }
     }
 
+    // Save PDF
     const pdfBytes = await pdfDoc.save();
+    console.log(`[${orderId}] Batch ${batch} PDF saved: ${pdfBytes.byteLength} bytes`);
 
-    console.log(`[${orderId}] PDF created. Uploading to storage...`);
+    // Update batch progress
+    const completedBatches = [...(batchProgress.completedBatches || []), batch];
+    const isComplete = batch === TOTAL_BATCHES;
 
-    // Upload to storage
-    const fileName = `${orderId}-${Date.now()}.pdf`;
-    const { error: uploadError } = await supabase.storage
-      .from("generated-pdfs")
-      .upload(fileName, pdfBytes, {
-        contentType: "application/pdf",
-        upsert: false,
-      });
+    if (isComplete) {
+      // FINAL BATCH: Upload as final PDF and update order
+      console.log(`[${orderId}] Uploading final PDF to storage...`);
+      
+      const fileName = `${orderId}-${Date.now()}.pdf`;
+      const { error: uploadError } = await supabase.storage
+        .from("generated-pdfs")
+        .upload(fileName, pdfBytes, {
+          contentType: "application/pdf",
+          upsert: false,
+        });
 
-    if (uploadError) {
-      throw new Error(`Failed to upload PDF: ${uploadError.message}`);
+      if (uploadError) {
+        throw new Error(`Failed to upload PDF: ${uploadError.message}`);
+      }
+
+      // Generate 7-day signed URL
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from("generated-pdfs")
+        .createSignedUrl(fileName, 60 * 60 * 24 * 7); // 7 days
+
+      if (signedUrlError || !signedUrlData) {
+        throw new Error(`Failed to create signed URL: ${signedUrlError?.message}`);
+      }
+
+      // Clean up partial PDFs
+      if (batchProgress.partialPdfPath) {
+        await supabase.storage
+          .from("generated-pdfs")
+          .remove([batchProgress.partialPdfPath]);
+      }
+
+      // Update order with final PDF URL and status
+      await supabase
+        .from("orders")
+        .update({
+          status: "pending_admin_review",
+          pdf_url: signedUrlData.signedUrl,
+          pdf_generated_at: new Date().toISOString(),
+          pdf_batch_progress: null, // Clear progress on completion
+        })
+        .eq("id", orderId);
+
+      console.log(`[${orderId}] ✅ PDF compilation complete!`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          orderId,
+          batch,
+          completed: true,
+          nextBatch: null,
+          pdfUrl: signedUrlData.signedUrl,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+
+    } else {
+      // NOT FINAL: Upload as partial PDF for next batch
+      const partialFileName = `partial/${orderId}-batch-${batch}.pdf`;
+      
+      console.log(`[${orderId}] Uploading partial PDF: ${partialFileName}`);
+
+      // Remove old partial if exists
+      if (batchProgress.partialPdfPath) {
+        await supabase.storage
+          .from("generated-pdfs")
+          .remove([batchProgress.partialPdfPath]);
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from("generated-pdfs")
+        .upload(partialFileName, pdfBytes, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw new Error(`Failed to upload partial PDF: ${uploadError.message}`);
+      }
+
+      // Update batch progress in order
+      await supabase
+        .from("orders")
+        .update({
+          pdf_batch_progress: {
+            currentBatch: batch,
+            totalBatches: TOTAL_BATCHES,
+            completedBatches,
+            partialPdfPath: partialFileName,
+          },
+        })
+        .eq("id", orderId);
+
+      console.log(`[${orderId}] Batch ${batch} complete. Ready for batch ${batch + 1}.`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          orderId,
+          batch,
+          completed: false,
+          nextBatch: batch + 1,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Generate 7-day signed URL
-    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from("generated-pdfs")
-      .createSignedUrl(fileName, 60 * 60 * 24 * 7); // 7 days
-
-    if (signedUrlError || !signedUrlData) {
-      throw new Error(`Failed to create signed URL: ${signedUrlError?.message}`);
-    }
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    // Update order with PDF URL and status
-    await supabase
-      .from("orders")
-      .update({
-        status: "pending_admin_review",
-        pdf_url: signedUrlData.signedUrl,
-        pdf_generated_at: new Date().toISOString(),
-      })
-      .eq("id", orderId);
-
-    console.log(`[${orderId}] ✅ PDF compilation complete!`);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        orderId,
-        pdfUrl: signedUrlData.signedUrl,
-        expiresAt: expiresAt.toISOString(),
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     const errorStack = error instanceof Error ? error.stack : '';
