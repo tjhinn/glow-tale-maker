@@ -6,9 +6,36 @@ export async function flattenCoverWithTitle(
   coverUrl: string,
   title: string
 ): Promise<Blob> {
+  // First, fetch the image as a blob to avoid CORS issues
+  let imageUrl = coverUrl;
+  let objectUrlToCleanup: string | null = null;
+  
+  try {
+    console.log("Fetching cover image as blob to avoid CORS...");
+    const response = await fetch(coverUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+    const blob = await response.blob();
+    imageUrl = URL.createObjectURL(blob);
+    objectUrlToCleanup = imageUrl;
+    console.log("Successfully created blob URL for cover image");
+  } catch (e) {
+    console.warn("Could not fetch image as blob, trying direct load:", e);
+  }
+
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    // Only set crossOrigin if we're using the original URL (not blob URL)
+    if (!objectUrlToCleanup) {
+      img.crossOrigin = "anonymous";
+    }
+    
+    const cleanup = () => {
+      if (objectUrlToCleanup) {
+        URL.revokeObjectURL(objectUrlToCleanup);
+      }
+    };
     
     img.onload = async () => {
       try {
@@ -19,6 +46,7 @@ export async function flattenCoverWithTitle(
         const ctx = canvas.getContext('2d');
         
         if (!ctx) {
+          cleanup();
           throw new Error('Could not get canvas context');
         }
         
@@ -33,6 +61,7 @@ export async function flattenCoverWithTitle(
           const fontFace = new FontFace('Wonderia', 'url(/fonts/Wonderia.otf)');
           await fontFace.load();
           document.fonts.add(fontFace);
+          console.log("Wonderia font loaded successfully for cover flattening");
         } catch (fontError) {
           console.warn("Wonderia font failed to load, using fallback:", fontError);
         }
@@ -98,23 +127,29 @@ export async function flattenCoverWithTitle(
           ctx.strokeText(line, textX, y);
         });
         
+        console.log("Canvas flattening complete, converting to blob...");
+        
         // Convert canvas to blob
         canvas.toBlob((blob) => {
+          cleanup();
           if (blob) {
+            console.log("Flattened cover blob created successfully");
             resolve(blob);
           } else {
             reject(new Error('Failed to create blob from canvas'));
           }
         }, 'image/png', 1.0);
       } catch (error) {
+        cleanup();
         reject(error);
       }
     };
     
     img.onerror = () => {
+      cleanup();
       reject(new Error('Failed to load cover image'));
     };
     
-    img.src = coverUrl;
+    img.src = imageUrl;
   });
 }
