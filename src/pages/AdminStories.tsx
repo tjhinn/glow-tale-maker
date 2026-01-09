@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Plus, Edit, Trash2, BookOpen, Upload, X } from 'lucide-react';
+import { Loader2, ArrowLeft, Plus, Edit, Trash2, BookOpen, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 interface PageData {
@@ -448,70 +448,71 @@ const AdminStories = () => {
                       <p className="text-xs text-muted-foreground">
                         Use placeholders: {'{heroName}'}, {'{petName}'}, {'{petType}'}, {'{city}'}, {'{favoriteColor}'}, {'{favoriteFood}'}
                       </p>
-                      <div className="space-y-6 max-h-[60vh] overflow-y-auto border rounded-lg p-4">
+                      <div className="space-y-2 border rounded-lg p-3">
                         {pages.map((page, index) => (
-                          <Card key={index} className="p-4 bg-muted/20">
-                            <h4 className="font-semibold mb-3 flex items-center gap-2">
-                              <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded text-sm">
+                          <Card key={index} className="p-3">
+                            <div className="flex gap-3">
+                              {/* Page number */}
+                              <div className="flex-shrink-0 w-7 h-7 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm font-semibold">
                                 {index + 1}
-                              </span>
-                              Page {index + 1}
-                            </h4>
-                            
-                            <div className="space-y-4">
-                              {/* Full-width image display - main focus */}
-                              {(page.imageUrl || page.existingPath) && (
-                                <div className="relative aspect-[4/3] w-full bg-muted/30 rounded-lg overflow-hidden border">
-                                  <img 
-                                    src={page.imageUrl || page.existingPath} 
-                                    alt={`Page ${index + 1}`} 
-                                    className="w-full h-full object-contain" 
-                                  />
-                                  {page.image && (
-                                    <Badge className="absolute top-2 right-2 bg-primary">
-                                      New (unsaved)
-                                    </Badge>
-                                  )}
-                                </div>
-                              )}
-                              
-                              {/* Upload controls */}
-                              <div className="flex gap-2 items-center">
-                                <Input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => handlePageImageUpload(index, e.target.files?.[0] || null)}
-                                  className="flex-1"
-                                />
-                                {page.image && (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handlePageImageUpload(index, null)}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                )}
                               </div>
                               
-                              {/* Text content */}
-                              <Textarea
-                                placeholder={`Text for page ${index + 1}...`}
-                                value={page.text}
-                                onChange={(e) => updatePageText(index, e.target.value)}
-                                className="min-h-20"
-                                required
-                              />
-                              
-                              {/* Image prompt */}
-                              <div>
-                                <Label className="text-xs text-muted-foreground">Image Prompt (optional)</Label>
+                              {/* Thumbnail image */}
+                              <div className="flex-shrink-0 w-20 h-16 bg-muted/30 rounded border overflow-hidden relative">
+                                {(page.imageUrl || page.existingPath) ? (
+                                  <>
+                                    <img
+                                      src={page.imageUrl || page.existingPath}
+                                      alt={`Page ${index + 1}`}
+                                      className="w-full h-full object-contain"
+                                    />
+                                    {page.image && (
+                                      <Badge className="absolute -top-1 -right-1 text-[10px] px-1 py-0 bg-primary">
+                                        New
+                                      </Badge>
+                                    )}
+                                  </>
+                                ) : (
+                                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                                    <ImageIcon className="h-5 w-5 opacity-50" />
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Content area */}
+                              <div className="flex-1 space-y-2 min-w-0">
+                                <Textarea
+                                  placeholder={`Story text for page ${index + 1}...`}
+                                  value={page.text}
+                                  onChange={(e) => updatePageText(index, e.target.value)}
+                                  className="min-h-14 text-sm"
+                                  required
+                                />
                                 <Input
-                                  placeholder="Describe the scene for AI generation..."
+                                  placeholder="Image prompt..."
                                   value={page.imagePrompt}
                                   onChange={(e) => updatePagePrompt(index, e.target.value)}
+                                  className="text-sm"
                                 />
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handlePageImageUpload(index, e.target.files?.[0] || null)}
+                                    className="text-xs flex-1"
+                                  />
+                                  {page.image && (
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handlePageImageUpload(index, null)}
+                                      className="text-xs h-7"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </Card>
@@ -527,14 +528,14 @@ const AdminStories = () => {
                       {coverPreview && !coverFile && (
                         <div className="mb-2 p-2 bg-muted/50 rounded border">
                           <p className="text-xs text-muted-foreground mb-1">Current Cover:</p>
-                          <div className="aspect-[4/3] w-full bg-muted/20 rounded-lg overflow-hidden">
+                          <div className="aspect-[4/3] w-40 bg-muted/20 rounded overflow-hidden">
                             <img 
                               src={coverPreview} 
                               alt="Cover preview" 
                               className="w-full h-full object-contain" 
                             />
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground mt-1">
                             Upload a new file to replace
                           </p>
                         </div>
@@ -542,33 +543,35 @@ const AdminStories = () => {
                       
                       {/* New cover preview */}
                       {coverFile && coverPreview && (
-                        <div className="mb-2 p-2 bg-primary/10 rounded border border-primary relative">
-                          <p className="text-xs text-primary mb-1">New Cover (unsaved):</p>
-                          <div className="aspect-[4/3] w-full bg-primary/5 rounded-lg overflow-hidden">
-                            <img 
-                              src={coverPreview} 
-                              alt="New cover preview" 
-                              className="w-full h-full object-contain" 
-                            />
+                        <div className="mb-2 p-2 bg-primary/10 rounded border border-primary">
+                          <div className="flex items-start gap-2">
+                            <div>
+                              <p className="text-xs text-primary mb-1">New Cover (unsaved):</p>
+                              <div className="aspect-[4/3] w-40 bg-primary/5 rounded overflow-hidden">
+                                <img 
+                                  src={coverPreview} 
+                                  alt="New cover preview" 
+                                  className="w-full h-full object-contain" 
+                                />
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setCoverFile(null);
+                                if (editingStory?.cover_image_url) {
+                                  const { data } = supabase.storage.from('story-images').getPublicUrl(editingStory.cover_image_url);
+                                  setCoverPreview(`${data.publicUrl}?t=${new Date(editingStory.updated_at).getTime()}`);
+                                } else {
+                                  setCoverPreview('');
+                                }
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="icon"
-                            className="absolute -top-2 -right-2 h-6 w-6"
-                            onClick={() => {
-                              setCoverFile(null);
-                              // Revert to saved cover if available
-                              if (editingStory?.cover_image_url) {
-                                const { data } = supabase.storage.from('story-images').getPublicUrl(editingStory.cover_image_url);
-                                setCoverPreview(`${data.publicUrl}?t=${new Date(editingStory.updated_at).getTime()}`);
-                              } else {
-                                setCoverPreview('');
-                              }
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </div>
                       )}
                       

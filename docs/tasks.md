@@ -9,7 +9,18 @@
 
 ---
 
-## 🎯 Recent Updates (2026-01-07)
+## 🎯 Recent Updates (2026-01-09)
+
+**Admin Story Editor UX Improvements - COMPLETED:**
+- ✅ Simplified story page editor with horizontal compact layout
+- ✅ Removed nested scroll areas (now single dialog scroll)
+- ✅ Reduced page image to 80×64px thumbnails (no cropping, object-contain)
+- ✅ Reduced cover image previews to 160px wide
+- ✅ All 12 pages visible with much less scrolling
+
+---
+
+## Previous Updates (2026-01-07)
 
 **Cover Image Flattening Fix - COMPLETED:**
 - ✅ Fixed CORS issues by fetching cover images as blobs before canvas drawing
