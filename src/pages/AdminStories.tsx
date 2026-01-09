@@ -457,8 +457,8 @@ const AdminStories = () => {
                                 {index + 1}
                               </div>
                               
-                              {/* Thumbnail image */}
-                              <div className="flex-shrink-0 w-20 h-16 bg-muted/30 rounded border overflow-hidden relative">
+                              {/* Image column - 50% */}
+                              <div className="w-1/2 aspect-[4/3] bg-muted/30 rounded border overflow-hidden relative">
                                 {(page.imageUrl || page.existingPath) ? (
                                   <>
                                     <img
@@ -474,13 +474,13 @@ const AdminStories = () => {
                                   </>
                                 ) : (
                                   <div className="flex items-center justify-center h-full text-muted-foreground">
-                                    <ImageIcon className="h-5 w-5 opacity-50" />
+                                    <ImageIcon className="h-8 w-8 opacity-50" />
                                   </div>
                                 )}
                               </div>
 
-                              {/* Content area */}
-                              <div className="flex-1 space-y-2 min-w-0">
+                              {/* Content column - 50% */}
+                              <div className="w-1/2 space-y-2 min-w-0">
                                 <Textarea
                                   placeholder={`Story text for page ${index + 1}...`}
                                   value={page.text}
