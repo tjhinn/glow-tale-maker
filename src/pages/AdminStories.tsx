@@ -448,7 +448,7 @@ const AdminStories = () => {
                       <p className="text-xs text-muted-foreground">
                         Use placeholders: {'{heroName}'}, {'{petName}'}, {'{petType}'}, {'{city}'}, {'{favoriteColor}'}, {'{favoriteFood}'}
                       </p>
-                      <div className="space-y-2 border rounded-lg p-3">
+                      <div className="space-y-3">
                         {pages.map((page, index) => (
                           <Card key={index} className="p-3">
                             <div className="grid grid-cols-[28px_1fr_1fr] gap-3 items-start">
