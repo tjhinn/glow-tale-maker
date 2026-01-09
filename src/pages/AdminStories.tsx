@@ -528,7 +528,7 @@ const AdminStories = () => {
                       {coverPreview && !coverFile && (
                         <div className="mb-2 p-2 bg-muted/50 rounded border">
                           <p className="text-xs text-muted-foreground mb-1">Current Cover:</p>
-                          <div className="aspect-[4/3] w-40 bg-muted/20 rounded overflow-hidden">
+                          <div className="aspect-[4/3] w-1/2 bg-muted/20 rounded overflow-hidden">
                             <img 
                               src={coverPreview} 
                               alt="Cover preview" 
@@ -547,7 +547,7 @@ const AdminStories = () => {
                           <div className="flex items-start gap-2">
                             <div>
                               <p className="text-xs text-primary mb-1">New Cover (unsaved):</p>
-                              <div className="aspect-[4/3] w-40 bg-primary/5 rounded overflow-hidden">
+                              <div className="aspect-[4/3] w-1/2 bg-primary/5 rounded overflow-hidden">
                                 <img 
                                   src={coverPreview} 
                                   alt="New cover preview" 
