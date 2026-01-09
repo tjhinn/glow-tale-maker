@@ -485,7 +485,7 @@ const AdminStories = () => {
                                   placeholder={`Story text for page ${index + 1}...`}
                                   value={page.text}
                                   onChange={(e) => updatePageText(index, e.target.value)}
-                                  className="min-h-14 text-sm"
+                                  className="min-h-32 text-sm"
                                   required
                                 />
                                 <Input
