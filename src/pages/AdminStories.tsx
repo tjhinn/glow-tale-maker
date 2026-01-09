@@ -448,68 +448,73 @@ const AdminStories = () => {
                       <p className="text-xs text-muted-foreground">
                         Use placeholders: {'{heroName}'}, {'{petName}'}, {'{petType}'}, {'{city}'}, {'{favoriteColor}'}, {'{favoriteFood}'}
                       </p>
-                      <div className="space-y-6 max-h-96 overflow-y-auto border rounded-lg p-4">
+                      <div className="space-y-6 max-h-[60vh] overflow-y-auto border rounded-lg p-4">
                         {pages.map((page, index) => (
-                          <div key={index} className="border-b pb-4 last:border-0">
-                            <h4 className="font-semibold mb-2">Page {index + 1}</h4>
-                            <div className="space-y-3">
+                          <Card key={index} className="p-4 bg-muted/20">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2">
+                              <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded text-sm">
+                                {index + 1}
+                              </span>
+                              Page {index + 1}
+                            </h4>
+                            
+                            <div className="space-y-4">
+                              {/* Full-width image display - main focus */}
+                              {(page.imageUrl || page.existingPath) && (
+                                <div className="relative aspect-[4/3] w-full bg-muted/30 rounded-lg overflow-hidden border">
+                                  <img 
+                                    src={page.imageUrl || page.existingPath} 
+                                    alt={`Page ${index + 1}`} 
+                                    className="w-full h-full object-contain" 
+                                  />
+                                  {page.image && (
+                                    <Badge className="absolute top-2 right-2 bg-primary">
+                                      New (unsaved)
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {/* Upload controls */}
+                              <div className="flex gap-2 items-center">
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handlePageImageUpload(index, e.target.files?.[0] || null)}
+                                  className="flex-1"
+                                />
+                                {page.image && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handlePageImageUpload(index, null)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {/* Text content */}
                               <Textarea
                                 placeholder={`Text for page ${index + 1}...`}
                                 value={page.text}
                                 onChange={(e) => updatePageText(index, e.target.value)}
-                                className="h-20"
+                                className="min-h-20"
                                 required
                               />
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <Label className="text-xs">Page Image</Label>
-                                  
-                                  {/* Current saved image */}
-                                  {page.imageUrl && !page.image && (
-                                    <div className="mb-2 p-2 bg-muted/50 rounded border">
-                                      <p className="text-xs text-muted-foreground mb-1">Current Image:</p>
-                                      <img 
-                                        src={page.imageUrl} 
-                                        alt={`Page ${index + 1}`} 
-                                        className="h-24 w-full object-cover rounded mb-1" 
-                                      />
-                                      <p className="text-xs text-muted-foreground">
-                                        Upload a new file to replace
-                                      </p>
-                                    </div>
-                                  )}
-                                  
-                                  {/* New upload preview */}
-                                  {page.image && page.imageUrl && (
-                                    <div className="mb-2 p-2 bg-primary/10 rounded border border-primary">
-                                      <p className="text-xs text-primary mb-1">New Image (unsaved):</p>
-                                      <img 
-                                        src={page.imageUrl} 
-                                        alt={`Page ${index + 1} new`} 
-                                        className="h-24 w-full object-cover rounded" 
-                                      />
-                                    </div>
-                                  )}
-                                  
-                                  <Input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => handlePageImageUpload(index, e.target.files?.[0] || null)}
-                                    className="text-sm"
-                                  />
-                                </div>
-                                <div>
-                                  <Label className="text-xs">Image Prompt (optional)</Label>
-                                  <Input
-                                    placeholder="Describe the scene..."
-                                    value={page.imagePrompt}
-                                    onChange={(e) => updatePagePrompt(index, e.target.value)}
-                                    className="text-sm"
-                                  />
-                                </div>
+                              
+                              {/* Image prompt */}
+                              <div>
+                                <Label className="text-xs text-muted-foreground">Image Prompt (optional)</Label>
+                                <Input
+                                  placeholder="Describe the scene for AI generation..."
+                                  value={page.imagePrompt}
+                                  onChange={(e) => updatePagePrompt(index, e.target.value)}
+                                />
                               </div>
                             </div>
-                          </div>
+                          </Card>
                         ))}
                       </div>
                     </div>
