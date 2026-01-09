@@ -527,11 +527,13 @@ const AdminStories = () => {
                       {coverPreview && !coverFile && (
                         <div className="mb-2 p-2 bg-muted/50 rounded border">
                           <p className="text-xs text-muted-foreground mb-1">Current Cover:</p>
-                          <img 
-                            src={coverPreview} 
-                            alt="Cover preview" 
-                            className="h-32 rounded-lg mb-1" 
-                          />
+                          <div className="aspect-[4/3] w-full bg-muted/20 rounded-lg overflow-hidden">
+                            <img 
+                              src={coverPreview} 
+                              alt="Cover preview" 
+                              className="w-full h-full object-contain" 
+                            />
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             Upload a new file to replace
                           </p>
@@ -542,11 +544,13 @@ const AdminStories = () => {
                       {coverFile && coverPreview && (
                         <div className="mb-2 p-2 bg-primary/10 rounded border border-primary relative">
                           <p className="text-xs text-primary mb-1">New Cover (unsaved):</p>
-                          <img 
-                            src={coverPreview} 
-                            alt="New cover preview" 
-                            className="h-32 rounded-lg" 
-                          />
+                          <div className="aspect-[4/3] w-full bg-primary/5 rounded-lg overflow-hidden">
+                            <img 
+                              src={coverPreview} 
+                              alt="New cover preview" 
+                              className="w-full h-full object-contain" 
+                            />
+                          </div>
                           <Button
                             type="button"
                             variant="destructive"
@@ -642,11 +646,11 @@ const AdminStories = () => {
                   </div>
 
                   {story.cover_image_url && (
-                    <div className="mb-4">
+                    <div className="mb-4 aspect-[4/3] w-full bg-muted/30 rounded-lg overflow-hidden border">
                       <img
                         src={`${supabase.storage.from('story-images').getPublicUrl(story.cover_image_url).data.publicUrl}?t=${new Date(story.updated_at).getTime()}`}
                         alt={story.title}
-                        className="w-full h-32 object-cover rounded"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
