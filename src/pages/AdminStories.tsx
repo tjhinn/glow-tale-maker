@@ -451,14 +451,14 @@ const AdminStories = () => {
                       <div className="space-y-2 border rounded-lg p-3">
                         {pages.map((page, index) => (
                           <Card key={index} className="p-3">
-                            <div className="flex gap-3">
+                            <div className="grid grid-cols-[28px_1fr_1fr] gap-3 items-start">
                               {/* Page number */}
-                              <div className="flex-shrink-0 w-7 h-7 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm font-semibold">
+                              <div className="w-7 h-7 bg-primary text-primary-foreground rounded flex items-center justify-center text-sm font-semibold">
                                 {index + 1}
                               </div>
                               
                               {/* Image column - 50% */}
-                              <div className="w-1/2 aspect-[4/3] bg-muted/30 rounded border overflow-hidden relative">
+                              <div className="aspect-[4/3] bg-muted/30 rounded border overflow-hidden relative">
                                 {(page.imageUrl || page.existingPath) ? (
                                   <>
                                     <img
@@ -480,7 +480,7 @@ const AdminStories = () => {
                               </div>
 
                               {/* Content column - 50% */}
-                              <div className="w-1/2 space-y-2 min-w-0">
+                              <div className="space-y-2 min-w-0">
                                 <Textarea
                                   placeholder={`Story text for page ${index + 1}...`}
                                   value={page.text}
