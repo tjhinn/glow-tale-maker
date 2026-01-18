@@ -55,10 +55,10 @@ const Personalize = () => {
     }
   };
   const handleContinue = async () => {
-    if (!formData.heroName || !formData.gender) {
+    if (!formData.heroName || !formData.gender || !formData.photo) {
       toast({
         title: "Missing information",
-        description: "Please fill in your child's name and gender to continue.",
+        description: "Please fill in your child's name, gender, and upload a photo to continue.",
         variant: "destructive"
       });
       return;
@@ -211,9 +211,9 @@ const Personalize = () => {
               <Label htmlFor="photo" className="block text-center mb-4 font-poppins">
                 <div className="flex flex-col items-center gap-2">
                   <Upload className="w-8 h-8 text-primary" />
-                  <span className="text-lg font-semibold">Upload Photo of Child</span>
+                  <span className="text-lg font-semibold">Upload Photo of Child <span className="text-destructive">*</span></span>
                   <span className="text-sm text-muted-foreground">
-                    {formData.photo ? `✨ ${formData.photo.name}` : "Optional - helps bring the magic alive!"}
+                    {formData.photo ? `✨ ${formData.photo.name}` : "Required - this brings your story to life!"}
                   </span>
                 </div>
               </Label>
