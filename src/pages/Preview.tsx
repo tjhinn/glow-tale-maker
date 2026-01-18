@@ -290,7 +290,7 @@ const Preview = () => {
               </div>
               
               {/* Caption */}
-              <p className="text-center mt-4 font-wonderia text-lg text-primary">
+              <p className="text-center mt-4 font-poppins text-lg text-primary">
                 {personalizeSimpleText(selectedStory.title)}
               </p>
               <p className="text-center mt-1 text-sm text-muted-foreground">
@@ -317,7 +317,7 @@ const Preview = () => {
                   key={index}
                   className="bg-background/95 backdrop-blur-sm p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
                 >
-                  <h3 className="text-sm font-wonderia text-primary mb-2">
+                  <h3 className="text-sm font-poppins text-primary mb-2">
                     Page {page.page}
                   </h3>
                   <p className="text-sm leading-relaxed font-poppins">
@@ -332,7 +332,7 @@ const Preview = () => {
         {/* Share Card - Full Width */}
         <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300 mb-8">
           <CardHeader>
-            <CardTitle className="text-xl font-wonderia flex items-center gap-2">
+            <CardTitle className="text-xl font-poppins flex items-center gap-2">
               <Share2 className="w-5 h-5 text-accent" />
               Share & Save
             </CardTitle>
