@@ -154,7 +154,6 @@ const Personalize = () => {
                   <SelectContent>
                     <SelectItem value="boy">Boy</SelectItem>
                     <SelectItem value="girl">Girl</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
