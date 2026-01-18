@@ -53,8 +53,8 @@ export async function flattenCoverWithTitle(
         // Draw the cover image
         ctx.drawImage(img, 0, 0);
         
-        // Calculate responsive font size (5.5% of canvas width)
-        const baseFontSize = Math.floor(canvas.width * 0.055);
+        // Calculate responsive font size (8% of canvas width - larger for playful look)
+        const baseFontSize = Math.floor(canvas.width * 0.08);
         
         // Explicitly preload Wonderia font
         try {
@@ -99,32 +99,55 @@ export async function flattenCoverWithTitle(
         }
         lines.push(currentLine);
         
-        // Draw text with shadow effects (multiple passes for glow)
-        const lineHeight = baseFontSize * 1.2;
+        // Draw text with playful arc effect (character by character)
+        const lineHeight = baseFontSize * 1.3;
+        const letterSpacing = baseFontSize * 0.06;
         
-        lines.forEach((line, index) => {
-          const y = textY + (index * lineHeight);
+        lines.forEach((line, lineIndex) => {
+          const baseY = textY + (lineIndex * lineHeight);
+          const chars = line.split('');
+          const totalWidth = ctx.measureText(line).width;
           
-          // First pass: dark shadow
-          ctx.shadowColor = 'rgba(0,0,0,0.7)';
-          ctx.shadowBlur = 8;
-          ctx.shadowOffsetX = 3;
-          ctx.shadowOffsetY = 3;
-          ctx.fillText(line, textX, y);
+          // Calculate starting X position with letter spacing accounted for
+          let currentX = textX - (totalWidth / 2) - ((chars.length - 1) * letterSpacing / 2);
           
-          // Second pass: orange glow
-          ctx.shadowColor = 'rgba(255,139,0,0.5)';
-          ctx.shadowBlur = 20;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.fillText(line, textX, y);
-          
-          // Third pass: stroke outline
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.lineWidth = 2;
-          ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-          ctx.strokeText(line, textX, y);
+          chars.forEach((char, charIndex) => {
+            const charWidth = ctx.measureText(char).width;
+            const charCenterX = currentX + (charWidth / 2);
+            
+            // Create subtle wave/arc effect - peaks in the middle (like a rainbow)
+            const progress = chars.length > 1 ? charIndex / (chars.length - 1) : 0.5;
+            const waveOffset = Math.sin(progress * Math.PI) * (baseFontSize * 0.2);
+            const charY = baseY - waveOffset;
+            
+            ctx.save();
+            ctx.textAlign = 'center';
+            
+            // First pass: dark shadow (enhanced for larger text)
+            ctx.shadowColor = 'rgba(0,0,0,0.7)';
+            ctx.shadowBlur = 12;
+            ctx.shadowOffsetX = 4;
+            ctx.shadowOffsetY = 4;
+            ctx.fillText(char, charCenterX, charY);
+            
+            // Second pass: orange glow (enhanced)
+            ctx.shadowColor = 'rgba(255,139,0,0.5)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.fillText(char, charCenterX, charY);
+            
+            // Third pass: stroke outline
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.strokeText(char, charCenterX, charY);
+            
+            ctx.restore();
+            
+            currentX += charWidth + letterSpacing;
+          });
         });
         
         console.log("Canvas flattening complete, converting to blob...");
