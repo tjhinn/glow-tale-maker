@@ -290,7 +290,7 @@ const Preview = () => {
               </div>
               
               {/* Caption */}
-              <p className="text-center mt-4 font-poppins text-lg text-primary">
+              <p className="text-center mt-4 font-poppins font-semibold text-lg text-primary">
                 {personalizeSimpleText(selectedStory.title)}
               </p>
               <p className="text-center mt-1 text-sm text-muted-foreground">
@@ -317,7 +317,7 @@ const Preview = () => {
                   key={index}
                   className="bg-background/95 backdrop-blur-sm p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
                 >
-                  <h3 className="text-sm font-poppins text-primary mb-2">
+                  <h3 className="text-sm font-poppins font-semibold text-primary mb-2">
                     Page {page.page}
                   </h3>
                   <p className="text-sm leading-relaxed font-poppins">
