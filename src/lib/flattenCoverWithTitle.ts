@@ -101,23 +101,22 @@ export async function flattenCoverWithTitle(
         
         // Draw text with playful arc effect (character by character)
         const lineHeight = baseFontSize * 1.3;
-        const letterSpacing = baseFontSize * 0.06;
         
         lines.forEach((line, lineIndex) => {
           const baseY = textY + (lineIndex * lineHeight);
           const chars = line.split('');
           const totalWidth = ctx.measureText(line).width;
           
-          // Calculate starting X position with letter spacing accounted for
-          let currentX = textX - (totalWidth / 2) - ((chars.length - 1) * letterSpacing / 2);
+          // Calculate starting X position (natural kerning, no extra spacing)
+          let currentX = textX - (totalWidth / 2);
           
           chars.forEach((char, charIndex) => {
             const charWidth = ctx.measureText(char).width;
             const charCenterX = currentX + (charWidth / 2);
             
-            // Create subtle wave/arc effect - peaks in the middle (like a rainbow)
+            // Create visible arc effect - peaks in the middle (like a rainbow)
             const progress = chars.length > 1 ? charIndex / (chars.length - 1) : 0.5;
-            const waveOffset = Math.sin(progress * Math.PI) * (baseFontSize * 0.2);
+            const waveOffset = Math.sin(progress * Math.PI) * (baseFontSize * 0.35);
             const charY = baseY - waveOffset;
             
             ctx.save();
@@ -146,7 +145,7 @@ export async function flattenCoverWithTitle(
             
             ctx.restore();
             
-            currentX += charWidth + letterSpacing;
+            currentX += charWidth;
           });
         });
         
