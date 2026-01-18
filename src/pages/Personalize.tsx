@@ -142,7 +142,7 @@ const Personalize = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="heroName">Child's Name</Label>
-                <Input id="heroName" placeholder="Enter the hero's name" value={formData.heroName} onChange={e => handleInputChange("heroName", e.target.value)} className="border-primary/30" />
+                <Input id="heroName" placeholder="Enter the hero's name" value={formData.heroName} onChange={e => handleInputChange("heroName", e.target.value)} className="border-primary/30" maxLength={15} />
               </div>
 
               <div className="space-y-2">
@@ -170,12 +170,12 @@ const Personalize = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="petType">Pet Type</Label>
-                  <Input id="petType" placeholder="e.g., cat, dog, rabbit" value={formData.petType} onChange={e => handleInputChange("petType", e.target.value)} className="border-accent/30" />
+                  <Input id="petType" placeholder="e.g., cat, dog, rabbit" value={formData.petType} onChange={e => handleInputChange("petType", e.target.value)} className="border-accent/30" maxLength={15} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="petName">Pet's Name</Label>
-                  <Input id="petName" placeholder="Enter pet's name" value={formData.petName} onChange={e => handleInputChange("petName", e.target.value)} className="border-accent/30" />
+                  <Input id="petName" placeholder="Enter pet's name" value={formData.petName} onChange={e => handleInputChange("petName", e.target.value)} className="border-accent/30" maxLength={15} />
                 </div>
               </div>
             </div>
@@ -190,18 +190,18 @@ const Personalize = () => {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">Hometown</Label>
-                  <Input id="city" placeholder="Where does your hero live?" value={formData.city} onChange={e => handleInputChange("city", e.target.value)} className="border-primary/30" />
+                  <Input id="city" placeholder="Where does your hero live?" value={formData.city} onChange={e => handleInputChange("city", e.target.value)} className="border-primary/30" maxLength={15} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="favoriteColor">Favorite Color</Label>
-                    <Input id="favoriteColor" placeholder="e.g., blue, pink" value={formData.favoriteColor} onChange={e => handleInputChange("favoriteColor", e.target.value)} className="border-primary/30" />
+                    <Input id="favoriteColor" placeholder="e.g., blue, pink" value={formData.favoriteColor} onChange={e => handleInputChange("favoriteColor", e.target.value)} className="border-primary/30" maxLength={15} />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="favoriteFood">Favorite Food</Label>
-                    <Input id="favoriteFood" placeholder="e.g., pizza, cookies" value={formData.favoriteFood} onChange={e => handleInputChange("favoriteFood", e.target.value)} className="border-primary/30" />
+                    <Input id="favoriteFood" placeholder="e.g., pizza, cookies" value={formData.favoriteFood} onChange={e => handleInputChange("favoriteFood", e.target.value)} className="border-primary/30" maxLength={15} />
                   </div>
                 </div>
               </div>
