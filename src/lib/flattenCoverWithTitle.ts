@@ -93,14 +93,14 @@ export async function flattenCoverWithTitle(
           
           // Create visible arc effect - peaks in the middle (like a rainbow)
           const progress = chars.length > 1 ? charIndex / (chars.length - 1) : 0.5;
-          const waveOffset = Math.sin(progress * Math.PI) * (baseFontSize * 0.35);
+          const waveOffset = Math.sin(progress * Math.PI) * (baseFontSize * 0.55);
           const charY = baseY - waveOffset;
           
           // Calculate rotation angle based on the derivative of the arc curve
           // The derivative of sin(x * PI) is PI * cos(x * PI)
           const arcDerivative = Math.cos(progress * Math.PI);
           // Scale the rotation - negative because we want left chars to tilt left, right to tilt right
-          const rotationAngle = -arcDerivative * 0.15; // ~8.5 degrees max rotation at edges
+          const rotationAngle = -arcDerivative * 0.25; // ~14 degrees max rotation at edges
           
           ctx.save();
           
