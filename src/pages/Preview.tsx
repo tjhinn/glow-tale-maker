@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { startCoverGeneration, pollForCoverCompletion } from "@/lib/coverGenerationPolling";
 
 const Preview = () => {
   const navigate = useNavigate();
@@ -169,49 +170,35 @@ const Preview = () => {
         coverImageUrl = data.publicUrl;
       }
       
-      // Use custom fetch with 90-second timeout for long AI generation
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
-      
-      let data: any;
+      // Start generation job and poll for completion
+      let data: { personalizedCoverUrl?: string } | undefined;
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-character-illustration`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            },
-            body: JSON.stringify({
-              heroPhotoUrl: personalization.heroPhotoUrl,
-              coverImageUrl: coverImageUrl,
-              personalizedTitle: personalizedTitle,
-              petType: personalization.petType,
-              petName: personalization.petName,
-              favoriteColor: personalization.favoriteColor,
-              illustrationStyle: selectedStory.illustration_style,
-              heroGender: personalization.gender,
-              storyTheme: selectedStory.moral,
-            }),
-            signal: controller.signal,
-          }
-        );
+        // Start the job (returns immediately with job ID)
+        const jobId = await startCoverGeneration({
+          heroPhotoUrl: personalization.heroPhotoUrl,
+          coverImageUrl: coverImageUrl,
+          personalizedTitle: personalizedTitle,
+          petType: personalization.petType,
+          petName: personalization.petName,
+          favoriteColor: personalization.favoriteColor,
+          illustrationStyle: selectedStory.illustration_style,
+          heroGender: personalization.gender,
+          storyTheme: selectedStory.moral,
+        });
         
-        clearTimeout(timeoutId);
+        console.log("Cover regeneration job started:", jobId);
         
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Cover generation failed');
-        }
+        // Poll for completion (up to 3 minutes)
+        const result = await pollForCoverCompletion(jobId, {
+          maxAttempts: 60,
+          intervalMs: 3000,
+          onStatusChange: (status) => console.log("Regeneration status:", status)
+        });
         
-        data = await response.json();
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId);
-        if (fetchError.name === 'AbortError') {
-          throw new Error('Cover generation is taking longer than expected. Please try again.');
-        }
-        throw fetchError;
+        data = { personalizedCoverUrl: result.personalizedCoverUrl };
+      } catch (genError: unknown) {
+        console.error("Cover regeneration error:", genError);
+        throw genError;
       }
       
       if (data?.personalizedCoverUrl) {

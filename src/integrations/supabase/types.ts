@@ -44,6 +44,36 @@ export type Database = {
         }
         Relationships: []
       }
+      cover_generation_jobs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          input_data: Json | null
+          personalized_cover_url: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          personalized_cover_url?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          input_data?: Json | null
+          personalized_cover_url?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           admin_approved_at: string | null
