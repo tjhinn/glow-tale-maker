@@ -9,7 +9,18 @@
 
 ---
 
-## 🎯 Recent Updates (2026-01-09)
+## 🎯 Recent Updates (2026-01-20)
+
+**Client Timeout Fix for Cover Generation - COMPLETED:**
+- ✅ Fixed client-side timeout during AI cover generation
+- ✅ Replaced `supabase.functions.invoke()` with custom fetch + 90-second AbortController timeout
+- ✅ Applied fix to both StorySelection.tsx (initial generation) and Preview.tsx (regeneration)
+- ✅ Added proper error handling for AbortError (timeout) vs other errors
+- ✅ Edge function completes successfully (~20-30s), now client waits long enough to receive response
+
+---
+
+## Previous Updates (2026-01-09)
 
 **Admin Story Editor UX Improvements - COMPLETED:**
 - ✅ Simplified story page editor with horizontal compact layout
