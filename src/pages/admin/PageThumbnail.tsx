@@ -45,12 +45,12 @@ export function PageThumbnail({
         </div>
 
         {/* Image Preview */}
-        <div className="aspect-[3/4] bg-muted rounded-lg overflow-hidden relative">
+        <div className="aspect-[4/3] bg-muted rounded-lg overflow-hidden relative">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={`Page ${pageNumber}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
