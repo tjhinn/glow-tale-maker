@@ -13,13 +13,11 @@ const MAX_REQUESTS_PER_WINDOW = 3;
 
 // Retry configuration for AI calls
 const MAX_RETRIES = 3;
-const RETRY_DELAY_MS = 2000; // Start with 2 seconds
+const RETRY_DELAY_MS = 2000;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const requests = rateLimitMap.get(ip) || [];
-  
-  // Filter out old requests
   const recentRequests = requests.filter(time => now - time < RATE_LIMIT_WINDOW);
   
   if (recentRequests.length >= MAX_REQUESTS_PER_WINDOW) {
@@ -31,56 +29,39 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+// deno-lint-ignore no-explicit-any
+async function processGenerationJob(jobId: string, inputData: Record<string, any>, supabase: any) {
+  const { 
+    heroPhotoUrl, 
+    coverImageUrl, 
+    personalizedTitle, 
+    petType, 
+    petName, 
+    favoriteColor, 
+    illustrationStyle,
+    heroGender,
+    storyTheme
+  } = inputData;
 
   try {
-    // Rate limiting
-    const clientIp = req.headers.get("x-forwarded-for") || "unknown";
-    if (!checkRateLimit(clientIp)) {
-      return new Response(
-        JSON.stringify({ error: "Rate limit exceeded. Please try again in an hour." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const { 
-      heroPhotoUrl, 
-      coverImageUrl, 
-      personalizedTitle, 
-      petType, 
-      petName, 
-      favoriteColor, 
-      illustrationStyle,
-      heroGender,
-      storyTheme
-    } = await req.json();
+    console.log(`[Job ${jobId}] Starting generation for: ${personalizedTitle}`);
     
-    if (!heroPhotoUrl || !coverImageUrl || !personalizedTitle) {
-      return new Response(
-        JSON.stringify({ error: "heroPhotoUrl, coverImageUrl, and personalizedTitle are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Update job to processing
+    await supabase
+      .from('cover_generation_jobs')
+      .update({ status: 'processing', updated_at: new Date().toISOString() })
+      .eq('id', jobId);
 
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableApiKey) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    console.log(`Generating personalized cover for: ${personalizedTitle}`);
-
     // Determine illustration style description
     let baseStyle = "whimsical children's storybook illustration with warm, hand-painted digital art style";
 
     if (illustrationStyle) {
-      const styleLower = illustrationStyle.toLowerCase();
+      const styleLower = (illustrationStyle as string).toLowerCase();
       
       if (styleLower.includes('ghibli') || styleLower.includes('watercolor')) {
         baseStyle = "Studio Ghibli-inspired watercolor illustration with soft, dreamy brushstrokes, gentle color washes, and an ethereal quality";
@@ -95,23 +76,11 @@ serve(async (req) => {
       }
     }
 
-    console.log("Illustration Style:", illustrationStyle || "default");
-    console.log("Cover Image URL:", coverImageUrl.substring(0, 50) + "...");
-    
-    // Debug logging for gender parameter
-    console.log("Hero Gender received:", heroGender);
-    console.log("Hero Gender type:", typeof heroGender);
-
-    // Create personalized cover prompt with normalized gender
-    const normalizedGender = (heroGender || '').toString().toLowerCase().trim();
-    console.log("Normalized Gender:", normalizedGender);
-    
+    const normalizedGender = ((heroGender as string) || '').toString().toLowerCase().trim();
     const genderLabel = normalizedGender === 'boy' ? 'BOY' : normalizedGender === 'girl' ? 'GIRL' : 'CHILD';
     const genderDescriptor = normalizedGender === 'boy' ? 'male' : normalizedGender === 'girl' ? 'female' : 'gender-neutral';
-    console.log("Gender Label:", genderLabel);
-    console.log("Gender Descriptor:", genderDescriptor);
     
-    let promptText = `Edit this storybook cover image to create a personalized version.
+    const promptText = `Edit this storybook cover image to create a personalized version.
 
 CRITICAL INSTRUCTION: PRESERVE THE ENTIRE SCENE
 - Keep the EXACT same composition, zoom level, and framing as the original cover
@@ -165,7 +134,6 @@ OUTPUT REQUIREMENTS:
 - No text, titles, or watermarks on the image
 - The output should look nearly identical to the input, just with personalized character features
 - DO NOT crop or zoom the image`;
-    console.log("AI Prompt:", promptText);
 
     // Call Lovable AI with retry logic
     let personalizedCoverImageUrl: string | undefined;
@@ -173,7 +141,7 @@ OUTPUT REQUIREMENTS:
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
-        console.log(`[Attempt ${attempt}/${MAX_RETRIES}] Calling AI gateway...`);
+        console.log(`[Job ${jobId}] [Attempt ${attempt}/${MAX_RETRIES}] Calling AI gateway...`);
         
         const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -187,18 +155,9 @@ OUTPUT REQUIREMENTS:
               {
                 role: "user",
                 content: [
-                  {
-                    type: "text",
-                    text: promptText,
-                  },
-                  {
-                    type: "image_url",
-                    image_url: { url: coverImageUrl },
-                  },
-                  {
-                    type: "image_url",
-                    image_url: { url: heroPhotoUrl },
-                  },
+                  { type: "text", text: promptText },
+                  { type: "image_url", image_url: { url: coverImageUrl } },
+                  { type: "image_url", image_url: { url: heroPhotoUrl } },
                 ],
               },
             ],
@@ -215,71 +174,45 @@ OUTPUT REQUIREMENTS:
             throw new Error("AI credits depleted. Please add funds to your Lovable workspace.");
           }
           const errorText = await response.text();
-          console.error("AI gateway error:", response.status, errorText);
+          console.error(`[Job ${jobId}] AI gateway error:`, response.status, errorText);
           throw new Error("Failed to generate personalized cover");
         }
 
         const data = await response.json();
-        
-        // Log detailed response structure for debugging
-        console.log(`[Attempt ${attempt}] AI response structure:`, JSON.stringify({
-          hasChoices: !!data.choices,
-          choicesLength: data.choices?.length,
-          hasMessage: !!data.choices?.[0]?.message,
-          hasImages: !!data.choices?.[0]?.message?.images,
-          imagesLength: data.choices?.[0]?.message?.images?.length,
-          hasContent: !!data.choices?.[0]?.message?.content,
-          contentPreview: data.choices?.[0]?.message?.content?.substring(0, 200)
-        }));
-
         personalizedCoverImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
         if (personalizedCoverImageUrl) {
-          console.log(`[Attempt ${attempt}] ✅ Image generated successfully!`);
-          break; // Success! Exit retry loop
+          console.log(`[Job ${jobId}] [Attempt ${attempt}] ✅ Image generated successfully!`);
+          break;
         }
 
-        // Log what we got instead of an image
-        if (data.choices?.[0]?.message?.content) {
-          console.log(`[Attempt ${attempt}] ⚠️ AI returned text instead of image:`, 
-            data.choices[0].message.content.substring(0, 500));
-        }
-
-        // If no image and we have retries left, wait and try again
         if (attempt < MAX_RETRIES) {
-          const delay = RETRY_DELAY_MS * attempt; // Exponential backoff
-          console.log(`[Attempt ${attempt}] No image in response. Retrying in ${delay}ms...`);
+          const delay = RETRY_DELAY_MS * attempt;
+          console.log(`[Job ${jobId}] [Attempt ${attempt}] No image in response. Retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
           lastError = new Error("AI returned text response instead of image");
         }
       } catch (error) {
         lastError = error instanceof Error ? error : new Error("Unknown error");
-        console.error(`[Attempt ${attempt}] Error:`, lastError.message);
+        console.error(`[Job ${jobId}] [Attempt ${attempt}] Error:`, lastError.message);
         
-        // Don't retry on rate limit or payment errors
         if (lastError.message.includes("rate limit") || lastError.message.includes("credits depleted")) {
           throw lastError;
         }
         
-        // If we have retries left, wait and try again
         if (attempt < MAX_RETRIES) {
           const delay = RETRY_DELAY_MS * attempt;
-          console.log(`[Attempt ${attempt}] Error occurred. Retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
     }
 
     if (!personalizedCoverImageUrl) {
-      const errorMessage = `No personalized cover image generated after ${MAX_RETRIES} attempts. ${
-        lastError ? `Last error: ${lastError.message}` : 'The AI may have returned text instead of an image.'
-      }`;
-      console.error(errorMessage);
-      throw new Error(errorMessage);
+      throw new Error(`No personalized cover image generated after ${MAX_RETRIES} attempts. ${lastError ? `Last error: ${lastError.message}` : ''}`);
     }
 
-    console.log("Personalized cover generated. Uploading to storage...");
+    console.log(`[Job ${jobId}] Uploading to storage...`);
 
     // Convert base64 to blob and upload to storage
     const base64Data = personalizedCoverImageUrl.split(",")[1];
@@ -297,17 +230,103 @@ OUTPUT REQUIREMENTS:
       throw new Error(`Failed to upload personalized cover: ${uploadError.message}`);
     }
 
-    // Get public URL
     const { data: urlData } = supabase.storage
       .from("hero-photos")
       .getPublicUrl(fileName);
 
-    console.log("✅ Personalized cover generation complete!");
+    // Update job to completed
+    await supabase
+      .from('cover_generation_jobs')
+      .update({ 
+        status: 'completed', 
+        personalized_cover_url: urlData.publicUrl,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId);
 
+    console.log(`[Job ${jobId}] ✅ Generation complete!`);
+  } catch (error) {
+    console.error(`[Job ${jobId}] ❌ Generation failed:`, error);
+    
+    // Update job to failed
+    await supabase
+      .from('cover_generation_jobs')
+      .update({ 
+        status: 'failed', 
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId);
+  }
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    // Rate limiting
+    const clientIp = req.headers.get("x-forwarded-for") || "unknown";
+    if (!checkRateLimit(clientIp)) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again in an hour." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const inputData = await req.json();
+    
+    const { heroPhotoUrl, coverImageUrl, personalizedTitle } = inputData;
+    
+    if (!heroPhotoUrl || !coverImageUrl || !personalizedTitle) {
+      return new Response(
+        JSON.stringify({ error: "heroPhotoUrl, coverImageUrl, and personalizedTitle are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Create job record
+    const { data: job, error: jobError } = await supabase
+      .from('cover_generation_jobs')
+      .insert({ 
+        status: 'pending',
+        input_data: inputData
+      })
+      .select()
+      .single();
+
+    if (jobError || !job) {
+      throw new Error(`Failed to create job: ${jobError?.message}`);
+    }
+
+    console.log(`[Job ${job.id}] Created job, returning immediately...`);
+
+    // Start background processing (fire and forget)
+    // Using EdgeRuntime.waitUntil to ensure the function doesn't terminate
+    // before the background task completes
+    const processingPromise = processGenerationJob(job.id, inputData, supabase);
+    
+    // Check if we're in Deno Deploy (has EdgeRuntime)
+    // deno-lint-ignore no-explicit-any
+    const globalAny = globalThis as any;
+    if (typeof globalAny.EdgeRuntime !== 'undefined') {
+      globalAny.EdgeRuntime.waitUntil(processingPromise);
+    } else {
+      // Fallback: just let it run (for local testing)
+      processingPromise.catch((err: unknown) => console.error("Background processing error:", err));
+    }
+
+    // Return immediately with job ID
     return new Response(
       JSON.stringify({
         success: true,
-        personalizedCoverUrl: urlData.publicUrl,
+        jobId: job.id,
+        message: "Generation started. Poll /check-cover-status for results."
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
