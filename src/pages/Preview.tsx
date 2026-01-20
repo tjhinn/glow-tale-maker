@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Sparkles, Facebook, Instagram } from "lucide-react";
+import { Share2, Sparkles, Facebook, Instagram, RefreshCw } from "lucide-react";
 import { Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
+import { GenerationLoadingModal } from "@/components/story/GenerationLoadingModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ const Preview = () => {
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   useEffect(() => {
     const savedPersonalization = localStorage.getItem("personalizationData");
@@ -151,6 +153,118 @@ const Preview = () => {
     navigate("/checkout");
   };
 
+  const handleRegenerateCover = async () => {
+    if (!personalization || !selectedStory) return;
+    
+    setIsRegenerating(true);
+    
+    try {
+      // Prepare personalized title
+      const personalizedTitle = personalizeSimpleText(selectedStory.title);
+      
+      // Get the original story cover URL
+      let coverImageUrl = selectedStory.cover_image_url;
+      if (coverImageUrl && !coverImageUrl.startsWith('http')) {
+        const { data } = supabase.storage.from('story-images').getPublicUrl(coverImageUrl);
+        coverImageUrl = data.publicUrl;
+      }
+      
+      // Call the edge function to generate a new cover
+      const { data, error } = await supabase.functions.invoke('generate-character-illustration', {
+        body: {
+          heroPhotoUrl: personalization.heroPhotoUrl,
+          coverImageUrl: coverImageUrl,
+          personalizedTitle: personalizedTitle,
+          petType: personalization.petType,
+          petName: personalization.petName,
+          favoriteColor: personalization.favoriteColor,
+          illustrationStyle: selectedStory.illustration_style,
+          heroGender: personalization.gender,
+          storyTheme: selectedStory.moral,
+        }
+      });
+      
+      if (error) {
+        throw new Error(error.message || "Cover generation failed");
+      }
+      
+      if (data?.personalizedCoverUrl) {
+        // Import utilities dynamically
+        const { flattenCoverWithTitle } = await import("@/lib/flattenCoverWithTitle");
+        const { enforceAspectRatio } = await import("@/lib/enforceAspectRatio");
+        
+        let flattenedCoverUrl: string | null = null;
+        const MAX_FLATTEN_ATTEMPTS = 2;
+        
+        for (let attempt = 1; attempt <= MAX_FLATTEN_ATTEMPTS; attempt++) {
+          try {
+            console.log(`Cover flattening attempt ${attempt}/${MAX_FLATTEN_ATTEMPTS}...`);
+            
+            // Enforce 4:3 aspect ratio
+            const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
+            
+            // Flatten the cover with title text
+            const flattenedBlob = await flattenCoverWithTitle(
+              aspectRatioCorrectedUrl,
+              personalizedTitle
+            );
+            
+            // Upload flattened image to storage
+            const fileName = `flattened-cover-${Date.now()}.png`;
+            const { error: uploadError } = await supabase.storage
+              .from('hero-photos')
+              .upload(fileName, flattenedBlob, { contentType: 'image/png' });
+            
+            if (uploadError) {
+              throw new Error(`Upload failed: ${uploadError.message}`);
+            }
+            
+            // Get public URL of the flattened image
+            const { data: urlData } = supabase.storage
+              .from('hero-photos')
+              .getPublicUrl(fileName);
+            
+            flattenedCoverUrl = urlData.publicUrl;
+            console.log("Regenerated cover with title uploaded:", flattenedCoverUrl);
+            break; // Success, exit retry loop
+            
+          } catch (flattenError) {
+            console.error(`Flatten attempt ${attempt} failed:`, flattenError);
+            if (attempt === MAX_FLATTEN_ATTEMPTS) {
+              console.warn("All flatten attempts failed, using raw AI cover");
+            }
+          }
+        }
+        
+        // Save the new cover URL (flattened if successful, raw if not)
+        const finalCoverUrl = flattenedCoverUrl || data.personalizedCoverUrl;
+        const updatedPersonalization = {
+          ...personalization,
+          personalizedCoverUrl: finalCoverUrl
+        };
+        
+        // Update state and localStorage
+        setPersonalization(updatedPersonalization);
+        localStorage.setItem("personalizationData", JSON.stringify(updatedPersonalization));
+        
+        toast({
+          title: "✨ Cover regenerated!",
+          description: `${personalization.heroName}'s new cover is ready.`,
+          className: "bg-success text-success-foreground",
+        });
+      }
+    } catch (error) {
+      console.error("Cover regeneration error:", error);
+      toast({
+        title: "Regeneration failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
   const personalizeSimpleText = (template: string) => {
     if (!personalization || !template) return template;
     
@@ -224,6 +338,10 @@ const Preview = () => {
   return (
     <PageWrapper>
       <Confetti active={showConfetti} count={100} />
+      <GenerationLoadingModal 
+        isOpen={isRegenerating} 
+        heroName={personalization?.heroName || "your hero"} 
+      />
       
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
@@ -296,6 +414,23 @@ const Preview = () => {
               <p className="text-center mt-1 text-sm text-muted-foreground">
                 Full 12-page storybook without watermark delivered after purchase
               </p>
+              
+              {/* Regenerate Cover Button */}
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRegenerateCover}
+                  disabled={isRegenerating}
+                  className="w-full border-primary/30 hover:border-primary hover:bg-primary/5"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
+                  Regenerate Cover Image
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Not happy with the cover? Try generating a new one!
+                </p>
+              </div>
             </CardContent>
           </Card>
 
