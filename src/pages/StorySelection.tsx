@@ -73,29 +73,60 @@ const StorySelection = () => {
         console.log("Personalization gender value:", personalization.gender);
         console.log("Full personalization object:", personalization);
         
-        const {
-          data,
-          error
-        } = await supabase.functions.invoke('generate-character-illustration', {
-          body: {
-            heroPhotoUrl: personalization.heroPhotoUrl,
-            coverImageUrl: fullCoverUrl,
-            personalizedTitle: personalizedTitle,
-            petType: personalization.petType,
-            petName: personalization.petName,
-            favoriteColor: personalization.favoriteColor,
-            illustrationStyle: story.illustration_style,
-            heroGender: personalization.gender,
-            storyTheme: story.moral,
+        // Use custom fetch with 90-second timeout for long AI generation
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 90000);
+        
+        let data: any;
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-character-illustration`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+              },
+              body: JSON.stringify({
+                heroPhotoUrl: personalization.heroPhotoUrl,
+                coverImageUrl: fullCoverUrl,
+                personalizedTitle: personalizedTitle,
+                petType: personalization.petType,
+                petName: personalization.petName,
+                favoriteColor: personalization.favoriteColor,
+                illustrationStyle: story.illustration_style,
+                heroGender: personalization.gender,
+                storyTheme: story.moral,
+              }),
+              signal: controller.signal,
+            }
+          );
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Cover generation failed');
           }
-        });
-        if (error) {
-          console.error("Personalized cover generation error:", error);
-          toast({
-            title: "Cover generation failed",
-            description: error.message || "Please try again later.",
-            variant: "destructive"
-          });
+          
+          data = await response.json();
+        } catch (fetchError: any) {
+          clearTimeout(timeoutId);
+          if (fetchError.name === 'AbortError') {
+            console.error("Cover generation timed out");
+            toast({
+              title: "Generation taking too long",
+              description: "Please try again. The AI is working hard!",
+              variant: "destructive"
+            });
+          } else {
+            console.error("Personalized cover generation error:", fetchError);
+            toast({
+              title: "Cover generation failed",
+              description: fetchError.message || "Please try again later.",
+              variant: "destructive"
+            });
+          }
           setIsLoading(false);
           return;
         }

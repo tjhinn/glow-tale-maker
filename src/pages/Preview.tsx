@@ -169,23 +169,49 @@ const Preview = () => {
         coverImageUrl = data.publicUrl;
       }
       
-      // Call the edge function to generate a new cover
-      const { data, error } = await supabase.functions.invoke('generate-character-illustration', {
-        body: {
-          heroPhotoUrl: personalization.heroPhotoUrl,
-          coverImageUrl: coverImageUrl,
-          personalizedTitle: personalizedTitle,
-          petType: personalization.petType,
-          petName: personalization.petName,
-          favoriteColor: personalization.favoriteColor,
-          illustrationStyle: selectedStory.illustration_style,
-          heroGender: personalization.gender,
-          storyTheme: selectedStory.moral,
-        }
-      });
+      // Use custom fetch with 90-second timeout for long AI generation
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
       
-      if (error) {
-        throw new Error(error.message || "Cover generation failed");
+      let data: any;
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-character-illustration`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              heroPhotoUrl: personalization.heroPhotoUrl,
+              coverImageUrl: coverImageUrl,
+              personalizedTitle: personalizedTitle,
+              petType: personalization.petType,
+              petName: personalization.petName,
+              favoriteColor: personalization.favoriteColor,
+              illustrationStyle: selectedStory.illustration_style,
+              heroGender: personalization.gender,
+              storyTheme: selectedStory.moral,
+            }),
+            signal: controller.signal,
+          }
+        );
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Cover generation failed');
+        }
+        
+        data = await response.json();
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Cover generation is taking longer than expected. Please try again.');
+        }
+        throw fetchError;
       }
       
       if (data?.personalizedCoverUrl) {
