@@ -91,15 +91,6 @@ function parseTextWithPersonalization(text: string, personalization: any): TextS
   return segments;
 }
 
-// Seeded random for consistent playful styling
-function seededRandom(seed: string): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(Math.sin(hash));
-}
 
 // Detect image format from magic bytes
 function detectImageFormat(bytes: Uint8Array): 'png' | 'jpg' | 'unknown' {
@@ -237,18 +228,9 @@ async function addStoryPage(
           ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
           : rgb(0, 0, 0);
         
-        // Add playful vertical offset for personalized text (rotation removed to save CPU)
-        let yOffset = 0;
-        
-        if (seg.isPersonalized) {
-          const rand = seededRandom(seg.text + 'offset');
-          // Vertical offset: -2px to +2px for subtle playful bounce
-          yOffset = (rand - 0.5) * 4;
-        }
-        
         page.drawText(seg.text + ' ', {
           x: currentX,
-          y: currentY + yOffset,
+          y: currentY,
           size: fontSize,
           font: font,
           color: color,
