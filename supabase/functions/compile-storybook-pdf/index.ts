@@ -91,6 +91,16 @@ function parseTextWithPersonalization(text: string, personalization: any): TextS
   return segments;
 }
 
+// Seeded random for consistent playful styling
+function seededRandom(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(Math.sin(hash));
+}
+
 // Detect image format from magic bytes
 function detectImageFormat(bytes: Uint8Array): 'png' | 'jpg' | 'unknown' {
   // PNG magic bytes: 137 80 78 71 (hex: 89 50 4E 47)
@@ -227,12 +237,29 @@ async function addStoryPage(
           ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
           : rgb(0, 0, 0);
         
+        // Add playful rotation and vertical offset for personalized text
+        let rotation = undefined;
+        let yOffset = 0;
+        
+        if (seg.isPersonalized) {
+          const rand1 = seededRandom(seg.text + 'rot');
+          const rand2 = seededRandom(seg.text + 'offset');
+          
+          // Rotation: -3° to +3° (converted to radians)
+          const degrees = (rand1 - 0.5) * 6;
+          rotation = (degrees * Math.PI) / 180;
+          
+          // Vertical offset: -2px to +2px for subtle curve
+          yOffset = (rand2 - 0.5) * 4;
+        }
+        
         page.drawText(seg.text + ' ', {
           x: currentX,
-          y: currentY,
+          y: currentY + yOffset,
           size: fontSize,
           font: font,
           color: color,
+          rotate: rotation ? { type: 'radians', angle: rotation } : undefined,
         });
         
         currentX += seg.width;
