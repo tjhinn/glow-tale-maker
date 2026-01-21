@@ -157,11 +157,11 @@ async function addStoryPage(
     .trim();
   
   if (pageText) {
-    const textBoxHeight = 180;        // Reduced height since text is more compact
+    const textBoxHeight = 150;        // Reduced from 180 for less obstruction
     const textBoxPadding = 20;
-    const baseFontSize = 28;
-    const personalizedFontSize = 32;
-    const lineHeight = 34;            // Reduced from 42 to 34 (tighter line spacing)
+    const baseFontSize = 22;          // Reduced from 28 for elegance
+    const personalizedFontSize = 26;  // Reduced from 32
+    const lineHeight = 30;            // Better relative spacing with smaller font
     const textBoxX = 40;
     const textBoxY = 0;               // Bleeds to bottom edge of page
     const textBoxWidth = image.width - 80;
@@ -174,7 +174,7 @@ async function addStoryPage(
       width: textBoxWidth,
       height: textBoxHeight,
       color: rgb(1, 1, 1),
-      opacity: 0.85,
+      opacity: 0.75,  // More transparent to show illustration
     });
     
     // Parse text into segments
