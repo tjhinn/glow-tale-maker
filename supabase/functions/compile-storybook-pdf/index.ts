@@ -242,16 +242,6 @@ async function addStoryPage(
       currentY -= lineHeight;
     }
     
-    // Draw page number
-    const pageNumText = `${pageData.page}`;
-    const pageNumWidth = regularFont.widthOfTextAtSize(pageNumText, 12);
-    page.drawText(pageNumText, {
-      x: (image.width - pageNumWidth) / 2,
-      y: 20,
-      size: 12,
-      font: regularFont,
-      color: rgb(0.5, 0.5, 0.5),
-    });
   }
 }
 
