@@ -237,20 +237,13 @@ async function addStoryPage(
           ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
           : rgb(0, 0, 0);
         
-        // Add playful rotation and vertical offset for personalized text
-        let rotation = undefined;
+        // Add playful vertical offset for personalized text (rotation removed to save CPU)
         let yOffset = 0;
         
         if (seg.isPersonalized) {
-          const rand1 = seededRandom(seg.text + 'rot');
-          const rand2 = seededRandom(seg.text + 'offset');
-          
-          // Rotation: -3° to +3° (converted to radians)
-          const degrees = (rand1 - 0.5) * 6;
-          rotation = (degrees * Math.PI) / 180;
-          
-          // Vertical offset: -2px to +2px for subtle curve
-          yOffset = (rand2 - 0.5) * 4;
+          const rand = seededRandom(seg.text + 'offset');
+          // Vertical offset: -2px to +2px for subtle playful bounce
+          yOffset = (rand - 0.5) * 4;
         }
         
         page.drawText(seg.text + ' ', {
@@ -259,7 +252,6 @@ async function addStoryPage(
           size: fontSize,
           font: font,
           color: color,
-          rotate: rotation ? { type: 'radians', angle: rotation } : undefined,
         });
         
         currentX += seg.width;
@@ -420,7 +412,7 @@ serve(async (req) => {
         .download(partialPdfPath);
 
       if (downloadError || !pdfData) {
-        throw new Error(`Failed to download partial PDF: ${downloadError?.message}`);
+        throw new Error(`Failed to download partial PDF: ${JSON.stringify(downloadError) || 'No data returned'}`);
       }
 
       const existingPdfBytes = await pdfData.arrayBuffer();
