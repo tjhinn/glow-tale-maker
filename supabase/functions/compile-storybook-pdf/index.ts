@@ -514,13 +514,7 @@ serve(async (req) => {
       
       console.log(`[${orderId}] Uploading partial PDF: ${partialFileName}`);
 
-      // Remove old partial if exists
-      if (batchProgress.partialPdfPath) {
-        await supabase.storage
-          .from("generated-pdfs")
-          .remove([batchProgress.partialPdfPath]);
-      }
-
+      // Upload new partial PDF FIRST (before deleting old one to prevent race condition)
       const { error: uploadError } = await supabase.storage
         .from("generated-pdfs")
         .upload(partialFileName, pdfBytes, {
@@ -530,6 +524,13 @@ serve(async (req) => {
 
       if (uploadError) {
         throw new Error(`Failed to upload partial PDF: ${uploadError.message}`);
+      }
+
+      // Only delete old partial AFTER new one is confirmed uploaded
+      if (batchProgress.partialPdfPath && batchProgress.partialPdfPath !== partialFileName) {
+        await supabase.storage
+          .from("generated-pdfs")
+          .remove([batchProgress.partialPdfPath]);
       }
 
       // Update batch progress in order
