@@ -130,8 +130,8 @@ The Hero</span>
                     </CardContent>
                   </Card>
                 </CarouselItem> : carouselImages.length > 0 ? carouselImages.map((image, index) => <CarouselItem key={image.id} className="md:basis-1/2">
-                    <Card className={`border-2 ${index % 2 === 0 ? 'border-primary/30 hover:shadow-primary/20' : 'border-accent/30 hover:shadow-accent/20'} shadow-2xl transition-all duration-300 page-turn overflow-hidden group`}>
-                      <CardContent className="p-0 relative overflow-hidden rounded-lg">
+                    <Card className={`border-2 ${index % 2 === 0 ? 'border-primary/30 hover:shadow-primary/20' : 'border-accent/30 hover:shadow-accent/20'} shadow-2xl transition-all duration-300 page-turn overflow-hidden rounded-lg group`}>
+                      <CardContent className="p-0 relative">
                         <img src={image.image_url} alt={image.alt_text} className="w-full h-auto group-hover:scale-105 transition-transform duration-500" />
                         <div className={`absolute inset-0 bg-gradient-to-t ${index % 2 === 0 ? 'from-primary/20' : 'from-accent/20'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                       </CardContent>
