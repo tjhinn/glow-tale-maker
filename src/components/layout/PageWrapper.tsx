@@ -16,7 +16,7 @@ export const PageWrapper = ({
       {showHeader && (
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-primary/20">
           <div className="container mx-auto px-4 py-4">
-            <h1 className="text-2xl md:text-3xl font-bold font-wonderia text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-3xl font-bold font-heading text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               YourFairyTale.ai
             </h1>
           </div>

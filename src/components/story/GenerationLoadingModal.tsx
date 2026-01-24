@@ -68,17 +68,17 @@ export const GenerationLoadingModal = ({ isOpen, heroName }: GenerationLoadingMo
           </div>
         </div>
         
-        <AlertDialogTitle className="text-2xl font-wonderia text-foreground">
+        <AlertDialogTitle className="text-2xl font-heading text-foreground">
           Creating Your Story...
         </AlertDialogTitle>
         
         <Progress value={progress} className="my-6 h-3" />
         
-        <AlertDialogDescription className="text-base font-poppins text-foreground/80 mb-2">
+        <AlertDialogDescription className="text-base text-foreground/80 mb-2">
           {currentStep}
         </AlertDialogDescription>
         
-        <p className="text-xs text-muted-foreground font-rubik">
+        <p className="text-xs text-muted-foreground">
           This usually takes 15-20 seconds. Please don't close this window.
         </p>
       </AlertDialogContent>
