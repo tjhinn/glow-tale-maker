@@ -70,7 +70,7 @@ export async function flattenCoverWithTitle(
         
         // Configure text styling with fallback fonts
         ctx.font = `${baseFontSize}px "Wonderia", "Fredoka One", cursive`;
-        ctx.fillStyle = '#FFE97F';
+        ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         
@@ -111,26 +111,25 @@ export async function flattenCoverWithTitle(
           ctx.textAlign = 'center';
           ctx.textBaseline = 'top';
           
-          // First pass: dark shadow (enhanced for larger text)
-          ctx.shadowColor = 'rgba(0,0,0,0.7)';
-          ctx.shadowBlur = 12;
-          ctx.shadowOffsetX = 4;
-          ctx.shadowOffsetY = 4;
+          // Pass 1: Subtle drop shadow (minimal offset for readability)
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
+          ctx.fillStyle = '#FFFFFF';
           ctx.fillText(char, 0, 0);
           
-          // Second pass: orange glow (enhanced)
-          ctx.shadowColor = 'rgba(255,139,0,0.5)';
-          ctx.shadowBlur = 30;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.fillText(char, 0, 0);
-          
-          // Third pass: stroke outline
+          // Pass 2: Thick white stroke/outline
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
-          ctx.lineWidth = 2.5;
-          ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+          ctx.lineWidth = 8;
+          ctx.strokeStyle = '#FFFFFF';
           ctx.strokeText(char, 0, 0);
+          
+          // Pass 3: Solid white fill on top
+          ctx.fillText(char, 0, 0);
           
           ctx.restore();
           
