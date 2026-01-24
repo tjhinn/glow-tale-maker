@@ -26,6 +26,7 @@ interface Story {
   id: string;
   title: string;
   title_font: string;
+  title_color: string;
   moral: string;
   hero_gender: string;
   illustration_style: string;
@@ -46,6 +47,7 @@ const AdminStories = () => {
   const [formData, setFormData] = useState({
     title: '',
     title_font: 'Bubblegum Sans',
+    title_color: '#FFD700',
     moral: '',
     hero_gender: 'boy',
     illustration_style: 'whimsical_storybook',
@@ -177,6 +179,7 @@ const AdminStories = () => {
         .insert({
           title: newStory.title,
           title_font: newStory.title_font,
+          title_color: newStory.title_color,
           moral: newStory.moral,
           hero_gender: newStory.hero_gender,
           illustration_style: newStory.illustration_style,
@@ -227,6 +230,7 @@ const AdminStories = () => {
       const updateData: any = {
         title: updates.title,
         title_font: updates.title_font,
+        title_color: updates.title_color,
         moral: updates.moral,
         hero_gender: updates.hero_gender,
         illustration_style: updates.illustration_style,
@@ -274,6 +278,7 @@ const AdminStories = () => {
     setFormData({
       title: '',
       title_font: 'Bubblegum Sans',
+      title_color: '#FFD700',
       moral: '',
       hero_gender: 'both',
       illustration_style: 'whimsical_storybook',
@@ -290,6 +295,7 @@ const AdminStories = () => {
     setFormData({
       title: story.title,
       title_font: story.title_font || 'Bubblegum Sans',
+      title_color: story.title_color || '#FFD700',
       moral: story.moral,
       hero_gender: story.hero_gender,
       illustration_style: story.illustration_style,
@@ -420,6 +426,29 @@ const AdminStories = () => {
                       />
                       <p className="text-xs text-muted-foreground mt-1">
                         Enter the exact Google Font name to use for the cover title
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="title_color">Title Color</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="color"
+                          id="title_color"
+                          value={formData.title_color}
+                          onChange={(e) => setFormData({ ...formData, title_color: e.target.value })}
+                          className="w-16 h-10 p-1 cursor-pointer"
+                        />
+                        <Input
+                          type="text"
+                          value={formData.title_color}
+                          onChange={(e) => setFormData({ ...formData, title_color: e.target.value })}
+                          placeholder="#FFD700"
+                          className="flex-1"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Choose a color that complements the cover image (gold, cream, or sky blue work well)
                       </p>
                     </div>
 

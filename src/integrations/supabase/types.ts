@@ -210,6 +210,7 @@ export type Database = {
           moral: string
           pages: Json
           title: string
+          title_color: string
           title_font: string
           updated_at: string
         }
@@ -223,6 +224,7 @@ export type Database = {
           moral: string
           pages?: Json
           title: string
+          title_color?: string
           title_font?: string
           updated_at?: string
         }
@@ -236,6 +238,7 @@ export type Database = {
           moral?: string
           pages?: Json
           title?: string
+          title_color?: string
           title_font?: string
           updated_at?: string
         }

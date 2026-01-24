@@ -11,6 +11,21 @@
 
 ## 🎯 Recent Updates (2026-01-24)
 
+**Title Color Customization - COMPLETED:**
+- ✅ Added `title_color` column to stories table (default: #FFFFFF)
+- ✅ Updated Story interface and form state in AdminStories.tsx
+- ✅ Added color picker input in Admin Story Template form
+- ✅ Updated create/update mutations to include title_color
+- ✅ Updated flattenCoverWithTitle.ts to accept titleColor parameter
+- ✅ Updated StorySelection.tsx to pass story's title_color to flattening function
+- ✅ Default color changed to golden yellow (#FFD700) for new stories
+
+**Cover Title Font Styling Tweaks - COMPLETED:**
+- ✅ Reduced white outline thickness from 8px to 4px for cleaner look
+- ✅ Strengthened drop shadow (opacity 0.6→0.85, blur 4→8, offset 2→4)
+- ✅ Added 10% edge safety margins to prevent title overflow
+- ✅ Implemented automatic font scaling for long titles
+
 **Typography Overhaul - Bubblegum Sans - COMPLETED:**
 - ✅ Replaced all decorative/heading fonts (Wonderia, Playfair Display, Poppins, Fredoka One) with Bubblegum Sans
 - ✅ Inter retained for body text only

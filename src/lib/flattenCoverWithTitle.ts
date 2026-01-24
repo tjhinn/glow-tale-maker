@@ -8,7 +8,8 @@
 export async function flattenCoverWithTitle(
   coverUrl: string,
   title: string,
-  titleFont: string = 'Bubblegum Sans'
+  titleFont: string = 'Bubblegum Sans',
+  titleColor: string = '#FFFFFF'
 ): Promise<Blob> {
   // First, fetch the image as a blob to avoid CORS issues
   let imageUrl = coverUrl;
@@ -141,7 +142,7 @@ export async function flattenCoverWithTitle(
           ctx.shadowBlur = 8;
           ctx.shadowOffsetX = 4;
           ctx.shadowOffsetY = 4;
-          ctx.fillStyle = '#FFFFFF';
+          ctx.fillStyle = titleColor;
           ctx.fillText(char, 0, 0);
           
           // Pass 2: Thinner white stroke/outline (reduced from 8 to 4)
@@ -150,7 +151,7 @@ export async function flattenCoverWithTitle(
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
           ctx.lineWidth = 4;
-          ctx.strokeStyle = '#FFFFFF';
+          ctx.strokeStyle = titleColor;
           ctx.strokeText(char, 0, 0);
           
           // Pass 3: Solid white fill on top
