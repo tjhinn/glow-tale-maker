@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GenerationLoadingModal } from "@/components/story/GenerationLoadingModal";
 import { startCoverGeneration, pollForCoverCompletion } from "@/lib/coverGenerationPolling";
+import { getColorValue } from "@/lib/colorUtils";
 const StorySelection = () => {
   const navigate = useNavigate();
   const {
@@ -50,6 +51,26 @@ const StorySelection = () => {
     },
     enabled: !!personalization?.gender
   });
+
+  // Dynamically load Google Fonts for story titles
+  useEffect(() => {
+    if (!stories) return;
+    
+    const fonts = [...new Set(stories.map(s => s.title_font || 'Bubblegum Sans'))];
+    
+    fonts.forEach(font => {
+      const fontName = font.replace(/ /g, '+');
+      const linkId = `google-font-${fontName}`;
+      
+      if (!document.getElementById(linkId)) {
+        const link = document.createElement('link');
+        link.id = linkId;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fontName}:wght@400;700&display=swap`;
+        document.head.appendChild(link);
+      }
+    });
+  }, [stories]);
   const handleContinue = async () => {
     if (!selectedStory || !stories) return;
     const story = stories.find(s => s.id === selectedStory);
@@ -281,7 +302,14 @@ const StorySelection = () => {
                     </div>
                   )}
                   <div className="p-6">
-                    <CardTitle className="text-2xl font-heading text-center relative">
+                    <CardTitle 
+                      className="text-2xl text-center relative"
+                      style={{
+                        fontFamily: `'${story.title_font || 'Bubblegum Sans'}', cursive`,
+                        color: getColorValue(personalization.favoriteColor) || 'inherit',
+                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
+                      }}
+                    >
                       {replaceStoryPlaceholders(story.title)}
                     </CardTitle>
                   </div>
