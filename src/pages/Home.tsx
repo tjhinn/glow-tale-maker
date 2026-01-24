@@ -85,7 +85,7 @@ The Hero</span>
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Button variant="magical" size="xl" onClick={() => navigate("/create")} className="group text-xl">
+              <Button variant="magical" size="xl" onClick={() => navigate("/create")} className="group">
                 <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
                 Begin Your Story
               </Button>
@@ -217,7 +217,7 @@ The Hero</span>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">
             Start your child's personalized adventure today
           </p>
-          <Button variant="magical" size="xl" onClick={() => navigate("/create")} className="group text-xl">
+          <Button variant="magical" size="xl" onClick={() => navigate("/create")} className="group">
             <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
             Create Your Story Now
           </Button>
