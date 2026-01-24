@@ -245,7 +245,7 @@ Replace the generic hero in the template page with the personalized hero shown i
     
     const fileName = `${orderId}/page-${pageNumber}-${Date.now()}.png`;
     const { error: uploadError } = await supabase.storage
-      .from("story-images")
+      .from("order-images")
       .upload(fileName, imageBytes, {
         contentType: "image/png",
         upsert: false,
@@ -257,7 +257,7 @@ Replace the generic hero in the template page with the personalized hero shown i
 
     // Get public URL
     const { data: publicUrlData } = supabase.storage
-      .from('story-images')
+      .from('order-images')
       .getPublicUrl(fileName);
 
     // Use atomic update to prevent race conditions
