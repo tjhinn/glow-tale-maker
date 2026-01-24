@@ -68,10 +68,7 @@ const Home = () => {
       }} />
         <div className="relative container mx-auto px-4 py-20 md:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent/10 rounded-full border-2 border-accent/30 backdrop-blur-sm">
-              <Sparkles className="w-5 h-5 text-accent animate-sparkle" />
-              <span className="font-semibold font-heading text-accent text-xl">Create Magic in Minutes</span>
-            </div>
+            
             
             <h2 className="text-5xl md:text-7xl font-bold font-heading leading-tight">
               Every Child Deserves to Be{" "}
@@ -219,7 +216,7 @@ The Hero</span>
           </p>
           <Button variant="magical" size="xl" onClick={() => navigate("/create")} className="group">
             <Sparkles className="w-5 h-5 group-hover:animate-sparkle" />
-            Create Your Story Now
+            Begin Your Story  
           </Button>
         </div>
       </section>
