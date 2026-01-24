@@ -405,6 +405,70 @@ const AdminStories = () => {
                   </DialogHeader>
                   
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Cover Image Upload - moved to top for color reference */}
+                    <div>
+                      <Label htmlFor="cover">Cover Image</Label>
+                      
+                      {/* Current saved cover */}
+                      {coverPreview && !coverFile && (
+                        <div className="mb-2 p-2 bg-muted/50 rounded border">
+                          <p className="text-xs text-muted-foreground mb-1">Current Cover:</p>
+                          <div className="aspect-[4/3] w-1/2 bg-muted/20 rounded overflow-hidden">
+                            <img 
+                              src={coverPreview} 
+                              alt="Cover preview" 
+                              className="w-full h-full object-contain" 
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Upload a new file to replace
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* New cover preview */}
+                      {coverFile && coverPreview && (
+                        <div className="mb-2 p-2 bg-primary/10 rounded border border-primary">
+                          <div className="flex items-start gap-2">
+                            <div>
+                              <p className="text-xs text-primary mb-1">New Cover (unsaved):</p>
+                              <div className="aspect-[4/3] w-1/2 bg-primary/5 rounded overflow-hidden">
+                                <img 
+                                  src={coverPreview} 
+                                  alt="New cover preview" 
+                                  className="w-full h-full object-contain" 
+                                />
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setCoverFile(null);
+                                if (editingStory?.cover_image_url) {
+                                  const { data } = supabase.storage.from('story-images').getPublicUrl(editingStory.cover_image_url);
+                                  setCoverPreview(`${data.publicUrl}?t=${new Date(editingStory.updated_at).getTime()}`);
+                                } else {
+                                  setCoverPreview('');
+                                }
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Input
+                        id="cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverUpload}
+                        className="cursor-pointer"
+                      />
+                    </div>
+
                     <div>
                       <Label htmlFor="title">Story Title</Label>
                       <Input
@@ -568,71 +632,6 @@ const AdminStories = () => {
                         ))}
                       </div>
                     </div>
-
-                    {/* Cover Image Upload */}
-                    <div>
-                      <Label htmlFor="cover">Cover Image</Label>
-                      
-                      {/* Current saved cover */}
-                      {coverPreview && !coverFile && (
-                        <div className="mb-2 p-2 bg-muted/50 rounded border">
-                          <p className="text-xs text-muted-foreground mb-1">Current Cover:</p>
-                          <div className="aspect-[4/3] w-1/2 bg-muted/20 rounded overflow-hidden">
-                            <img 
-                              src={coverPreview} 
-                              alt="Cover preview" 
-                              className="w-full h-full object-contain" 
-                            />
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Upload a new file to replace
-                          </p>
-                        </div>
-                      )}
-                      
-                      {/* New cover preview */}
-                      {coverFile && coverPreview && (
-                        <div className="mb-2 p-2 bg-primary/10 rounded border border-primary">
-                          <div className="flex items-start gap-2">
-                            <div>
-                              <p className="text-xs text-primary mb-1">New Cover (unsaved):</p>
-                              <div className="aspect-[4/3] w-1/2 bg-primary/5 rounded overflow-hidden">
-                                <img 
-                                  src={coverPreview} 
-                                  alt="New cover preview" 
-                                  className="w-full h-full object-contain" 
-                                />
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setCoverFile(null);
-                                if (editingStory?.cover_image_url) {
-                                  const { data } = supabase.storage.from('story-images').getPublicUrl(editingStory.cover_image_url);
-                                  setCoverPreview(`${data.publicUrl}?t=${new Date(editingStory.updated_at).getTime()}`);
-                                } else {
-                                  setCoverPreview('');
-                                }
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <Input
-                        id="cover"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleCoverUpload}
-                        className="cursor-pointer"
-                      />
-                    </div>
-
 
                     <div className="flex items-center space-x-2">
                       <Switch
