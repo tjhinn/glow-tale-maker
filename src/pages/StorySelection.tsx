@@ -125,10 +125,14 @@ const StorySelection = () => {
               // Enforce 4:3 aspect ratio (safety net in case AI doesn't respect parameter)
               const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
               
-              // Flatten the cover with title text
+              // Get the title font from the story (with fallback to Bubblegum Sans)
+              const titleFont = (story as any).title_font || 'Bubblegum Sans';
+              
+              // Flatten the cover with title text using story-specific font
               const flattenedBlob = await flattenCoverWithTitle(
                 aspectRatioCorrectedUrl,
-                personalizedTitle
+                personalizedTitle,
+                titleFont
               );
               
               // Upload flattened image to storage
