@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { GenerationLoadingModal } from "@/components/story/GenerationLoadingModal";
 import { startCoverGeneration, pollForCoverCompletion } from "@/lib/coverGenerationPolling";
 import { getColorValue } from "@/lib/colorUtils";
+import { AutoFitTitle } from "@/components/ui/auto-fit-title";
 const StorySelection = () => {
   const navigate = useNavigate();
   const {
@@ -302,16 +303,13 @@ const StorySelection = () => {
                     </div>
                   )}
                   <div className="p-6">
-                    <CardTitle 
-                      className="text-2xl text-center relative"
-                      style={{
-                        fontFamily: `'${story.title_font || 'Bubblegum Sans'}', cursive`,
-                        color: getColorValue(personalization.favoriteColor) || 'inherit',
-                        textShadow: '1px 1px 2px rgba(0,0,0,0.3)'
-                      }}
-                    >
-                      {replaceStoryPlaceholders(story.title)}
-                    </CardTitle>
+                    <AutoFitTitle
+                      text={replaceStoryPlaceholders(story.title)}
+                      fontFamily={`'${story.title_font || 'Bubblegum Sans'}', cursive`}
+                      color={getColorValue(personalization.favoriteColor) || 'inherit'}
+                      minFontSize={18}
+                      maxFontSize={42}
+                    />
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
