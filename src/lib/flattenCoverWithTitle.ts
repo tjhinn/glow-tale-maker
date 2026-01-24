@@ -1,10 +1,14 @@
 /**
  * Flattens a cover image with title text burned into it
  * Uses HTML Canvas to draw both the image and styled text
+ * @param coverUrl - URL of the cover image
+ * @param title - The title text to render
+ * @param titleFont - Google Font name to use for the title (default: 'Bubblegum Sans')
  */
 export async function flattenCoverWithTitle(
   coverUrl: string,
-  title: string
+  title: string,
+  titleFont: string = 'Bubblegum Sans'
 ): Promise<Blob> {
   // First, fetch the image as a blob to avoid CORS issues
   let imageUrl = coverUrl;
@@ -56,23 +60,27 @@ export async function flattenCoverWithTitle(
         // Calculate responsive font size (8% of canvas width - larger for playful look)
         const baseFontSize = Math.floor(canvas.width * 0.08);
         
-        // Explicitly preload Bubblegum Sans font from Google Fonts
+        // Dynamically load the specified Google Font
         try {
-          const fontFace = new FontFace(
-            'Bubblegum Sans', 
-            'url(https://fonts.gstatic.com/s/bubblegumsans/v20/AYCSpXb_Z9EORv1M5QTjEzMEteaLxr0RI50.woff2)'
-          );
-          await fontFace.load();
-          document.fonts.add(fontFace);
-          console.log("Bubblegum Sans font loaded successfully for cover flattening");
+          // Inject a style element with the Google Font import if not already loaded
+          const styleId = `dynamic-font-${titleFont.replace(/\s+/g, '-')}`;
+          if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(titleFont)}&display=swap');`;
+            document.head.appendChild(style);
+          }
+          // Wait for the font to load
+          await document.fonts.load(`48px "${titleFont}"`);
+          console.log(`${titleFont} font loaded successfully for cover flattening`);
         } catch (fontError) {
-          console.warn("Bubblegum Sans font failed to load, using fallback:", fontError);
+          console.warn(`${titleFont} font failed to load, using fallback:`, fontError);
         }
         
         await document.fonts.ready;
         
-        // Configure text styling with fallback fonts
-        ctx.font = `${baseFontSize}px "Bubblegum Sans", cursive`;
+        // Configure text styling with the specified font and fallbacks
+        ctx.font = `${baseFontSize}px "${titleFont}", "Bubblegum Sans", cursive`;
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';

@@ -210,6 +210,7 @@ export type Database = {
           moral: string
           pages: Json
           title: string
+          title_font: string
           updated_at: string
         }
         Insert: {
@@ -222,6 +223,7 @@ export type Database = {
           moral: string
           pages?: Json
           title: string
+          title_font?: string
           updated_at?: string
         }
         Update: {
@@ -234,6 +236,7 @@ export type Database = {
           moral?: string
           pages?: Json
           title?: string
+          title_font?: string
           updated_at?: string
         }
         Relationships: []
