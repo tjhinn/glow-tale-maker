@@ -3,11 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, Loader2 } from "lucide-react";
+import { LogOut, Loader2, Trash2 } from "lucide-react";
 import { PageWrapper } from "@/components/layout/PageWrapper";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [isCleaningUp, setIsCleaningUp] = useState(false);
   const [userEmail, setUserEmail] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -60,6 +72,56 @@ const AdminDashboard = () => {
       description: "You have been successfully logged out.",
     });
     navigate('/admin/login');
+  };
+
+  const handleCleanupStorage = async (dryRun: boolean) => {
+    setIsCleaningUp(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error("Not authenticated");
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cleanup-orphaned-storage`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ dryRun }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Cleanup failed");
+      }
+
+      const totalDeleted =
+        result.storyImages.deletedCount +
+        result.orderImages.deletedCount +
+        result.heroPhotos.deletedCount +
+        result.generatedPdfs.deletedCount;
+
+      toast({
+        title: dryRun ? "Dry Run Complete" : "Cleanup Complete",
+        description: dryRun
+          ? `Would delete ${totalDeleted} files. Preserved ${result.storyImages.preservedCount} story template folders.`
+          : `Deleted ${totalDeleted} files. Preserved ${result.storyImages.preservedCount} story template folders.`,
+      });
+    } catch (error) {
+      console.error("Cleanup error:", error);
+      toast({
+        variant: "destructive",
+        title: "Cleanup Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+    } finally {
+      setIsCleaningUp(false);
+    }
   };
 
   if (isLoading) {
@@ -128,6 +190,46 @@ const AdminDashboard = () => {
               <Button onClick={() => navigate('/admin/reviews')}>
                 Manage Reviews
               </Button>
+            </div>
+
+            <div className="p-6 rounded-lg border bg-card border-destructive/50">
+              <h2 className="text-xl font-semibold mb-2">Clean Up Storage</h2>
+              <p className="text-muted-foreground mb-4">
+                Delete orphaned order images, hero photos, and PDFs (preserves story templates)
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => handleCleanupStorage(true)}
+                  disabled={isCleaningUp}
+                >
+                  {isCleaningUp ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Preview
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={isCleaningUp}>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Clean Up
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete all orphaned order images, hero photos, and generated PDFs.
+                        Story template images will be preserved. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleCleanupStorage(false)}>
+                        Delete Files
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </div>
         </main>
