@@ -305,7 +305,7 @@ const StorySelection = () => {
                   <div className="p-6">
                     <AutoFitTitle
                       text={replaceStoryPlaceholders(story.title)}
-                      fontFamily={`'${story.title_font || 'Bubblegum Sans'}', cursive`}
+                      fontFamily="'Bubblegum Sans', cursive"
                       color={getColorValue(personalization.favoriteColor) || 'inherit'}
                       minFontSize={18}
                       maxFontSize={42}
