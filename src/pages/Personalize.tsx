@@ -135,7 +135,7 @@ const Personalize = () => {
           <CardContent className="p-6 md:p-8 space-y-6">
             {/* Child Details Section */}
             <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-secondary/30 to-accent/10 border border-primary/10 hover:glow-soft transition-all duration-300">
-              <h3 className="text-xl font-semibold font-heading flex items-center gap-2">
+              <h3 className="font-semibold font-heading flex items-center gap-2 text-2xl">
                 <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Meet Your Hero
               </h3>
@@ -161,7 +161,7 @@ const Personalize = () => {
 
             {/* Pet Details Section */}
             <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-accent/10 to-secondary/20 border border-accent/10 hover:glow-soft transition-all duration-300">
-              <h3 className="text-xl font-semibold font-heading flex items-center gap-2">
+              <h3 className="font-semibold font-heading flex items-center gap-2 text-2xl">
                 <Sparkles className="w-5 h-5 text-accent animate-sparkle" />
                 Magical Companion
               </h3>
@@ -181,7 +181,7 @@ const Personalize = () => {
 
             {/* Additional Details Section */}
             <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/20 border border-primary/10 hover:glow-soft transition-all duration-300">
-              <h3 className="text-xl font-semibold font-heading flex items-center gap-2">
+              <h3 className="font-semibold font-heading flex items-center gap-2 text-2xl">
                 <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Story Magic
               </h3>
@@ -218,7 +218,7 @@ const Personalize = () => {
                 </div>
               </Label>
               <Input id="photo" type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-              <Button type="button" variant="outline" className="w-full mt-2" onClick={() => document.getElementById("photo")?.click()}>
+              <Button type="button" variant="outline" className="w-full mt-2 text-2xl" onClick={() => document.getElementById("photo")?.click()}>
                 {formData.photo ? "Change Photo" : "Choose Photo"}
               </Button>
               
@@ -230,13 +230,13 @@ const Personalize = () => {
 
             {/* Navigation Buttons */}
             <div className="flex gap-4 pt-6">
-              <Button variant="outline" size="lg" onClick={() => navigate("/")} className="flex-1">
+              <Button variant="outline" size="lg" onClick={() => navigate("/")} className="flex-1 text-2xl">
                 <ArrowLeft className="w-4 h-4" />
                 Back
               </Button>
-              <Button variant="magical" size="lg" onClick={handleContinue} className="flex-1 group" disabled={isLoading}>
+              <Button variant="magical" size="lg" onClick={handleContinue} className="flex-1 group text-2xl" disabled={isLoading}>
                 <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
-                Continue Your Story
+                Continue 
               </Button>
             </div>
           </CardContent>
