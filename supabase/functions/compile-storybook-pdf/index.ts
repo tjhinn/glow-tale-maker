@@ -325,28 +325,21 @@ serve(async (req) => {
       pdfDoc = await PDFDocument.create();
       pdfDoc.registerFontkit(fontkit);
 
-      // Embed Poppins fonts from GitHub raw URLs
-      const poppinsRegularUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf';
-      const poppinsBoldUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf';
+      // Embed Bubblegum Sans font from GitHub raw URLs (only has one weight)
+      const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
-      const [regularFontResponse, boldFontResponse] = await Promise.all([
-        fetch(poppinsRegularUrl),
-        fetch(poppinsBoldUrl),
-      ]);
+      const fontResponse = await fetch(bubblegumSansUrl);
 
-      if (!regularFontResponse.ok || !boldFontResponse.ok) {
-        throw new Error(`Failed to fetch fonts: Regular=${regularFontResponse.status}, Bold=${boldFontResponse.status}`);
+      if (!fontResponse.ok) {
+        throw new Error(`Failed to fetch font: ${fontResponse.status}`);
       }
 
-      const [regularFontBytes, boldFontBytes] = await Promise.all([
-        regularFontResponse.arrayBuffer(),
-        boldFontResponse.arrayBuffer(),
-      ]);
+      const fontBytes = await fontResponse.arrayBuffer();
 
-      console.log(`[${orderId}] Fonts loaded: Regular=${regularFontBytes.byteLength} bytes, Bold=${boldFontBytes.byteLength} bytes`);
+      console.log(`[${orderId}] Font loaded: BubblegumSans=${fontBytes.byteLength} bytes`);
 
-      regularFont = await pdfDoc.embedFont(regularFontBytes);
-      boldFont = await pdfDoc.embedFont(boldFontBytes);
+      regularFont = await pdfDoc.embedFont(fontBytes);
+      boldFont = regularFont; // Bubblegum Sans only has one weight, use same font
 
       // Add cover page
       console.log(`[${orderId}] Adding cover page...`);
@@ -391,22 +384,15 @@ serve(async (req) => {
       pdfDoc = await PDFDocument.load(existingPdfBytes);
       pdfDoc.registerFontkit(fontkit);
 
-      // Re-embed fonts (required after loading)
-      const poppinsRegularUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf';
-      const poppinsBoldUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf';
+      // Re-embed font (required after loading)
+      const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
-      const [regularFontResponse, boldFontResponse] = await Promise.all([
-        fetch(poppinsRegularUrl),
-        fetch(poppinsBoldUrl),
-      ]);
+      const fontResponse = await fetch(bubblegumSansUrl);
 
-      const [regularFontBytes, boldFontBytes] = await Promise.all([
-        regularFontResponse.arrayBuffer(),
-        boldFontResponse.arrayBuffer(),
-      ]);
+      const fontBytes = await fontResponse.arrayBuffer();
 
-      regularFont = await pdfDoc.embedFont(regularFontBytes);
-      boldFont = await pdfDoc.embedFont(boldFontBytes);
+      regularFont = await pdfDoc.embedFont(fontBytes);
+      boldFont = regularFont; // Bubblegum Sans only has one weight
 
       // Add story pages for this batch
       for (const pageData of batchPages) {

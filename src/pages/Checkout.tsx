@@ -111,10 +111,10 @@ const Checkout = () => {
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-accent/30 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-wonderia">
+            <CardTitle className="text-3xl md:text-4xl text-center font-heading">
               Almost there — your story's about to come alive
             </CardTitle>
-            <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
+            <p className="text-center text-sm text-muted-foreground mt-2">
               Complete your purchase and receive your magical storybook
             </p>
           </CardHeader>
@@ -124,7 +124,7 @@ const Checkout = () => {
           {/* Preview */}
           <Card className="border-2 border-secondary shadow-xl bg-secondary/20 hover:glow-soft transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-xl font-poppins">Your Storybook Preview</CardTitle>
+              <CardTitle className="text-xl font-heading">Your Storybook Preview</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="relative mb-4">
@@ -159,7 +159,7 @@ const Checkout = () => {
           {/* Payment Form */}
           <Card className="border-2 border-secondary shadow-xl bg-gradient-to-br from-secondary/30 to-primary/10 hover:glow-primary transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-xl font-poppins flex items-center gap-2">
+              <CardTitle className="text-xl font-heading flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Payment Details
               </CardTitle>
@@ -169,8 +169,8 @@ const Checkout = () => {
               {hasDiscount && (
                 <div className="p-4 rounded-xl bg-success/10 border-2 border-success text-center glow-soft">
                   <Sparkles className="w-8 h-8 text-success mx-auto mb-2 animate-sparkle" />
-                  <p className="text-success font-bold font-poppins">🎉 10% Discount Applied!</p>
-                  <p className="text-sm text-success-foreground mt-1 font-poppins">
+                  <p className="text-success font-bold font-heading">🎉 10% Discount Applied!</p>
+                  <p className="text-sm text-success-foreground mt-1">
                     You saved ${(discount / 100).toFixed(2)}
                   </p>
                 </div>
@@ -229,7 +229,7 @@ const Checkout = () => {
                 )}
               </Button>
 
-              <p className="text-xs text-center text-muted-foreground font-poppins">
+              <p className="text-xs text-center text-muted-foreground">
                 🔒 Powered by LemonSqueezy • Secure global payment processing
               </p>
             </CardContent>

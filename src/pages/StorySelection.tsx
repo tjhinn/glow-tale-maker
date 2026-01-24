@@ -232,10 +232,10 @@ const StorySelection = () => {
                   </div>
                 </div>}
               <div className="space-y-2">
-                <CardTitle className="text-3xl md:text-4xl font-wonderia">
+                <CardTitle className="text-3xl md:text-4xl font-heading">
                   Choose {personalization.heroName}'s Adventure!
                 </CardTitle>
-                <p className="text-sm text-muted-foreground font-poppins">
+                <p className="text-sm text-muted-foreground">
                   Pick the perfect tale for our amazing hero, {personalization.heroName}
                   {personalization.petName ? ` and ${personalization.gender === 'boy' ? 'his' : 'her'} trusty companion, ${personalization.petName}!` : '!'}
                 </p>
@@ -247,9 +247,9 @@ const StorySelection = () => {
         {/* Stories Grid */}
         {isLoadingStories ? <div className="text-center py-12">
             <Sparkles className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground font-poppins">Loading magical stories...</p>
+            <p className="text-muted-foreground">Loading magical stories...</p>
           </div> : !stories || stories.length === 0 ? <div className="text-center py-12">
-            <p className="text-muted-foreground font-poppins">No stories available for this hero.</p>
+            <p className="text-muted-foreground">No stories available for this hero.</p>
           </div> : <div className="grid md:grid-cols-2 gap-6 mb-8">
             {stories.map(story => {
               // Convert storage path to public URL for cover image
@@ -275,15 +275,15 @@ const StorySelection = () => {
                     </div>
                   )}
                   <div className="p-6">
-                    <CardTitle className="text-2xl font-wonderia text-center relative">
+                    <CardTitle className="text-2xl font-heading text-center relative">
                       {replaceStoryPlaceholders(story.title)}
                     </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                   <div>
-                    <h4 className="font-semibold font-poppins mb-2">Story Synopsis:</h4>
-                    <p className="text-sm text-muted-foreground italic font-poppins">{replaceStoryPlaceholders(story.moral)}</p>
+                    <h4 className="font-semibold font-heading mb-2">Story Synopsis:</h4>
+                    <p className="text-sm text-muted-foreground italic">{replaceStoryPlaceholders(story.moral)}</p>
                   </div>
                 </CardContent>
               </Card>;

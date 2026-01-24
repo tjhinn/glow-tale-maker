@@ -56,20 +56,23 @@ export async function flattenCoverWithTitle(
         // Calculate responsive font size (8% of canvas width - larger for playful look)
         const baseFontSize = Math.floor(canvas.width * 0.08);
         
-        // Explicitly preload Wonderia font
+        // Explicitly preload Bubblegum Sans font from Google Fonts
         try {
-          const fontFace = new FontFace('Wonderia', 'url(/fonts/Wonderia.otf)');
+          const fontFace = new FontFace(
+            'Bubblegum Sans', 
+            'url(https://fonts.gstatic.com/s/bubblegumsans/v20/AYCSpXb_Z9EORv1M5QTjEzMEteaLxr0RI50.woff2)'
+          );
           await fontFace.load();
           document.fonts.add(fontFace);
-          console.log("Wonderia font loaded successfully for cover flattening");
+          console.log("Bubblegum Sans font loaded successfully for cover flattening");
         } catch (fontError) {
-          console.warn("Wonderia font failed to load, using fallback:", fontError);
+          console.warn("Bubblegum Sans font failed to load, using fallback:", fontError);
         }
         
         await document.fonts.ready;
         
         // Configure text styling with fallback fonts
-        ctx.font = `${baseFontSize}px "Wonderia", "Fredoka One", cursive`;
+        ctx.font = `${baseFontSize}px "Bubblegum Sans", cursive`;
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
