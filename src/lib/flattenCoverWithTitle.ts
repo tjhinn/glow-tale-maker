@@ -93,7 +93,21 @@ export async function flattenCoverWithTitle(
         const line = title;
         const baseY = textY;
         const chars = line.split('');
-        const totalWidth = ctx.measureText(line).width;
+        let totalWidth = ctx.measureText(line).width;
+        
+        // Define safe edge margins (10% on each side)
+        const edgeMargin = canvas.width * 0.10;
+        const maxTitleWidth = canvas.width - (edgeMargin * 2);
+        
+        // Scale down font if title is too wide
+        let currentFontSize = baseFontSize;
+        if (totalWidth > maxTitleWidth) {
+          const scaleFactor = maxTitleWidth / totalWidth;
+          currentFontSize = Math.floor(baseFontSize * scaleFactor);
+          ctx.font = `${currentFontSize}px "${titleFont}", "Bubblegum Sans", cursive`;
+          totalWidth = ctx.measureText(line).width;
+          console.log(`Title too wide, scaling font from ${baseFontSize}px to ${currentFontSize}px`);
+        }
         
         // Calculate starting X position (natural kerning, no extra spacing)
         let currentX = textX - (totalWidth / 2);
@@ -104,7 +118,7 @@ export async function flattenCoverWithTitle(
           
           // Create visible arc effect - peaks in the middle (like a rainbow)
           const progress = chars.length > 1 ? charIndex / (chars.length - 1) : 0.5;
-          const waveOffset = Math.sin(progress * Math.PI) * (baseFontSize * 0.55);
+          const waveOffset = Math.sin(progress * Math.PI) * (currentFontSize * 0.55);
           const charY = baseY - waveOffset;
           
           // Calculate rotation angle based on the derivative of the arc curve
@@ -122,20 +136,20 @@ export async function flattenCoverWithTitle(
           ctx.textAlign = 'center';
           ctx.textBaseline = 'top';
           
-          // Pass 1: Subtle drop shadow (minimal offset for readability)
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-          ctx.shadowBlur = 4;
-          ctx.shadowOffsetX = 2;
-          ctx.shadowOffsetY = 2;
+          // Pass 1: Strong drop shadow for readability
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+          ctx.shadowBlur = 8;
+          ctx.shadowOffsetX = 4;
+          ctx.shadowOffsetY = 4;
           ctx.fillStyle = '#FFFFFF';
           ctx.fillText(char, 0, 0);
           
-          // Pass 2: Thick white stroke/outline
+          // Pass 2: Thinner white stroke/outline (reduced from 8 to 4)
           ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
-          ctx.lineWidth = 8;
+          ctx.lineWidth = 4;
           ctx.strokeStyle = '#FFFFFF';
           ctx.strokeText(char, 0, 0);
           
