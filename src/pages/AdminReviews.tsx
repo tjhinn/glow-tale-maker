@@ -253,7 +253,7 @@ const AdminReviews = () => {
 
         <Card className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-wonderia font-bold">Manage Reviews</h1>
+            <h1 className="text-3xl font-heading font-bold">Manage Reviews</h1>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button

@@ -120,7 +120,7 @@ const ThankYou = () => {
           <Card className="shadow-2xl border-2 border-primary/30 mb-8">
             <CardContent className="py-16 text-center">
               <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary mb-4" />
-              <p className="text-lg text-muted-foreground font-poppins">
+              <p className="text-lg text-muted-foreground">
                 Loading your magical confirmation...
               </p>
             </CardContent>
@@ -134,14 +134,14 @@ const ThankYou = () => {
             <div className="flex justify-center">
               <Sparkles className="w-20 h-20 text-success animate-sparkle" />
             </div>
-            <CardTitle className="text-4xl md:text-5xl font-wonderia text-success leading-tight">
+            <CardTitle className="text-4xl md:text-5xl font-heading text-success leading-tight">
               ✨ The magic is brewing! ✨
             </CardTitle>
             <div className="space-y-4 max-w-2xl mx-auto">
-              <p className="text-2xl text-foreground font-poppins">
+              <p className="text-2xl text-foreground">
                 {heroName}'s adventure is being crafted with love
               </p>
-              <p className="text-lg text-muted-foreground font-poppins leading-relaxed">
+              <p className="text-lg text-muted-foreground leading-relaxed">
                 Our fairy tale artists are illustrating every page of this magical story. You will receive a personalized storybook via email within 24 hours. The wait will be worth it!
               </p>
             </div>
@@ -151,7 +151,7 @@ const ThankYou = () => {
         {/* Preview Sneak Peek */}
         <Card className="shadow-xl border-2 border-primary/30 mb-8 hover:glow-primary transition-all duration-300">
           <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20">
-            <CardTitle className="text-2xl text-center font-wonderia">
+            <CardTitle className="text-2xl text-center font-heading">
               A Sneak Peek at the Magic
             </CardTitle>
           </CardHeader>
@@ -168,7 +168,7 @@ const ThankYou = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
             </div>
             
-            <p className="text-base text-muted-foreground font-poppins">
+            <p className="text-base text-muted-foreground">
               ✨ Watch your inbox! Your completed storybook will arrive within 24 hours.
             </p>
           </CardContent>
@@ -180,7 +180,7 @@ const ThankYou = () => {
             <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
             Create Another Fairy Tale
           </Button>
-          <p className="text-xs text-muted-foreground font-poppins mt-4">
+          <p className="text-xs text-muted-foreground mt-4">
             ✨ Ready to craft more magical memories?
           </p>
         </div>

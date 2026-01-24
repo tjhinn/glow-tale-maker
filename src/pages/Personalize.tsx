@@ -124,10 +124,10 @@ const Personalize = () => {
         <Card className="shadow-2xl border-2 border-primary/20 relative overflow-hidden">
           <SparklesAnimation count={5} className="opacity-40" />
           <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20 relative">
-            <CardTitle className="text-3xl text-center font-wonderia md:text-5xl">
+            <CardTitle className="text-3xl text-center font-heading md:text-5xl">
               Who's our brave little hero?
             </CardTitle>
-            <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
+            <p className="text-center text-sm text-muted-foreground mt-2">
               Tell us about your child to create their magical adventure
             </p>
           </CardHeader>
@@ -135,7 +135,7 @@ const Personalize = () => {
           <CardContent className="p-6 md:p-8 space-y-6">
             {/* Child Details Section */}
             <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-secondary/30 to-accent/10 border border-primary/10 hover:glow-soft transition-all duration-300">
-              <h3 className="text-xl font-semibold font-poppins flex items-center gap-2">
+              <h3 className="text-xl font-semibold font-heading flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Meet Your Hero
               </h3>
@@ -161,7 +161,7 @@ const Personalize = () => {
 
             {/* Pet Details Section */}
             <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-accent/10 to-secondary/20 border border-accent/10 hover:glow-soft transition-all duration-300">
-              <h3 className="text-xl font-semibold font-poppins flex items-center gap-2">
+              <h3 className="text-xl font-semibold font-heading flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-accent animate-sparkle" />
                 Magical Companion
               </h3>
@@ -181,7 +181,7 @@ const Personalize = () => {
 
             {/* Additional Details Section */}
             <div className="space-y-4 p-6 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/20 border border-primary/10 hover:glow-soft transition-all duration-300">
-              <h3 className="text-xl font-semibold font-poppins flex items-center gap-2">
+              <h3 className="text-xl font-semibold font-heading flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary animate-sparkle" />
                 Story Magic
               </h3>
@@ -208,7 +208,7 @@ const Personalize = () => {
 
             {/* Photo Upload Section */}
             <div className="p-6 rounded-xl bg-gradient-to-br from-secondary/40 to-primary/10 border-2 border-dashed border-primary/30 hover:border-primary/50 hover:glow-primary transition-all duration-300">
-              <Label htmlFor="photo" className="block text-center mb-4 font-poppins">
+              <Label htmlFor="photo" className="block text-center mb-4">
                 <div className="flex flex-col items-center gap-2">
                   <Upload className="w-8 h-8 text-primary" />
                   <span className="text-lg font-semibold">Upload Photo of Child <span className="text-destructive">*</span></span>

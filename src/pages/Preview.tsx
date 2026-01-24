@@ -359,8 +359,8 @@ const Preview = () => {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-wonderia text-2xl">Did you complete sharing?</AlertDialogTitle>
-            <AlertDialogDescription className="font-poppins">
+            <AlertDialogTitle className="font-heading text-2xl">Did you complete sharing?</AlertDialogTitle>
+            <AlertDialogDescription>
               To unlock your 10% discount, please confirm that you shared {personalization?.heroName}'s magical story!
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -379,10 +379,10 @@ const Preview = () => {
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
         <Card className="shadow-2xl border-2 border-accent/30 mb-8 relative overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-accent/30 to-primary/20">
-            <CardTitle className="text-3xl md:text-4xl text-center font-wonderia">
+            <CardTitle className="text-3xl md:text-4xl text-center font-heading">
               ✨ See the Magic
             </CardTitle>
-            <p className="text-center text-sm text-muted-foreground font-poppins mt-2">
+            <p className="text-center text-sm text-muted-foreground mt-2">
               {personalization.heroName}'s adventure in "{personalizeSimpleText(selectedStory.title)}"
             </p>
           </CardHeader>
@@ -393,7 +393,7 @@ const Preview = () => {
           {/* LEFT COLUMN: Cover Image */}
           <Card className="border-2 border-secondary shadow-xl bg-secondary/20">
             <CardHeader>
-              <CardTitle className="text-xl font-poppins flex items-center gap-2">
+              <CardTitle className="text-xl font-heading flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
                 {personalization.heroName}'s Cover
               </CardTitle>
@@ -421,7 +421,7 @@ const Preview = () => {
               </div>
               
               {/* Caption */}
-              <p className="text-center mt-4 font-poppins font-semibold text-lg text-primary">
+              <p className="text-center mt-4 font-heading font-semibold text-lg text-primary">
                 {personalizeSimpleText(selectedStory.title)}
               </p>
               <p className="text-center mt-1 text-sm text-muted-foreground">
@@ -450,11 +450,11 @@ const Preview = () => {
           {/* RIGHT COLUMN: Story Preview (Pages 1-3) */}
           <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/5 to-background">
             <CardHeader>
-              <CardTitle className="text-xl font-poppins flex items-center gap-2">
+              <CardTitle className="text-xl font-heading flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-accent" />
                 Story Preview
               </CardTitle>
-              <p className="text-sm text-muted-foreground font-poppins">
+              <p className="text-sm text-muted-foreground">
                 Sneak peek of the first 3 pages
               </p>
             </CardHeader>
@@ -465,10 +465,10 @@ const Preview = () => {
                   key={index}
                   className="bg-background/95 backdrop-blur-sm p-4 rounded-xl border-2 border-primary/20 hover:border-primary/40 transition-all"
                 >
-                  <h3 className="text-sm font-poppins font-semibold text-primary mb-2">
+                  <h3 className="text-sm font-heading font-semibold text-primary mb-2">
                     Page {page.page}
                   </h3>
-                  <p className="text-sm leading-relaxed font-poppins">
+                  <p className="text-sm leading-relaxed">
                     {renderPersonalizedText(page.text)}
                   </p>
                 </div>
@@ -480,7 +480,7 @@ const Preview = () => {
         {/* Share Card - Full Width */}
         <Card className="border-2 border-accent/50 shadow-xl bg-gradient-to-br from-accent/10 to-primary/5 hover:shadow-2xl hover:border-accent transition-all duration-300 mb-8">
           <CardHeader>
-            <CardTitle className="text-xl font-poppins flex items-center gap-2">
+              <CardTitle className="text-xl font-heading flex items-center gap-2">
               <Share2 className="w-5 h-5 text-accent" />
               Share & Save
             </CardTitle>
@@ -490,13 +490,13 @@ const Preview = () => {
               <div className="p-8 rounded-2xl bg-gradient-to-br from-success/20 to-success/5 border-2 border-success text-center space-y-3">
                 <Sparkles className="w-16 h-16 text-success mx-auto animate-pulse" />
               <div>
-                <p className="text-success font-bold text-xl mb-2 font-wonderia">
+                <p className="text-success font-bold text-xl mb-2 font-heading">
                   🎉 Discount Unlocked!
                 </p>
-                <p className="text-sm text-muted-foreground font-poppins">
+                <p className="text-sm text-muted-foreground">
                   10% off will be applied at checkout
                 </p>
-                <p className="text-sm text-muted-foreground font-poppins mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   9 more magical pages await in the full storybook!
                 </p>
               </div>
@@ -504,7 +504,7 @@ const Preview = () => {
             ) : (
               <div className="space-y-4">
                 <div className="p-6 rounded-xl bg-primary/5 border border-primary/20">
-                  <p className="text-center text-foreground font-poppins leading-relaxed">
+                  <p className="text-center text-foreground leading-relaxed">
                     ✨ 9 more magical pages await! Share {personalization.heroName}'s story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
                   </p>
                 </div>

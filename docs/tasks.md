@@ -9,7 +9,23 @@
 
 ---
 
-## 🎯 Recent Updates (2026-01-20)
+## 🎯 Recent Updates (2026-01-24)
+
+**Typography Overhaul - Bubblegum Sans - COMPLETED:**
+- ✅ Replaced all decorative/heading fonts (Wonderia, Playfair Display, Poppins, Fredoka One) with Bubblegum Sans
+- ✅ Inter retained for body text only
+- ✅ Updated Google Fonts import in index.html
+- ✅ Updated tailwind.config.ts with new `font-heading` class
+- ✅ Removed Wonderia @font-face from index.css and deleted Wonderia.otf font file
+- ✅ Updated all pages: Home, Personalize, StorySelection, Preview, Checkout, ThankYou, NotFound
+- ✅ Updated admin pages: AdminDashboard, AdminStories, AdminReviews
+- ✅ Updated flattenCoverWithTitle.ts to use Bubblegum Sans from Google Fonts CDN
+- ✅ Updated compile-storybook-pdf edge function to use Bubblegum Sans for PDF text
+- ✅ Edge function deployed successfully
+
+---
+
+## Previous Updates (2026-01-20)
 
 **Background Job Queue for Cover Generation - COMPLETED:**
 - ✅ Created `cover_generation_jobs` table for async processing
@@ -19,10 +35,6 @@
 - ✅ Updated StorySelection.tsx and Preview.tsx to use polling pattern
 - ✅ Eliminates gateway timeout errors - client polls instead of waiting on long connection
 - ✅ Generation now works reliably (~60s AI processing with 3-minute polling window)
-
-**Previous Client Timeout Fix - SUPERSEDED:**
-- ~~Fixed client-side timeout by increasing to 90 seconds~~ (gateway still timed out)
-- Replaced with job queue pattern above
 
 ---
 

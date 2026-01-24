@@ -14,10 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        playfair: ['Playfair Display', 'serif'],
-        poppins: ['Poppins', 'sans-serif'],
+        heading: ['Bubblegum Sans', 'cursive'],
         sans: ['Inter', 'sans-serif'],
-        wonderia: ['Wonderia', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
