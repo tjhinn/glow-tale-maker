@@ -86,9 +86,9 @@ export async function flattenCoverWithTitle(
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         
-        // Calculate position (8% from top, centered horizontally)
+        // Calculate position (12% from top, centered horizontally)
         const textX = canvas.width / 2;
-        const textY = canvas.height * 0.08;
+        const textY = canvas.height * 0.12;
         
         // Keep entire title on one line (no word wrapping)
         const line = title;
