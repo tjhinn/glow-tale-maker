@@ -433,12 +433,12 @@ serve(async (req) => {
         const pageText = personalizedPages[pageIndex]?.text || '';
         
         if (pageText) {
-          // Text overlay settings - child-friendly sizing
-          const baseFontSize = 24;
-          const personalizedFontSize = 28;
-          const lineHeight = 36;
+          // Text overlay settings - 2x larger for readability
+          const baseFontSize = 48;
+          const personalizedFontSize = 56;
+          const lineHeight = 72;
           const maxWidth = image.width - 120;
-          const textBoxHeight = 220;
+          const textBoxHeight = 400;
           
           // Get favorite color for personalized words
           const favoriteColor = colorNameToRgb(personalization.favoriteColor || 'purple');
