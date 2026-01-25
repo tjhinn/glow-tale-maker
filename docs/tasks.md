@@ -9,7 +9,20 @@
 
 ---
 
-## 🎯 Recent Updates (2026-01-24)
+## 🎯 Recent Updates (2026-01-25)
+
+**Order Dashboard Button Improvements - COMPLETED:**
+- ✅ Replaced "Force Regenerate" button with two distinct options
+- ✅ Added "Regenerate PDF" button - keeps approved images, recompiles PDF only (for text/styling changes)
+- ✅ Added "Regenerate Pages" button - clears all images and resets to start fresh
+- ✅ Updated layout: "Approve & Send" on its own row, regeneration buttons side-by-side below
+- ✅ "Regenerate Pages" styled with destructive variant to indicate more drastic action
+- ✅ Added loading states for PDF regeneration process
+- ✅ Updated for both `pending_admin_review` and `approved`/`email_sent` statuses
+
+---
+
+## Previous Updates (2026-01-24)
 
 **Title Color Customization - COMPLETED:**
 - ✅ Added `title_color` column to stories table (default: #FFFFFF)
@@ -25,6 +38,7 @@
 - ✅ Strengthened drop shadow (opacity 0.6→0.85, blur 4→8, offset 2→4)
 - ✅ Added 10% edge safety margins to prevent title overflow
 - ✅ Implemented automatic font scaling for long titles
+- ✅ Moved title position from 8% to 12% from top for better spacing
 
 **Typography Overhaul - Bubblegum Sans - COMPLETED:**
 - ✅ Replaced all decorative/heading fonts (Wonderia, Playfair Display, Poppins, Fredoka One) with Bubblegum Sans

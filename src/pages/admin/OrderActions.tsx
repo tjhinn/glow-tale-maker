@@ -27,8 +27,10 @@ interface OrderActionsProps {
   errorLog: string | null;
   isGenerating: boolean;
   isApproving: boolean;
+  isRegeneratingPdf: boolean;
   onApprove: (orderId: string) => void;
-  onForceRegenerate: (orderId: string) => void;
+  onRegeneratePdf: (orderId: string) => void;
+  onRegeneratePages: (orderId: string) => void;
   onRetry: (orderId: string) => void;
   generatedPages?: any[];
   totalPages?: number;
@@ -43,8 +45,10 @@ export function OrderActions({
   errorLog,
   isGenerating,
   isApproving,
+  isRegeneratingPdf,
   onApprove,
-  onForceRegenerate,
+  onRegeneratePdf,
+  onRegeneratePages,
   onRetry,
   generatedPages = [],
   totalPages = 12,
@@ -124,7 +128,7 @@ export function OrderActions({
               <span className="text-sm">AI is generating your storybook...</span>
             </div>
             <Button
-              onClick={() => onForceRegenerate(orderId)}
+              onClick={() => onRegeneratePages(orderId)}
               disabled={isGenerating}
               variant="outline"
               size="sm"
@@ -147,77 +151,121 @@ export function OrderActions({
 
       case "pending_admin_review":
         return (
-          <div className="flex gap-2">
-            {pdfUrl && (
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              {pdfUrl && (
+                <Button
+                  onClick={() => onApprove(orderId)}
+                  disabled={isApproving}
+                  className="flex-1"
+                >
+                  {isApproving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Approve & Send
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
               <Button
-                onClick={() => onApprove(orderId)}
-                disabled={isApproving}
+                onClick={() => onRegeneratePdf(orderId)}
+                disabled={isRegeneratingPdf}
+                variant="outline"
                 className="flex-1"
               >
-                {isApproving ? (
+                {isRegeneratingPdf ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    Recompiling...
                   </>
                 ) : (
                   <>
-                    <Send className="mr-2 h-4 w-4" />
-                    Approve & Send
+                    <FileText className="mr-2 h-4 w-4" />
+                    Regenerate PDF
                   </>
                 )}
               </Button>
-            )}
-            <Button
-              onClick={() => onForceRegenerate(orderId)}
-              disabled={isGenerating}
-              variant="outline"
-              className="flex-1"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Regenerating...
-                </>
-              ) : (
-                <>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Force Regenerate
-                </>
-              )}
-            </Button>
+              <Button
+                onClick={() => onRegeneratePages(orderId)}
+                disabled={isGenerating}
+                variant="outline"
+                className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Resetting...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Regenerate Pages
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         );
 
       case "approved":
       case "email_sent":
         return (
-          <div className="flex gap-2">
-            {pdfUrl && (
-              <Button asChild variant="outline" className="flex-1">
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Download PDF
-                </a>
-              </Button>
-            )}
-            <Button
-              onClick={() => onForceRegenerate(orderId)}
-              disabled={isGenerating}
-              variant="outline"
-              className="flex-1"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Regenerating...
-                </>
-              ) : (
-                <>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Regenerate
-                </>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              {pdfUrl && (
+                <Button asChild variant="outline" className="flex-1">
+                  <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </a>
+                </Button>
               )}
-            </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => onRegeneratePdf(orderId)}
+                disabled={isRegeneratingPdf}
+                variant="outline"
+                className="flex-1"
+              >
+                {isRegeneratingPdf ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Recompiling...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Regenerate PDF
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => onRegeneratePages(orderId)}
+                disabled={isGenerating}
+                variant="outline"
+                className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/10"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Resetting...
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Regenerate Pages
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         );
 
