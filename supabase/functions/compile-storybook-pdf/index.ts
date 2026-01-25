@@ -158,11 +158,11 @@ async function addStoryPage(
     .trim();
   
   if (pageText) {
-    const textBoxHeight = 150;        // Reduced from 180 for less obstruction
-    const textBoxPadding = 20;
-    const baseFontSize = 22;          // Reduced from 28 for elegance
-    const personalizedFontSize = 26;  // Reduced from 32
-    const lineHeight = 30;            // Better relative spacing with smaller font
+    const textBoxHeight = 280;        // Increased to accommodate larger text
+    const textBoxPadding = 30;
+    const baseFontSize = 44;          // 2x larger for readability
+    const personalizedFontSize = 52;  // 2x larger for readability
+    const lineHeight = 60;            // 2x larger for proper spacing
     const textBoxX = 40;
     const textBoxY = 0;               // Bleeds to bottom edge of page
     const textBoxWidth = image.width - 80;
