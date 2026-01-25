@@ -47,6 +47,9 @@ const AdminOrders = () => {
   const [approvingOrders, setApprovingOrders] = useState<Set<string>>(
     new Set()
   );
+  const [regeneratingPdfOrders, setRegeneratingPdfOrders] = useState<Set<string>>(
+    new Set()
+  );
 
   const { data: orders, isLoading, refetch } = useQuery({
     queryKey: ["admin-orders", statusFilter, searchQuery],
@@ -109,7 +112,52 @@ const AdminOrders = () => {
     refetch();
   };
 
-  const handleForceRegenerate = async (orderId: string) => {
+  const handleRegeneratePdf = async (orderId: string) => {
+    setRegeneratingPdfOrders((prev) => new Set(prev).add(orderId));
+    try {
+      // Reset PDF-related fields but keep generated_pages intact
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({
+          pdf_url: null,
+          pdf_generated_at: null,
+          pdf_batch_progress: null,
+          status: "pages_ready_for_review",
+        })
+        .eq("id", orderId);
+
+      if (updateError) throw updateError;
+
+      // Trigger PDF compilation (all 3 batches)
+      for (let batch = 1; batch <= 3; batch++) {
+        const { error } = await supabase.functions.invoke("compile-storybook-pdf", {
+          body: { orderId, batch },
+        });
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "PDF regenerated successfully",
+      });
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to regenerate PDF",
+        variant: "destructive",
+      });
+      console.error("Error regenerating PDF:", error);
+    } finally {
+      setRegeneratingPdfOrders((prev) => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+    }
+  };
+
+  const handleRegeneratePages = async (orderId: string) => {
     // Reset order to initial state - admin will use page-by-page generation
     const { error: updateError } = await supabase
       .from("orders")
@@ -118,6 +166,7 @@ const AdminOrders = () => {
         pdf_generated_at: null,
         error_log: null,
         generated_pages: [],
+        pdf_batch_progress: null,
         status: "payment_received",
       })
       .eq("id", orderId);
@@ -133,7 +182,7 @@ const AdminOrders = () => {
 
     toast({
       title: "Success",
-      description: "Order reset. Click 'Start Page Generation' to begin.",
+      description: "All pages cleared. Click 'Start Page Generation' to begin fresh.",
     });
     refetch();
   };
@@ -216,8 +265,10 @@ const AdminOrders = () => {
                   errorLog={order.error_log}
                   isGenerating={false}
                   isApproving={approvingOrders.has(order.id)}
+                  isRegeneratingPdf={regeneratingPdfOrders.has(order.id)}
                   onApprove={handleApprove}
-                  onForceRegenerate={handleForceRegenerate}
+                  onRegeneratePdf={handleRegeneratePdf}
+                  onRegeneratePages={handleRegeneratePages}
                   onRetry={handleRetry}
                   generatedPages={(order as any).generated_pages || []}
                   totalPages={Array.isArray((order as any).story?.pages) ? (order as any).story.pages.length : 12}
