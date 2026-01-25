@@ -325,21 +325,32 @@ serve(async (req) => {
       pdfDoc = await PDFDocument.create();
       pdfDoc.registerFontkit(fontkit);
 
-      // Embed Bubblegum Sans font from GitHub raw URLs (only has one weight)
+      // Embed fonts from Google Fonts GitHub repository
+      const funnelSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/funnelsans/FunnelSans-Regular.ttf';
       const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
-      const fontResponse = await fetch(bubblegumSansUrl);
+      // Fetch both fonts in parallel
+      const [funnelResponse, bubblegumResponse] = await Promise.all([
+        fetch(funnelSansUrl),
+        fetch(bubblegumSansUrl)
+      ]);
 
-      if (!fontResponse.ok) {
-        throw new Error(`Failed to fetch font: ${fontResponse.status}`);
+      if (!funnelResponse.ok) {
+        throw new Error(`Failed to fetch Funnel Sans font: ${funnelResponse.status}`);
+      }
+      if (!bubblegumResponse.ok) {
+        throw new Error(`Failed to fetch Bubblegum Sans font: ${bubblegumResponse.status}`);
       }
 
-      const fontBytes = await fontResponse.arrayBuffer();
+      const [funnelBytes, bubblegumBytes] = await Promise.all([
+        funnelResponse.arrayBuffer(),
+        bubblegumResponse.arrayBuffer()
+      ]);
 
-      console.log(`[${orderId}] Font loaded: BubblegumSans=${fontBytes.byteLength} bytes`);
+      console.log(`[${orderId}] Fonts loaded: FunnelSans=${funnelBytes.byteLength} bytes, BubblegumSans=${bubblegumBytes.byteLength} bytes`);
 
-      regularFont = await pdfDoc.embedFont(fontBytes);
-      boldFont = regularFont; // Bubblegum Sans only has one weight, use same font
+      regularFont = await pdfDoc.embedFont(funnelBytes);   // Funnel Sans for regular text
+      boldFont = await pdfDoc.embedFont(bubblegumBytes);   // Bubblegum Sans for personalized words
 
       // Add cover page
       console.log(`[${orderId}] Adding cover page...`);
@@ -384,15 +395,22 @@ serve(async (req) => {
       pdfDoc = await PDFDocument.load(existingPdfBytes);
       pdfDoc.registerFontkit(fontkit);
 
-      // Re-embed font (required after loading)
+      // Re-embed fonts (required after loading existing PDF)
+      const funnelSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/funnelsans/FunnelSans-Regular.ttf';
       const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
-      const fontResponse = await fetch(bubblegumSansUrl);
+      const [funnelResponse, bubblegumResponse] = await Promise.all([
+        fetch(funnelSansUrl),
+        fetch(bubblegumSansUrl)
+      ]);
 
-      const fontBytes = await fontResponse.arrayBuffer();
+      const [funnelBytes, bubblegumBytes] = await Promise.all([
+        funnelResponse.arrayBuffer(),
+        bubblegumResponse.arrayBuffer()
+      ]);
 
-      regularFont = await pdfDoc.embedFont(fontBytes);
-      boldFont = regularFont; // Bubblegum Sans only has one weight
+      regularFont = await pdfDoc.embedFont(funnelBytes);   // Funnel Sans for regular text
+      boldFont = await pdfDoc.embedFont(bubblegumBytes);   // Bubblegum Sans for personalized words
 
       // Add story pages for this batch
       for (const pageData of batchPages) {
