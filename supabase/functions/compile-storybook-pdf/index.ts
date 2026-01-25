@@ -325,8 +325,8 @@ serve(async (req) => {
       pdfDoc = await PDFDocument.create();
       pdfDoc.registerFontkit(fontkit);
 
-      // Embed fonts from Google Fonts GitHub repository
-      const interFontUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Regular.ttf';
+      // Embed fonts - Inter from Fontsource CDN, Bubblegum Sans from Google Fonts
+      const interFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
       const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
       // Fetch both fonts in parallel
@@ -396,7 +396,7 @@ serve(async (req) => {
       pdfDoc.registerFontkit(fontkit);
 
       // Re-embed fonts (required after loading existing PDF)
-      const interFontUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/inter/Inter-Regular.ttf';
+      const interFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
       const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
       const [interResponse, bubblegumResponse] = await Promise.all([
