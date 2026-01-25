@@ -137,11 +137,11 @@ export async function flattenCoverWithTitle(
           ctx.textAlign = 'center';
           ctx.textBaseline = 'top';
           
-          // Pass 1: Strong drop shadow for readability
+          // Pass 1: Drop shadow for readability (centered behind text)
           ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
           ctx.shadowBlur = 8;
-          ctx.shadowOffsetX = 4;
-          ctx.shadowOffsetY = 4;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
           ctx.fillStyle = titleColor;
           ctx.fillText(char, 0, 0);
           
