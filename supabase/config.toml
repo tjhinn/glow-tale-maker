@@ -6,8 +6,6 @@ verify_jwt = false
 [functions.lemonsqueezy-webhook]
 verify_jwt = false
 
-[functions.generate-storybook]
-verify_jwt = true
 
 [functions.approve-order]
 verify_jwt = true

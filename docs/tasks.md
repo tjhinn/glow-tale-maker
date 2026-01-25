@@ -1006,26 +1006,20 @@ See `supabase/functions/create-lemonsqueezy-checkout/index.ts` for the active pa
 
 ---
 
-## Task 2.3: Create generate-storybook Edge Function ✅
+## Task 2.3: Create generate-storybook Edge Function ❌ DEPRECATED
 
-**Prerequisites:**
-- Task 0.4 completed (LOVABLE_API_KEY) ✅
-- Task 2.1 completed (storage buckets) ✅
+**Status:** ❌ DEPRECATED - Replaced by `generate-single-page` + `compile-storybook-pdf`
 
-**File:** `supabase/functions/generate-storybook/index.ts`
+**Reason for Deprecation:**
+The monolithic `generate-storybook` function frequently exceeded Supabase's 60-second timeout and CPU limits when processing 13 images (cover + 12 pages) in a single invocation. It was replaced by a more reliable batched approach:
 
-**Status:** ✅ Completed - Function deployed and operational
+1. **`generate-single-page`** - Generates one AI-composited page at a time, called sequentially from admin dashboard
+2. **`compile-storybook-pdf`** - Assembles the final PDF in 3 batches (4 pages each) to avoid CPU timeouts
 
-**Key Features:**
-- Fetches order and story data
-- Illustrates hero photo if needed (fallback)
-- Personalizes story text with user data
-- Composites illustrated hero into story images using AI
-- Generates PDF from composited images
-- Uploads to storage with 7-day signed URL
-- Updates order status to `pending_admin_review`
-
-**Completed:** 2025-11-12
+**Removed:** 2026-01-25
+- Deleted `supabase/functions/generate-storybook/` folder
+- Removed from `supabase/config.toml`
+- Deleted deployed function from Supabase
 
 ```typescript
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
@@ -1426,20 +1420,10 @@ const AdminDashboard = () => {
     },
   });
 
-  const handleGeneratePDF = async (orderId: string) => {
-    toast.info('Generating PDF...');
-    const { error } = await supabase.functions.invoke('generate-storybook', {
-      body: { orderId },
-    });
-
-    if (error) {
-      toast.error('Failed to generate PDF');
-      return;
-    }
-
-    toast.success('PDF generated! Now pending your review.');
-    refetch();
-  };
+  // NOTE: This example code is OUTDATED. The current implementation uses:
+  // 1. handleStartGeneration() - calls generate-single-page for each page
+  // 2. handleCompilePDF() - calls compile-storybook-pdf to assemble the final PDF
+  // See AdminOrders.tsx and OrderActions.tsx for the current implementation.
 
   const handleApprove = async (orderId: string) => {
     const { error } = await supabase.functions.invoke('approve-order', {
