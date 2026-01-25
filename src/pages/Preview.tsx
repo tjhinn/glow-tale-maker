@@ -216,10 +216,16 @@ const Preview = () => {
             // Enforce 4:3 aspect ratio
             const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
             
-            // Flatten the cover with title text
+            // Get the title font and color from the story (with fallbacks)
+            const titleFont = selectedStory.title_font || 'Bubblegum Sans';
+            const titleColor = selectedStory.title_color || '#FFD700';
+            
+            // Flatten the cover with title text using story-specific font and color
             const flattenedBlob = await flattenCoverWithTitle(
               aspectRatioCorrectedUrl,
-              personalizedTitle
+              personalizedTitle,
+              titleFont,
+              titleColor
             );
             
             // Upload flattened image to storage
