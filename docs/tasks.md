@@ -9,7 +9,20 @@
 
 ---
 
-## 🎯 Recent Updates (2026-01-25)
+## 🎯 Recent Updates (2026-01-26)
+
+**Per-Story Page Font Customization - COMPLETED:**
+- ✅ Added `page_font` column to stories table (default: 'Inter')
+- ✅ Added "Page Font" input field in Admin Story Template form (below Title Color)
+- ✅ Updated Story interface, formData, resetForm, handleEdit, create/update mutations
+- ✅ Updated compile-storybook-pdf edge function to dynamically load page font from Google Fonts
+- ✅ Added fallback to Inter if custom font is unavailable
+- ✅ Each storybook can now have unique typography for inside pages
+- ✅ Recommended fonts: Nunito, Quicksand, Comfortaa, Baloo 2, Varela Round
+
+---
+
+## Previous Updates (2026-01-25)
 
 **Order Dashboard Button Improvements - COMPLETED:**
 - ✅ Replaced "Force Regenerate" button with two distinct options
