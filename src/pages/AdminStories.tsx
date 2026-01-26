@@ -27,6 +27,7 @@ interface Story {
   title: string;
   title_font: string;
   title_color: string;
+  page_font: string;
   moral: string;
   hero_gender: string;
   illustration_style: string;
@@ -48,6 +49,7 @@ const AdminStories = () => {
     title: '',
     title_font: 'Bubblegum Sans',
     title_color: '#FFD700',
+    page_font: 'Inter',
     moral: '',
     hero_gender: 'boy',
     illustration_style: 'whimsical_storybook',
@@ -180,6 +182,7 @@ const AdminStories = () => {
           title: newStory.title,
           title_font: newStory.title_font,
           title_color: newStory.title_color,
+          page_font: newStory.page_font,
           moral: newStory.moral,
           hero_gender: newStory.hero_gender,
           illustration_style: newStory.illustration_style,
@@ -231,6 +234,7 @@ const AdminStories = () => {
         title: updates.title,
         title_font: updates.title_font,
         title_color: updates.title_color,
+        page_font: updates.page_font,
         moral: updates.moral,
         hero_gender: updates.hero_gender,
         illustration_style: updates.illustration_style,
@@ -279,6 +283,7 @@ const AdminStories = () => {
       title: '',
       title_font: 'Bubblegum Sans',
       title_color: '#FFD700',
+      page_font: 'Inter',
       moral: '',
       hero_gender: 'both',
       illustration_style: 'whimsical_storybook',
@@ -296,6 +301,7 @@ const AdminStories = () => {
       title: story.title,
       title_font: story.title_font || 'Bubblegum Sans',
       title_color: story.title_color || '#FFD700',
+      page_font: story.page_font || 'Inter',
       moral: story.moral,
       hero_gender: story.hero_gender,
       illustration_style: story.illustration_style,
@@ -513,6 +519,20 @@ const AdminStories = () => {
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
                         Choose a color that complements the cover image (gold, cream, or sky blue work well)
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="page_font">Page Font (Google Font name)</Label>
+                      <Input
+                        id="page_font"
+                        value={formData.page_font}
+                        onChange={(e) => setFormData({ ...formData, page_font: e.target.value })}
+                        placeholder="e.g., Inter, Nunito, Quicksand, Comfortaa"
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Font used for story text on inside pages (e.g., Nunito, Quicksand, Varela Round)
                       </p>
                     </div>
 

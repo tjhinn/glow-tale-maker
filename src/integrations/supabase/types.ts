@@ -208,6 +208,7 @@ export type Database = {
           illustration_style: string
           is_active: boolean
           moral: string
+          page_font: string
           pages: Json
           title: string
           title_color: string
@@ -222,6 +223,7 @@ export type Database = {
           illustration_style?: string
           is_active?: boolean
           moral: string
+          page_font?: string
           pages?: Json
           title: string
           title_color?: string
@@ -236,6 +238,7 @@ export type Database = {
           illustration_style?: string
           is_active?: boolean
           moral?: string
+          page_font?: string
           pages?: Json
           title?: string
           title_color?: string

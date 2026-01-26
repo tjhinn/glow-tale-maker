@@ -277,7 +277,8 @@ serve(async (req) => {
         *,
         stories (
           title,
-          pages
+          pages,
+          page_font
         )
       `)
       .eq("id", orderId)
@@ -298,6 +299,14 @@ serve(async (req) => {
 
     const story = (order as any).stories;
     const storyPages = story.pages as any[];
+    const pageFont = story.page_font || 'Inter';
+
+    // Helper function to build Google Fonts GitHub URL
+    function getGoogleFontUrl(fontName: string): string {
+      const folderName = fontName.toLowerCase().replace(/\s+/g, '');
+      const fileName = fontName.replace(/\s+/g, '') + '-Regular.ttf';
+      return `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/${fileName}`;
+    }
 
     // Verify all pages are generated and approved
     const approvedPages = generatedPages
@@ -325,32 +334,43 @@ serve(async (req) => {
       pdfDoc = await PDFDocument.create();
       pdfDoc.registerFontkit(fontkit);
 
-      // Embed fonts - Inter from Fontsource CDN, Bubblegum Sans from Google Fonts
-      const interFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+      // Embed fonts - Page font from Google Fonts (with fallback), Bubblegum Sans for personalized words
+      const pageFontUrl = getGoogleFontUrl(pageFont);
+      const fallbackFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
       const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
-      // Fetch both fonts in parallel
-      const [interResponse, bubblegumResponse] = await Promise.all([
-        fetch(interFontUrl),
+      console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
+
+      // Fetch fonts in parallel
+      const [pageFontResponse, bubblegumResponse] = await Promise.all([
+        fetch(pageFontUrl),
         fetch(bubblegumSansUrl)
       ]);
 
-      if (!interResponse.ok) {
-        throw new Error(`Failed to fetch Inter font: ${interResponse.status}`);
+      // Handle page font with fallback to Inter
+      let pageFontBytes: ArrayBuffer;
+      if (pageFontResponse.ok) {
+        pageFontBytes = await pageFontResponse.arrayBuffer();
+        console.log(`[${orderId}] Page font "${pageFont}" loaded: ${pageFontBytes.byteLength} bytes`);
+      } else {
+        console.log(`[${orderId}] Custom font "${pageFont}" not found (${pageFontResponse.status}), falling back to Inter`);
+        const fallbackResponse = await fetch(fallbackFontUrl);
+        if (!fallbackResponse.ok) {
+          throw new Error(`Failed to fetch fallback Inter font: ${fallbackResponse.status}`);
+        }
+        pageFontBytes = await fallbackResponse.arrayBuffer();
+        console.log(`[${orderId}] Fallback Inter font loaded: ${pageFontBytes.byteLength} bytes`);
       }
+
       if (!bubblegumResponse.ok) {
         throw new Error(`Failed to fetch Bubblegum Sans font: ${bubblegumResponse.status}`);
       }
 
-      const [interBytes, bubblegumBytes] = await Promise.all([
-        interResponse.arrayBuffer(),
-        bubblegumResponse.arrayBuffer()
-      ]);
+      const bubblegumBytes = await bubblegumResponse.arrayBuffer();
+      console.log(`[${orderId}] Bubblegum Sans loaded: ${bubblegumBytes.byteLength} bytes`);
 
-      console.log(`[${orderId}] Fonts loaded: Inter=${interBytes.byteLength} bytes, BubblegumSans=${bubblegumBytes.byteLength} bytes`);
-
-      regularFont = await pdfDoc.embedFont(interBytes);   // Inter for regular text
-      boldFont = await pdfDoc.embedFont(bubblegumBytes);   // Bubblegum Sans for personalized words
+      regularFont = await pdfDoc.embedFont(pageFontBytes);   // Story page font
+      boldFont = await pdfDoc.embedFont(bubblegumBytes);      // Bubblegum Sans for personalized words
 
       // Add cover page
       console.log(`[${orderId}] Adding cover page...`);
@@ -396,21 +416,31 @@ serve(async (req) => {
       pdfDoc.registerFontkit(fontkit);
 
       // Re-embed fonts (required after loading existing PDF)
-      const interFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+      const pageFontUrl = getGoogleFontUrl(pageFont);
+      const fallbackFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
       const bubblegumSansUrl = 'https://raw.githubusercontent.com/google/fonts/main/ofl/bubblegumsans/BubblegumSans-Regular.ttf';
 
-      const [interResponse, bubblegumResponse] = await Promise.all([
-        fetch(interFontUrl),
+      console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
+
+      const [pageFontResponse, bubblegumResponse] = await Promise.all([
+        fetch(pageFontUrl),
         fetch(bubblegumSansUrl)
       ]);
 
-      const [interBytes, bubblegumBytes] = await Promise.all([
-        interResponse.arrayBuffer(),
-        bubblegumResponse.arrayBuffer()
-      ]);
+      // Handle page font with fallback to Inter
+      let pageFontBytes: ArrayBuffer;
+      if (pageFontResponse.ok) {
+        pageFontBytes = await pageFontResponse.arrayBuffer();
+      } else {
+        console.log(`[${orderId}] Custom font "${pageFont}" not found, falling back to Inter`);
+        const fallbackResponse = await fetch(fallbackFontUrl);
+        pageFontBytes = await fallbackResponse.arrayBuffer();
+      }
 
-      regularFont = await pdfDoc.embedFont(interBytes);   // Inter for regular text
-      boldFont = await pdfDoc.embedFont(bubblegumBytes);   // Bubblegum Sans for personalized words
+      const bubblegumBytes = await bubblegumResponse.arrayBuffer();
+
+      regularFont = await pdfDoc.embedFont(pageFontBytes);   // Story page font
+      boldFont = await pdfDoc.embedFont(bubblegumBytes);      // Bubblegum Sans for personalized words
 
       // Add story pages for this batch
       for (const pageData of batchPages) {
