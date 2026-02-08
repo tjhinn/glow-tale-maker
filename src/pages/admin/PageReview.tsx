@@ -31,7 +31,7 @@ interface PageReviewProps {
   pdfBatchProgress?: BatchProgress | null;
 }
 
-const TOTAL_BATCHES = 3;
+const TOTAL_BATCHES = 4;
 
 export function PageReview({
   open,
@@ -349,9 +349,10 @@ export function PageReview({
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>
                   Processing batch {currentBatch} of {TOTAL_BATCHES}...
-                  {currentBatch === 1 && " (Cover + Pages 1-4)"}
-                  {currentBatch === 2 && " (Pages 5-8)"}
-                  {currentBatch === 3 && " (Pages 9-12)"}
+                  {currentBatch === 1 && " (Cover + Pages 1-3)"}
+                  {currentBatch === 2 && " (Pages 4-6)"}
+                  {currentBatch === 3 && " (Pages 7-9)"}
+                  {currentBatch === 4 && " (Pages 10-12)"}
                 </span>
               </div>
               <div className="mt-2 h-2 bg-background rounded-full overflow-hidden">

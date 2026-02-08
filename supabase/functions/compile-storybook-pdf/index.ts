@@ -9,8 +9,8 @@ const corsHeaders = {
 };
 
 // Batch configuration
-const PAGES_PER_BATCH = 4;
-const TOTAL_BATCHES = 3;
+const PAGES_PER_BATCH = 3;
+const TOTAL_BATCHES = 4;
 
 // Text wrapping helper function for PDF text
 function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
