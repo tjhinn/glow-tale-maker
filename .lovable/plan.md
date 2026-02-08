@@ -1,78 +1,54 @@
 
 
-## Plan: Fix Expired PDF Preview URLs
+## Plan: Fix Batch 3 CPU Timeout by Splitting Into Smaller Batches
 
 ### Problem
-The "Preview PDF" link stores a **7-day signed URL** in the database. Since it's been about a week, this URL has expired, causing the `InvalidJWT` / `"exp" claim timestamp check failed` error when clicking "Preview PDF."
+Batch 3 of PDF compilation consistently fails with "CPU Time exceeded." By the time Batch 3 runs, it must:
+1. Load a ~19MB partial PDF from storage
+2. Re-embed fonts
+3. Process 4 more PNG pages (pages 9-12)
 
-### Root Cause
-In `compile-storybook-pdf/index.ts`, the signed URL (valid for 7 days) is saved to `orders.pdf_url`. After expiration, the link is dead.
+This exceeds the Supabase Edge Function CPU time limit.
 
 ### Solution
-Replace the direct `<a href={pdf_url}>` link with a button that generates a **fresh signed URL on-demand** each time the admin clicks "Preview PDF."
+Split the work into **4 batches of 3 pages** instead of 3 batches of 4 pages. This reduces the per-batch workload enough to stay within CPU limits.
+
+| Batch | Current (fails) | New (proposed) |
+|-------|-----------------|----------------|
+| 1 | Cover + pages 1-4 | Cover + pages 1-3 |
+| 2 | Pages 5-8 | Pages 4-6 |
+| 3 | Pages 9-12 (CPU EXCEEDED) | Pages 7-9 |
+| 4 | n/a | Pages 10-12 |
 
 ---
 
-### File 1: `src/pages/admin/OrderCard.tsx`
+### Files to Modify
 
-**Replace** the static "Preview PDF" link (around line 176-183) with a button that calls a helper function to create a fresh signed URL from Supabase Storage.
+#### 1. `supabase/functions/compile-storybook-pdf/index.ts`
+- Change `PAGES_PER_BATCH` from `4` to `3`
+- Change `TOTAL_BATCHES` from `3` to `4`
 
-The button will:
-1. Extract the file path from the stored `pdf_url` (or store just the file path in a separate column)
-2. Call `supabase.storage.from('generated-pdfs').createSignedUrl(filePath, 3600)` to get a fresh 1-hour URL
-3. Open the URL in a new tab
-
-```tsx
-// New "Preview PDF" button with on-demand signed URL
-const handlePreviewPdf = async (pdfUrl: string) => {
-  // Extract file path from the stored signed URL
-  const pathMatch = pdfUrl.match(/generated-pdfs\/(.+?)\?/);
-  if (!pathMatch) {
-    window.open(pdfUrl, '_blank'); // fallback
-    return;
-  }
-  const filePath = decodeURIComponent(pathMatch[1]);
-  const { data, error } = await supabase.storage
-    .from('generated-pdfs')
-    .createSignedUrl(filePath, 3600); // 1 hour
-  if (data?.signedUrl) {
-    window.open(data.signedUrl, '_blank');
-  } else {
-    // Show error toast or fallback
-    console.error('Failed to generate preview URL:', error);
-  }
-};
-```
-
-Replace the static `<a>` tag with:
-```tsx
-<button
-  onClick={() => handlePreviewPdf(order.pdf_url)}
-  className="text-sm text-primary hover:underline inline-flex items-center gap-1"
->
-  Preview PDF
-</button>
-```
+#### 2. `src/pages/admin/PageReview.tsx`
+- Change `TOTAL_BATCHES` from `3` to `4`
+- Update the batch progress indicator text to reflect 4 batches:
+  - Batch 1: "Cover + Pages 1-3"
+  - Batch 2: "Pages 4-6"
+  - Batch 3: "Pages 7-9"
+  - Batch 4: "Pages 10-12"
 
 ---
 
-### File 2: `src/pages/admin/OrderActions.tsx`
-
-Apply the same pattern for the "Download PDF" button (line 224) which also uses `pdfUrl` directly.
-
----
-
-### Why Not Just Use Public URLs?
-The `generated-pdfs` bucket is private by design (PDFs contain personalized children's content). Keeping it private with on-demand signed URLs is the correct security approach.
-
-### Why Not Store File Paths Instead?
-While storing just the file path (e.g., `order-abc-final.pdf`) instead of the full signed URL would be cleaner, that would require a database migration and updating the PDF compilation function. The regex extraction approach works reliably and avoids breaking existing data.
+### Why This Works
+- Each batch processes fewer pages (3 instead of 4)
+- The partial PDF loaded in later batches is smaller
+- The total number of edge function invocations increases by only 1
+- No other code changes needed -- the batch loop in `PageReview.tsx` already iterates dynamically based on `TOTAL_BATCHES`
 
 ---
 
-### Testing
-1. Go to Admin Dashboard, then Order Management
-2. Click "Preview PDF" on any order with a generated PDF
-3. The PDF should open successfully in a new tab with a fresh signed URL
-4. The URL will be valid for 1 hour from the time of clicking
+### After Implementation
+1. Deploy the updated edge function
+2. Go to Admin Dashboard and Order Management
+3. Click "Regenerate PDF" on the order
+4. All 4 batches should complete successfully
 
