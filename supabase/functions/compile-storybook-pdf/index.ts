@@ -166,7 +166,7 @@ async function addStoryPage(
     const textBoxX = 40;
     const textBoxY = 0;               // Bleeds to bottom edge of page
     const textBoxWidth = image.width - 80;
-    const maxTextWidth = textBoxWidth - 40;
+    const maxTextWidth = textBoxWidth - 80;
     
     // Draw semi-transparent background for text
     page.drawRectangle({
