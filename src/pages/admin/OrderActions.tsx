@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Send, RotateCcw, XCircle, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { PageReview } from "./PageReview";
+import { getFreshaSignedPdfUrl } from "@/lib/pdfSignedUrl";
+import { useToast } from "@/hooks/use-toast";
 
 type OrderStatus =
   | "payment_received"
@@ -56,6 +58,24 @@ export function OrderActions({
   pdfBatchProgress,
 }: OrderActionsProps) {
   const [showPageReview, setShowPageReview] = useState(false);
+  const [loadingDownload, setLoadingDownload] = useState(false);
+  const { toast } = useToast();
+
+  const handleDownloadPdf = async () => {
+    if (!pdfUrl) return;
+    setLoadingDownload(true);
+    try {
+      const url = await getFreshaSignedPdfUrl(pdfUrl);
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        toast({ title: "Error", description: "Failed to generate download URL", variant: "destructive" });
+      }
+    } finally {
+      setLoadingDownload(false);
+    }
+  };
+
   const renderActions = () => {
     // Allow status-based actions to show even with errors
     // (retry button is rendered separately below)
@@ -220,11 +240,18 @@ export function OrderActions({
           <div className="space-y-2">
             <div className="flex gap-2">
               {pdfUrl && (
-                <Button asChild variant="outline" className="flex-1">
-                  <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
+                <Button
+                  onClick={handleDownloadPdf}
+                  disabled={loadingDownload}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {loadingDownload ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
                     <FileText className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </a>
+                  )}
+                  Download PDF
                 </Button>
               )}
             </div>

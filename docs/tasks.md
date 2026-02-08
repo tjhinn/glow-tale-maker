@@ -9,7 +9,17 @@
 
 ---
 
-## 🎯 Recent Updates (2026-01-26)
+## 🎯 Recent Updates (2026-02-08)
+
+**Fix Expired PDF Preview URLs - COMPLETED:**
+- ✅ Created shared utility `src/lib/pdfSignedUrl.ts` for on-demand signed URL generation
+- ✅ Updated OrderCard.tsx "Preview PDF" link to generate fresh 1-hour signed URLs
+- ✅ Updated OrderActions.tsx "Download PDF" button to use same pattern
+- ✅ Expired signed URLs no longer cause InvalidJWT errors
+
+---
+
+## Previous Updates (2026-01-26)
 
 **Per-Story Page Font Customization - COMPLETED:**
 - ✅ Added `page_font` column to stories table (default: 'Inter')
