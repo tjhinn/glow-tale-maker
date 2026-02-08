@@ -11,6 +11,17 @@
 
 ## 🎯 Recent Updates (2026-02-08)
 
+**Use Story Title Font for Personalized Words in PDF - COMPLETED:**
+- ✅ Updated `compile-storybook-pdf` to fetch `title_font` from stories table
+- ✅ Personalized words (hero name, pet, city) now use the story's Title Font instead of hardcoded Bubblegum Sans
+- ✅ Added fallback to Bubblegum Sans if title font is unavailable
+- ✅ Applied to both Batch 1 and Batch 2+ font loading paths
+- ✅ Edge function redeployed
+
+**Fix Batch 3 CPU Timeout - COMPLETED:**
+- ✅ Split PDF compilation from 3 batches of 4 pages to 4 batches of 3 pages
+- ✅ Updated edge function, PageReview.tsx, and AdminOrders.tsx
+
 **Fix Expired PDF Preview URLs - COMPLETED:**
 - ✅ Created shared utility `src/lib/pdfSignedUrl.ts` for on-demand signed URL generation
 - ✅ Updated OrderCard.tsx "Preview PDF" link to generate fresh 1-hour signed URLs
