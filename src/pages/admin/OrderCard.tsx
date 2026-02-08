@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Calendar, DollarSign } from "lucide-react";
+import { User, Mail, Calendar, DollarSign, Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { getFreshaSignedPdfUrl } from "@/lib/pdfSignedUrl";
+import { useToast } from "@/hooks/use-toast";
 
 interface PersonalizationData {
   heroName: string;
@@ -56,6 +59,23 @@ const getStatusLabel = (status: string) => {
 
 export function OrderCard({ order, children }: OrderCardProps) {
   const personalization = order.personalization_data as PersonalizationData;
+  const { toast } = useToast();
+  const [loadingPreview, setLoadingPreview] = useState(false);
+
+  const handlePreviewPdf = async () => {
+    if (!order.pdf_url) return;
+    setLoadingPreview(true);
+    try {
+      const url = await getFreshaSignedPdfUrl(order.pdf_url);
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        toast({ title: "Error", description: "Failed to generate preview URL", variant: "destructive" });
+      }
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -173,14 +193,13 @@ export function OrderCard({ order, children }: OrderCardProps) {
               <p className="text-sm text-green-600 dark:text-green-400">
                 ✅ Generated: {formatDate(order.pdf_generated_at)}
               </p>
-              <a
-                href={order.pdf_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+              <button
+                onClick={handlePreviewPdf}
+                disabled={loadingPreview}
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
               >
-                🔗 Preview PDF
-              </a>
+                {loadingPreview ? <Loader2 className="h-3 w-3 animate-spin" /> : "🔗"} Preview PDF
+              </button>
             </div>
           ) : order.error_log ? (
             <p className="text-sm text-destructive">
