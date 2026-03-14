@@ -9,7 +9,24 @@
 
 ---
 
-## 🎯 Recent Updates (2026-02-08)
+## 🎯 Recent Updates (2026-03-14)
+
+**Increase Text Box Inner Margins in PDF - COMPLETED:**
+- ✅ Increased left/right inner padding of text box from 20px to 40px per side
+- ✅ Updated `maxTextWidth` calculation in `compile-storybook-pdf` (subtracted 80 instead of 40)
+- ✅ Edge function redeployed
+
+**Use Bold Page Font for Personalized Words in PDF - COMPLETED:**
+- ✅ Personalized words now use the **Bold variant** of the Page Font (same family, bold weight)
+- ✅ Added `getGoogleFontBoldUrl()` helper to fetch `-Bold.ttf` from Google Fonts
+- ✅ Fallback to regular page font if bold variant unavailable
+- ✅ Removed separate title font fetching for personalized words
+- ✅ Applied to both Batch 1 and Batch 2+ font loading paths
+- ✅ Edge function redeployed
+
+---
+
+## Previous Updates (2026-02-08)
 
 **Use Story Title Font for Personalized Words in PDF - COMPLETED:**
 - ✅ Updated `compile-storybook-pdf` to fetch `title_font` from stories table
