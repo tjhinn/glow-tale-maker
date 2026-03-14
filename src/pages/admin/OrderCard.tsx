@@ -79,58 +79,53 @@ export function OrderCard({ order, children }: OrderCardProps) {
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-semibold text-lg">
+      <CardHeader className="p-4 pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="space-y-0.5 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <h3 className="font-semibold text-sm truncate">
                 {personalization.heroName}'s Story
               </h3>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Mail className="h-3 w-3" />
-              {order.user_email}
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Mail className="h-3 w-3 shrink-0" />
+              <span className="truncate">{order.user_email}</span>
             </div>
           </div>
-          <Badge className={getStatusColor(order.status)}>
+          <Badge className={`${getStatusColor(order.status)} text-[10px] shrink-0`}>
             {getStatusLabel(order.status)}
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="p-4 pt-2 space-y-2">
         {/* Story and Payment Info */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="space-y-1 text-xs">
           <div>
-            <p className="text-muted-foreground">Story</p>
-            <p className="font-medium">{order.story?.title || "Unknown"}</p>
+            <span className="text-muted-foreground">Story: </span>
+            <span className="font-medium">{order.story?.title || "Unknown"}</span>
           </div>
-          <div>
-            <p className="text-muted-foreground">Amount Paid</p>
-            <div className="flex items-center gap-1">
-              <DollarSign className="h-3 w-3" />
-              <p className="font-medium">
-                {order.amount_paid
-                  ? `${(order.amount_paid / 100).toFixed(2)} ${(order.currency || "USD").toUpperCase()}`
-                  : "N/A"}
-              </p>
-            </div>
+          <div className="flex items-center gap-1">
+            <DollarSign className="h-3 w-3 text-muted-foreground" />
+            <span className="font-medium">
+              {order.amount_paid
+                ? `${(order.amount_paid / 100).toFixed(2)} ${(order.currency || "USD").toUpperCase()}`
+                : "N/A"}
+            </span>
           </div>
         </div>
 
         {/* Personalization Details */}
-        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase">
-            Personalization Details
+        <div className="bg-muted/50 rounded-md p-2 space-y-1">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase">
+            Personalization
           </p>
-          <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="space-y-0.5 text-xs">
             {personalization.petName && personalization.petType && (
               <div>
                 <span className="text-muted-foreground">Pet:</span>{" "}
-                <span className="font-medium">
-                  {personalization.petName} ({personalization.petType})
-                </span>
+                <span className="font-medium">{personalization.petName} ({personalization.petType})</span>
               </div>
             )}
             {personalization.city && (
@@ -142,26 +137,22 @@ export function OrderCard({ order, children }: OrderCardProps) {
             {personalization.favoriteColor && (
               <div>
                 <span className="text-muted-foreground">Color:</span>{" "}
-                <span className="font-medium">
-                  {personalization.favoriteColor}
-                </span>
+                <span className="font-medium">{personalization.favoriteColor}</span>
               </div>
             )}
             {personalization.favoriteFood && (
               <div>
                 <span className="text-muted-foreground">Food:</span>{" "}
-                <span className="font-medium">
-                  {personalization.favoriteFood}
-                </span>
+                <span className="font-medium">{personalization.favoriteFood}</span>
               </div>
             )}
           </div>
         </div>
 
         {/* Page Generation Status */}
-        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase">
-            Page Generation Progress
+        <div className="bg-muted/50 rounded-md p-2 space-y-1">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase">
+            Pages
           </p>
           {(() => {
             const generatedPages = (order as any).generated_pages || [];
@@ -169,51 +160,46 @@ export function OrderCard({ order, children }: OrderCardProps) {
             const totalPages = Array.isArray(storyPages) ? storyPages.length : 12;
             const generatedCount = generatedPages.length;
             const approvedCount = generatedPages.filter((p: any) => p.status === "approved").length;
-
             return (
-              <div className="space-y-1">
-                <p className="text-sm">
-                  <span className="font-medium">{generatedCount}</span> / {totalPages} pages generated
-                </p>
-                <p className="text-sm">
-                  <span className="font-medium">{approvedCount}</span> / {totalPages} pages approved
-                </p>
+              <div className="text-xs space-y-0.5">
+                <p><span className="font-medium">{generatedCount}</span> / {totalPages} generated</p>
+                <p><span className="font-medium">{approvedCount}</span> / {totalPages} approved</p>
               </div>
             );
           })()}
         </div>
 
         {/* PDF Status */}
-        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase">
-            PDF Status
+        <div className="bg-muted/50 rounded-md p-2 space-y-1">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase">
+            PDF
           </p>
           {order.pdf_url && order.pdf_generated_at ? (
-            <div className="space-y-1">
-              <p className="text-sm text-green-600 dark:text-green-400">
-                ✅ Generated: {formatDate(order.pdf_generated_at)}
+            <div className="space-y-0.5">
+              <p className="text-xs text-green-600 dark:text-green-400">
+                ✅ {formatDate(order.pdf_generated_at)}
               </p>
               <button
                 onClick={handlePreviewPdf}
                 disabled={loadingPreview}
-                className="text-sm text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
+                className="text-xs text-primary hover:underline inline-flex items-center gap-1 disabled:opacity-50"
               >
-                {loadingPreview ? <Loader2 className="h-3 w-3 animate-spin" /> : "🔗"} Preview PDF
+                {loadingPreview ? <Loader2 className="h-3 w-3 animate-spin" /> : "🔗"} Preview
               </button>
             </div>
           ) : order.error_log ? (
-            <p className="text-sm text-destructive">
-              ❌ Generation Failed (Attempt {order.generation_attempts || 0}/3)
+            <p className="text-xs text-destructive">
+              ❌ Failed (Attempt {order.generation_attempts || 0}/3)
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">Pending PDF compilation</p>
+            <p className="text-xs text-muted-foreground">Pending</p>
           )}
         </div>
 
         {/* Order Date */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
+        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground pt-1 border-t">
           <Calendar className="h-3 w-3" />
-          <span>Order created: {formatDate(order.created_at)}</span>
+          <span>{formatDate(order.created_at)}</span>
         </div>
 
         {/* Action Buttons Area */}
