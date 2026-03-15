@@ -256,6 +256,10 @@ const AdminOrders = () => {
               <OrderErrorAlert
                 errorLog={order.error_log}
                 generationAttempts={order.generation_attempts}
+                onClear={async () => {
+                  await supabase.from("orders").update({ error_log: null }).eq("id", order.id);
+                  refetch();
+                }}
               />
               <OrderCard order={order as any}>
                 <OrderActions
