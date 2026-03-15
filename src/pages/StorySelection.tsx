@@ -57,7 +57,7 @@ const StorySelection = () => {
   useEffect(() => {
     if (!stories) return;
     
-    const fonts = [...new Set(stories.map(s => s.title_font || 'Bubblegum Sans'))];
+    const fonts = [...new Set(stories.map(s => s.title_font || 'Fredoka'))];
     
     fonts.forEach(font => {
       const fontName = font.replace(/ /g, '+');
