@@ -345,7 +345,7 @@ serve(async (req) => {
       // Embed fonts - Page font regular + bold for personalized words
       const pageFontUrl = getGoogleFontUrl(pageFont);
       const pageFontBoldUrl = getGoogleFontBoldUrl(pageFont);
-      const fallbackFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+      const fallbackFontUrl = getGoogleFontUrl('Fredoka');
 
       console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
       console.log(`[${orderId}] Loading bold page font for personalized words: ${pageFont} from ${pageFontBoldUrl}`);
