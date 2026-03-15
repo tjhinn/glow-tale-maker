@@ -362,13 +362,13 @@ serve(async (req) => {
         pageFontBytes = await pageFontResponse.arrayBuffer();
         console.log(`[${orderId}] Page font "${pageFont}" loaded: ${pageFontBytes.byteLength} bytes`);
       } else {
-        console.log(`[${orderId}] Custom font "${pageFont}" not found (${pageFontResponse.status}), falling back to Inter`);
+        console.log(`[${orderId}] Custom font "${pageFont}" not found (${pageFontResponse.status}), falling back to Fredoka`);
         const fallbackResponse = await fetch(fallbackFontUrl);
         if (!fallbackResponse.ok) {
-          throw new Error(`Failed to fetch fallback Inter font: ${fallbackResponse.status}`);
+          throw new Error(`Failed to fetch fallback Fredoka font: ${fallbackResponse.status}`);
         }
         pageFontBytes = await fallbackResponse.arrayBuffer();
-        console.log(`[${orderId}] Fallback Inter font loaded: ${pageFontBytes.byteLength} bytes`);
+        console.log(`[${orderId}] Fallback Fredoka font loaded: ${pageFontBytes.byteLength} bytes`);
       }
 
       // Handle bold page font with fallback to regular page font
