@@ -8,7 +8,7 @@
 export async function flattenCoverWithTitle(
   coverUrl: string,
   title: string,
-  titleFont: string = 'Bubblegum Sans',
+  titleFont: string = 'Fredoka',
   titleColor: string = '#FFFFFF'
 ): Promise<Blob> {
   // First, fetch the image as a blob to avoid CORS issues
