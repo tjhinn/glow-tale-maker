@@ -167,15 +167,15 @@ async function addStoryPage(
     .trim();
   
   if (pageText) {
-    const textBoxHeight = 196;        // Reduced by 30%
-    const textBoxPadding = 30;
-    const baseFontSize = 31;          // Reduced by 30%
-    const personalizedFontSize = 36;  // Reduced by 30%
-    const lineHeight = 42;            // Reduced by 30%
-    const textBoxX = 40;
+    const textBoxHeight = Math.round(196 * scale);
+    const textBoxPadding = Math.round(30 * scale);
+    const baseFontSize = Math.round(31 * scale);
+    const personalizedFontSize = Math.round(36 * scale);
+    const lineHeight = Math.round(42 * scale);
+    const textBoxX = Math.round(40 * scale);
     const textBoxY = 0;               // Bleeds to bottom edge of page
-    const textBoxWidth = image.width - 80;
-    const maxTextWidth = textBoxWidth - 80;
+    const textBoxWidth = pageWidth - Math.round(80 * scale);
+    const maxTextWidth = textBoxWidth - Math.round(80 * scale);
     
     // Draw semi-transparent background for text
     page.drawRectangle({
