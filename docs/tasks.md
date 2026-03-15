@@ -103,6 +103,12 @@
 - ✅ Updated compile-storybook-pdf edge function to use Bubblegum Sans for PDF text
 - ✅ Edge function deployed successfully
 
+**Typography Overhaul - Fredoka Replacement - COMPLETED:**
+- ✅ Replaced Bubblegum Sans with Fredoka across all code (index.html, tailwind.config.ts, index.css, flattenCoverWithTitle.ts)
+- ✅ Updated all page fallbacks: StorySelection, Preview, AdminStories
+- ✅ Updated all 4 story templates in database: both title_font and page_font set to Fredoka
+- ✅ Updated stories table defaults to Fredoka for both title_font and page_font
+
 ---
 
 ## Previous Updates (2026-01-20)
