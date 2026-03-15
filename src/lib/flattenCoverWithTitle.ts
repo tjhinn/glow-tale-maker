@@ -81,7 +81,7 @@ export async function flattenCoverWithTitle(
         await document.fonts.ready;
         
         // Configure text styling with the specified font and fallbacks
-        ctx.font = `${baseFontSize}px "${titleFont}", "Bubblegum Sans", cursive`;
+        ctx.font = `${baseFontSize}px "${titleFont}", "Fredoka", cursive`;
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
