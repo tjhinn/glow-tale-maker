@@ -281,9 +281,9 @@ const AdminStories = () => {
   const resetForm = () => {
     setFormData({
       title: '',
-      title_font: 'Bubblegum Sans',
+      title_font: 'Fredoka',
       title_color: '#FFD700',
-      page_font: 'Inter',
+      page_font: 'Fredoka',
       moral: '',
       hero_gender: 'both',
       illustration_style: 'whimsical_storybook',
