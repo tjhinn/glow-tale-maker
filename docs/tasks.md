@@ -9,7 +9,20 @@
 
 ---
 
-## 🎯 Recent Updates (2026-03-14)
+## 🎯 Recent Updates (2026-03-15)
+
+**Fix CPU Time Exceeded in PDF Compilation - COMPLETED:**
+- ✅ Scaled images to max 1200px width during PDF embedding (down from ~2048px+)
+- ✅ All text overlay dimensions scale proportionally with image
+- ✅ Cover page also scaled to max 1200px width
+- ✅ Reduced `PAGES_PER_BATCH` from 3 to 2
+- ✅ Increased `TOTAL_BATCHES` from 4 to 6
+- ✅ Updated frontend batch constants in PageReview.tsx and AdminOrders.tsx
+- ✅ Edge function redeployed
+
+---
+
+## Previous Updates (2026-03-14)
 
 **Increase Text Box Inner Margins in PDF - COMPLETED:**
 - ✅ Increased left/right inner padding of text box from 20px to 40px per side

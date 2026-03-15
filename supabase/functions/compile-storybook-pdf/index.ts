@@ -9,8 +9,11 @@ const corsHeaders = {
 };
 
 // Batch configuration
-const PAGES_PER_BATCH = 3;
-const TOTAL_BATCHES = 4;
+const PAGES_PER_BATCH = 2;
+const TOTAL_BATCHES = 6;
+
+// Max image dimension for PDF pages (reduces CPU and file size)
+const MAX_PAGE_WIDTH = 1200;
 
 // Text wrapping helper function for PDF text
 function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
@@ -139,13 +142,19 @@ async function addStoryPage(
   const imageBuffer = await imageBlob.arrayBuffer();
   const imageBytes = new Uint8Array(imageBuffer);
   const image = await embedImage(pdfDoc, imageBytes, logPrefix);
-  const page = pdfDoc.addPage([image.width, image.height]);
+  
+  // Scale down to max width for smaller PDF size and less CPU usage
+  const scale = Math.min(1, MAX_PAGE_WIDTH / image.width);
+  const pageWidth = Math.round(image.width * scale);
+  const pageHeight = Math.round(image.height * scale);
+  
+  const page = pdfDoc.addPage([pageWidth, pageHeight]);
   
   page.drawImage(image, {
     x: 0,
     y: 0,
-    width: image.width,
-    height: image.height,
+    width: pageWidth,
+    height: pageHeight,
   });
 
   // Add text overlay with personalized word highlighting
@@ -158,15 +167,15 @@ async function addStoryPage(
     .trim();
   
   if (pageText) {
-    const textBoxHeight = 196;        // Reduced by 30%
-    const textBoxPadding = 30;
-    const baseFontSize = 31;          // Reduced by 30%
-    const personalizedFontSize = 36;  // Reduced by 30%
-    const lineHeight = 42;            // Reduced by 30%
-    const textBoxX = 40;
+    const textBoxHeight = Math.round(196 * scale);
+    const textBoxPadding = Math.round(30 * scale);
+    const baseFontSize = Math.round(31 * scale);
+    const personalizedFontSize = Math.round(36 * scale);
+    const lineHeight = Math.round(42 * scale);
+    const textBoxX = Math.round(40 * scale);
     const textBoxY = 0;               // Bleeds to bottom edge of page
-    const textBoxWidth = image.width - 80;
-    const maxTextWidth = textBoxWidth - 80;
+    const textBoxWidth = pageWidth - Math.round(80 * scale);
+    const maxTextWidth = textBoxWidth - Math.round(80 * scale);
     
     // Draw semi-transparent background for text
     page.drawRectangle({
@@ -426,13 +435,19 @@ serve(async (req) => {
       const coverBuffer = await coverBlob.arrayBuffer();
       const coverBytes = new Uint8Array(coverBuffer);
       const coverImage = await embedImage(pdfDoc, coverBytes, `[${orderId}]`);
-      const coverPage = pdfDoc.addPage([coverImage.width, coverImage.height]);
+      
+      // Scale cover to max width
+      const coverScale = Math.min(1, MAX_PAGE_WIDTH / coverImage.width);
+      const coverWidth = Math.round(coverImage.width * coverScale);
+      const coverHeight = Math.round(coverImage.height * coverScale);
+      
+      const coverPage = pdfDoc.addPage([coverWidth, coverHeight]);
       
       coverPage.drawImage(coverImage, {
         x: 0,
         y: 0,
-        width: coverImage.width,
-        height: coverImage.height,
+        width: coverWidth,
+        height: coverHeight,
       });
 
       // Add story pages for batch 1
