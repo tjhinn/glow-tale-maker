@@ -31,7 +31,7 @@ interface PageReviewProps {
   pdfBatchProgress?: BatchProgress | null;
 }
 
-const TOTAL_BATCHES = 4;
+const TOTAL_BATCHES = 6;
 
 export function PageReview({
   open,
