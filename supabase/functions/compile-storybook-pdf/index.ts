@@ -303,7 +303,7 @@ serve(async (req) => {
     const pageFont = story.page_font || 'Fredoka';
     
 
-    // Helper function to build Google Fonts GitHub URL
+    // Helper function to build Google Fonts GitHub URL (tries static then variable font)
     function getGoogleFontUrl(fontName: string): string {
       const folderName = fontName.toLowerCase().replace(/\s+/g, '');
       const fileName = fontName.replace(/\s+/g, '') + '-Regular.ttf';
@@ -314,6 +314,52 @@ serve(async (req) => {
       const folderName = fontName.toLowerCase().replace(/\s+/g, '');
       const fileName = fontName.replace(/\s+/g, '') + '-Bold.ttf';
       return `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/${fileName}`;
+    }
+
+    // Variable font URL (e.g. Fredoka[wdth,wght].ttf)
+    function getGoogleFontVariableUrl(fontName: string): string {
+      const folderName = fontName.toLowerCase().replace(/\s+/g, '');
+      const cleanName = fontName.replace(/\s+/g, '');
+      // Try common variable font axis patterns
+      return `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/${cleanName}%5Bwdth%2Cwght%5D.ttf`;
+    }
+
+    function getGoogleFontVariableWghtOnlyUrl(fontName: string): string {
+      const folderName = fontName.toLowerCase().replace(/\s+/g, '');
+      const cleanName = fontName.replace(/\s+/g, '');
+      return `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/${cleanName}%5Bwght%5D.ttf`;
+    }
+
+    // Fetch font with fallback chain: static -> variable (wdth,wght) -> variable (wght) -> null
+    async function fetchFontWithFallbacks(fontName: string, variant: 'regular' | 'bold'): Promise<ArrayBuffer | null> {
+      const staticUrl = variant === 'bold' ? getGoogleFontBoldUrl(fontName) : getGoogleFontUrl(fontName);
+      
+      // Try static font first
+      const staticResponse = await fetch(staticUrl);
+      if (staticResponse.ok) {
+        console.log(`[${orderId}] Loaded static ${variant} font for "${fontName}"`);
+        return await staticResponse.arrayBuffer();
+      }
+      
+      // Try variable font (wdth,wght)
+      const varUrl = getGoogleFontVariableUrl(fontName);
+      console.log(`[${orderId}] Static ${variant} not found for "${fontName}", trying variable font...`);
+      const varResponse = await fetch(varUrl);
+      if (varResponse.ok) {
+        console.log(`[${orderId}] Loaded variable font (wdth,wght) for "${fontName}"`);
+        return await varResponse.arrayBuffer();
+      }
+      
+      // Try variable font (wght only)
+      const wghtUrl = getGoogleFontVariableWghtOnlyUrl(fontName);
+      const wghtResponse = await fetch(wghtUrl);
+      if (wghtResponse.ok) {
+        console.log(`[${orderId}] Loaded variable font (wght) for "${fontName}"`);
+        return await wghtResponse.arrayBuffer();
+      }
+      
+      console.log(`[${orderId}] No font files found for "${fontName}"`);
+      return null;
     }
 
     // Verify all pages are generated and approved
@@ -343,43 +389,32 @@ serve(async (req) => {
       pdfDoc.registerFontkit(fontkit);
 
       // Embed fonts - Page font regular + bold for personalized words
-      const pageFontUrl = getGoogleFontUrl(pageFont);
-      const pageFontBoldUrl = getGoogleFontBoldUrl(pageFont);
-      const fallbackFontUrl = getGoogleFontUrl('Fredoka');
+      console.log(`[${orderId}] Loading page font: ${pageFont}`);
 
-      console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
-      console.log(`[${orderId}] Loading bold page font for personalized words: ${pageFont} from ${pageFontBoldUrl}`);
-
-      // Fetch fonts in parallel
-      const [pageFontResponse, boldFontResponse] = await Promise.all([
-        fetch(pageFontUrl),
-        fetch(pageFontBoldUrl)
-      ]);
-
-      // Handle page font with fallback to Inter
-      let pageFontBytes: ArrayBuffer;
-      if (pageFontResponse.ok) {
-        pageFontBytes = await pageFontResponse.arrayBuffer();
-        console.log(`[${orderId}] Page font "${pageFont}" loaded: ${pageFontBytes.byteLength} bytes`);
-      } else {
-        console.log(`[${orderId}] Custom font "${pageFont}" not found (${pageFontResponse.status}), falling back to Fredoka`);
-        const fallbackResponse = await fetch(fallbackFontUrl);
-        if (!fallbackResponse.ok) {
-          throw new Error(`Failed to fetch fallback Fredoka font: ${fallbackResponse.status}`);
+      // Fetch regular font with fallback chain
+      let pageFontBytes = await fetchFontWithFallbacks(pageFont, 'regular');
+      if (!pageFontBytes) {
+        // Ultimate fallback: try Fredoka variable font, then Inter from CDN
+        const fredokaBytes = await fetchFontWithFallbacks('Fredoka', 'regular');
+        if (fredokaBytes) {
+          pageFontBytes = fredokaBytes;
+        } else {
+          const interUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+          const interResponse = await fetch(interUrl);
+          if (!interResponse.ok) throw new Error('Failed to fetch any fallback font');
+          pageFontBytes = await interResponse.arrayBuffer();
         }
-        pageFontBytes = await fallbackResponse.arrayBuffer();
-        console.log(`[${orderId}] Fallback Fredoka font loaded: ${pageFontBytes.byteLength} bytes`);
       }
+      console.log(`[${orderId}] Page font loaded: ${pageFontBytes.byteLength} bytes`);
 
-      // Handle bold page font with fallback to regular page font
-      let boldFontBytes: ArrayBuffer;
-      if (boldFontResponse.ok) {
-        boldFontBytes = await boldFontResponse.arrayBuffer();
-        console.log(`[${orderId}] Bold page font "${pageFont}" loaded: ${boldFontBytes.byteLength} bytes`);
-      } else {
-        console.log(`[${orderId}] Bold variant of "${pageFont}" not found, falling back to regular`);
+      // Fetch bold font with fallback chain
+      let boldFontBytes = await fetchFontWithFallbacks(pageFont, 'bold');
+      if (!boldFontBytes) {
+        // For variable fonts, the regular file contains all weights
+        console.log(`[${orderId}] Bold variant not found, using regular font (variable fonts include all weights)`);
         boldFontBytes = pageFontBytes;
       }
+      console.log(`[${orderId}] Bold font loaded: ${boldFontBytes.byteLength} bytes`);
 
       regularFont = await pdfDoc.embedFont(pageFontBytes);    // Page font regular
       boldFont = await pdfDoc.embedFont(boldFontBytes);        // Page font bold for personalized words
@@ -428,33 +463,23 @@ serve(async (req) => {
       pdfDoc.registerFontkit(fontkit);
 
       // Re-embed fonts (required after loading existing PDF)
-      const pageFontUrl = getGoogleFontUrl(pageFont);
-      const pageFontBoldUrl = getGoogleFontBoldUrl(pageFont);
-      const fallbackFontUrl = getGoogleFontUrl('Fredoka');
+      console.log(`[${orderId}] Loading page font: ${pageFont}`);
 
-      console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
-
-      const [pageFontResponse, boldFontResponse] = await Promise.all([
-        fetch(pageFontUrl),
-        fetch(pageFontBoldUrl)
-      ]);
-
-      // Handle page font with fallback to Inter
-      let pageFontBytes: ArrayBuffer;
-      if (pageFontResponse.ok) {
-        pageFontBytes = await pageFontResponse.arrayBuffer();
-      } else {
-        console.log(`[${orderId}] Custom font "${pageFont}" not found, falling back to Fredoka`);
-        const fallbackResponse = await fetch(fallbackFontUrl);
-        pageFontBytes = await fallbackResponse.arrayBuffer();
+      let pageFontBytes = await fetchFontWithFallbacks(pageFont, 'regular');
+      if (!pageFontBytes) {
+        const fredokaBytes = await fetchFontWithFallbacks('Fredoka', 'regular');
+        if (fredokaBytes) {
+          pageFontBytes = fredokaBytes;
+        } else {
+          const interUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+          const interResponse = await fetch(interUrl);
+          pageFontBytes = await interResponse.arrayBuffer();
+        }
       }
 
-      // Handle bold page font with fallback to regular
-      let boldFontBytes: ArrayBuffer;
-      if (boldFontResponse.ok) {
-        boldFontBytes = await boldFontResponse.arrayBuffer();
-      } else {
-        console.log(`[${orderId}] Bold variant of "${pageFont}" not found, falling back to regular`);
+      let boldFontBytes = await fetchFontWithFallbacks(pageFont, 'bold');
+      if (!boldFontBytes) {
+        console.log(`[${orderId}] Bold variant not found, using regular font`);
         boldFontBytes = pageFontBytes;
       }
 
