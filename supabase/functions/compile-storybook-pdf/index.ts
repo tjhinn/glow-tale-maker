@@ -300,7 +300,7 @@ serve(async (req) => {
 
     const story = (order as any).stories;
     const storyPages = story.pages as any[];
-    const pageFont = story.page_font || 'Inter';
+    const pageFont = story.page_font || 'Fredoka';
     
 
     // Helper function to build Google Fonts GitHub URL
