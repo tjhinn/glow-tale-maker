@@ -1,35 +1,21 @@
 
 
-## Plan: Increase Left and Right Margins of Text Box in PDF Pages
+## Plan: Fix Thin Fredoka Font in PDF Story Pages
 
 ### Problem
-The text inside the white transparent box on PDF story pages sits too close to the left and right edges of the box.
-
-### Current Values
-- `textBoxX = 40` (box starts 40px from page edge)
-- `textBoxWidth = image.width - 80` (80px total horizontal margin for the box)
-- `maxTextWidth = textBoxWidth - 40` (only 20px inner padding on each side of text within the box)
-
-The inner padding of 20px per side is too tight.
+Fredoka is a variable font. The current code tries to load `Fredoka-Regular.ttf` (doesn't exist at root level), falls back to the variable font `Fredoka[wdth,wght].ttf`, and `pdf-lib` renders it at the lightest weight (300) since it cannot select a specific weight from variable fonts. The website uses Fredoka at weight ~500 (medium), so the PDF text looks noticeably thinner.
 
 ### Solution
-Increase the inner text padding from 40px total to 80px total (40px per side), giving the text more breathing room inside the box.
+Update the font URL helpers to also try Google Fonts' **static subdirectory** where pre-built single-weight files exist (e.g., `static/Fredoka-Medium.ttf`, `static/Fredoka-SemiBold.ttf`). Use **Medium (500)** for regular text and **SemiBold (600)** for personalized/bold text to match the website's visual weight.
 
-### File: `supabase/functions/compile-storybook-pdf/index.ts`
+### Changes
 
-**Line 169** -- Change `maxTextWidth` calculation:
-```typescript
-// Before:
-const maxTextWidth = textBoxWidth - 40;
+**`supabase/functions/compile-storybook-pdf/index.ts`**:
 
-// After:
-const maxTextWidth = textBoxWidth - 80;
-```
+Update `fetchFontWithFallbacks` to try static weight-specific files before falling back to variable fonts:
 
-This doubles the inner padding from 20px to 40px on each side of the text within the white box, while keeping the box itself the same size.
+- For `regular` variant: try `static/{FontName}-Medium.ttf` first, then `{FontName}-Regular.ttf`, then variable fonts
+- For `bold` variant: try `static/{FontName}-SemiBold.ttf` first, then `{FontName}-Bold.ttf`, then variable fonts
 
-### Testing
-1. Go to Admin, then Order Management
-2. Click "Regenerate PDF" on an order
-3. Open the resulting PDF and verify the text has more space from the left and right edges of the white box
+This ensures Fredoka (and other fonts with static subdirectories) loads at the correct weight, while preserving the existing fallback chain for fonts that use different file structures.
 
