@@ -444,7 +444,7 @@ serve(async (req) => {
       if (pageFontResponse.ok) {
         pageFontBytes = await pageFontResponse.arrayBuffer();
       } else {
-        console.log(`[${orderId}] Custom font "${pageFont}" not found, falling back to Inter`);
+        console.log(`[${orderId}] Custom font "${pageFont}" not found, falling back to Fredoka`);
         const fallbackResponse = await fetch(fallbackFontUrl);
         pageFontBytes = await fallbackResponse.arrayBuffer();
       }
