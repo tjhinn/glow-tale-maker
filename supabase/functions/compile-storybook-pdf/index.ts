@@ -300,7 +300,7 @@ serve(async (req) => {
 
     const story = (order as any).stories;
     const storyPages = story.pages as any[];
-    const pageFont = story.page_font || 'Inter';
+    const pageFont = story.page_font || 'Fredoka';
     
 
     // Helper function to build Google Fonts GitHub URL
@@ -345,7 +345,7 @@ serve(async (req) => {
       // Embed fonts - Page font regular + bold for personalized words
       const pageFontUrl = getGoogleFontUrl(pageFont);
       const pageFontBoldUrl = getGoogleFontBoldUrl(pageFont);
-      const fallbackFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+      const fallbackFontUrl = getGoogleFontUrl('Fredoka');
 
       console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
       console.log(`[${orderId}] Loading bold page font for personalized words: ${pageFont} from ${pageFontBoldUrl}`);
@@ -362,13 +362,13 @@ serve(async (req) => {
         pageFontBytes = await pageFontResponse.arrayBuffer();
         console.log(`[${orderId}] Page font "${pageFont}" loaded: ${pageFontBytes.byteLength} bytes`);
       } else {
-        console.log(`[${orderId}] Custom font "${pageFont}" not found (${pageFontResponse.status}), falling back to Inter`);
+        console.log(`[${orderId}] Custom font "${pageFont}" not found (${pageFontResponse.status}), falling back to Fredoka`);
         const fallbackResponse = await fetch(fallbackFontUrl);
         if (!fallbackResponse.ok) {
-          throw new Error(`Failed to fetch fallback Inter font: ${fallbackResponse.status}`);
+          throw new Error(`Failed to fetch fallback Fredoka font: ${fallbackResponse.status}`);
         }
         pageFontBytes = await fallbackResponse.arrayBuffer();
-        console.log(`[${orderId}] Fallback Inter font loaded: ${pageFontBytes.byteLength} bytes`);
+        console.log(`[${orderId}] Fallback Fredoka font loaded: ${pageFontBytes.byteLength} bytes`);
       }
 
       // Handle bold page font with fallback to regular page font
@@ -430,7 +430,7 @@ serve(async (req) => {
       // Re-embed fonts (required after loading existing PDF)
       const pageFontUrl = getGoogleFontUrl(pageFont);
       const pageFontBoldUrl = getGoogleFontBoldUrl(pageFont);
-      const fallbackFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+      const fallbackFontUrl = getGoogleFontUrl('Fredoka');
 
       console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
 
@@ -444,7 +444,7 @@ serve(async (req) => {
       if (pageFontResponse.ok) {
         pageFontBytes = await pageFontResponse.arrayBuffer();
       } else {
-        console.log(`[${orderId}] Custom font "${pageFont}" not found, falling back to Inter`);
+        console.log(`[${orderId}] Custom font "${pageFont}" not found, falling back to Fredoka`);
         const fallbackResponse = await fetch(fallbackFontUrl);
         pageFontBytes = await fallbackResponse.arrayBuffer();
       }
