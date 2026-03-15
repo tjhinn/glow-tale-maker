@@ -306,7 +306,7 @@ const StorySelection = () => {
                     <CardTitle 
                       className="text-3xl text-center"
                       style={{
-                        fontFamily: "'Bubblegum Sans', cursive",
+                        fontFamily: "'Fredoka', cursive",
                         color: getColorValue(personalization.favoriteColor) || 'inherit'
                       }}
                     >

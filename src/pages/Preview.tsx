@@ -217,7 +217,7 @@ const Preview = () => {
             const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
             
             // Get the title font and color from the story (with fallbacks)
-            const titleFont = selectedStory.title_font || 'Bubblegum Sans';
+            const titleFont = selectedStory.title_font || 'Fredoka';
             const titleColor = selectedStory.title_color || '#FFD700';
             
             // Flatten the cover with title text using story-specific font and color

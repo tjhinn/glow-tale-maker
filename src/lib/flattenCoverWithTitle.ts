@@ -105,7 +105,7 @@ export async function flattenCoverWithTitle(
         if (totalWidth > maxTitleWidth) {
           const scaleFactor = maxTitleWidth / totalWidth;
           currentFontSize = Math.floor(baseFontSize * scaleFactor);
-          ctx.font = `${currentFontSize}px "${titleFont}", "Bubblegum Sans", cursive`;
+          ctx.font = `${currentFontSize}px "${titleFont}", "Fredoka", cursive`;
           totalWidth = ctx.measureText(line).width;
           console.log(`Title too wide, scaling font from ${baseFontSize}px to ${currentFontSize}px`);
         }

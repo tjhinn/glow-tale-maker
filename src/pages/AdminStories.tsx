@@ -491,7 +491,7 @@ const AdminStories = () => {
                         id="title_font"
                         value={formData.title_font}
                         onChange={(e) => setFormData({ ...formData, title_font: e.target.value })}
-                        placeholder="e.g., Bubblegum Sans, Pacifico, Fredoka One"
+                        placeholder="e.g., Fredoka, Pacifico, Bangers"
                         required
                       />
                       <p className="text-xs text-muted-foreground mt-1">

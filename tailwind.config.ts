@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Bubblegum Sans', 'cursive'],
+        heading: ['Fredoka', 'cursive'],
         sans: ['Inter', 'sans-serif'],
       },
       colors: {
