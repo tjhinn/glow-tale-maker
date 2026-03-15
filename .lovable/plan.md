@@ -1,45 +1,35 @@
 
 
-## Plan: Replace Bubblegum Sans with Fredoka Everywhere
+## Plan: Increase Left and Right Margins of Text Box in PDF Pages
 
-### Overview
-Replace all instances of "Bubblegum Sans" with "Fredoka" across the website code, and update all 4 story templates in the database to use Fredoka for both `title_font` and `page_font`.
+### Problem
+The text inside the white transparent box on PDF story pages sits too close to the left and right edges of the box.
 
-### Code Changes
+### Current Values
+- `textBoxX = 40` (box starts 40px from page edge)
+- `textBoxWidth = image.width - 80` (80px total horizontal margin for the box)
+- `maxTextWidth = textBoxWidth - 40` (only 20px inner padding on each side of text within the box)
 
-**1. `index.html`** — Update Google Fonts import
-- Change comment and font URL from `Bubblegum+Sans` to `Fredoka:wght@300;400;500;600;700`
+The inner padding of 20px per side is too tight.
 
-**2. `tailwind.config.ts`** — Update heading font family
-- Change `heading: ['Bubblegum Sans', 'cursive']` → `heading: ['Fredoka', 'cursive']`
+### Solution
+Increase the inner text padding from 40px total to 80px total (40px per side), giving the text more breathing room inside the box.
 
-**3. `src/index.css`** — Update comment
-- Change "Bubblegum Sans" reference to "Fredoka"
+### File: `supabase/functions/compile-storybook-pdf/index.ts`
 
-**4. `src/lib/flattenCoverWithTitle.ts`** — Update default font and fallbacks
-- Default parameter: `'Bubblegum Sans'` → `'Fredoka'`
-- Canvas font fallbacks: `"Bubblegum Sans", cursive` → `"Fredoka", cursive`
+**Line 169** -- Change `maxTextWidth` calculation:
+```typescript
+// Before:
+const maxTextWidth = textBoxWidth - 40;
 
-**5. `src/pages/StorySelection.tsx`** — Update fallbacks
-- Line 60: fallback `'Bubblegum Sans'` → `'Fredoka'`
-- Line 151: fallback `'Bubblegum Sans'` → `'Fredoka'`
-- Line 309: inline style `'Bubblegum Sans', cursive` → `'Fredoka', cursive`
-
-**6. `src/pages/Preview.tsx`** — Update fallback
-- Line 220: `'Bubblegum Sans'` → `'Fredoka'`
-
-**7. `src/pages/AdminStories.tsx`** — Update defaults and placeholder
-- Lines 50, 284, 302: default `title_font` from `'Bubblegum Sans'` → `'Fredoka'`
-- Line 494: placeholder text update
-
-### Database Update
-Update all 4 story templates to use Fredoka for both fonts:
-```sql
-UPDATE stories SET title_font = 'Fredoka', page_font = 'Fredoka';
+// After:
+const maxTextWidth = textBoxWidth - 80;
 ```
 
-### Summary of Scope
-- 7 files modified
-- 1 database update (all stories)
-- No structural/schema changes needed
+This doubles the inner padding from 20px to 40px on each side of the text within the white box, while keeping the box itself the same size.
+
+### Testing
+1. Go to Admin, then Order Management
+2. Click "Regenerate PDF" on an order
+3. Open the resulting PDF and verify the text has more space from the left and right edges of the white box
 

@@ -3,12 +3,12 @@
  * Uses HTML Canvas to draw both the image and styled text
  * @param coverUrl - URL of the cover image
  * @param title - The title text to render
- * @param titleFont - Google Font name to use for the title (default: 'Bubblegum Sans')
+ * @param titleFont - Google Font name to use for the title (default: 'Fredoka')
  */
 export async function flattenCoverWithTitle(
   coverUrl: string,
   title: string,
-  titleFont: string = 'Bubblegum Sans',
+  titleFont: string = 'Fredoka',
   titleColor: string = '#FFFFFF'
 ): Promise<Blob> {
   // First, fetch the image as a blob to avoid CORS issues
@@ -81,7 +81,7 @@ export async function flattenCoverWithTitle(
         await document.fonts.ready;
         
         // Configure text styling with the specified font and fallbacks
-        ctx.font = `${baseFontSize}px "${titleFont}", "Bubblegum Sans", cursive`;
+        ctx.font = `${baseFontSize}px "${titleFont}", "Fredoka", cursive`;
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
@@ -105,7 +105,7 @@ export async function flattenCoverWithTitle(
         if (totalWidth > maxTitleWidth) {
           const scaleFactor = maxTitleWidth / totalWidth;
           currentFontSize = Math.floor(baseFontSize * scaleFactor);
-          ctx.font = `${currentFontSize}px "${titleFont}", "Bubblegum Sans", cursive`;
+          ctx.font = `${currentFontSize}px "${titleFont}", "Fredoka", cursive`;
           totalWidth = ctx.measureText(line).width;
           console.log(`Title too wide, scaling font from ${baseFontSize}px to ${currentFontSize}px`);
         }

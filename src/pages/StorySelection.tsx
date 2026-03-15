@@ -57,7 +57,7 @@ const StorySelection = () => {
   useEffect(() => {
     if (!stories) return;
     
-    const fonts = [...new Set(stories.map(s => s.title_font || 'Bubblegum Sans'))];
+    const fonts = [...new Set(stories.map(s => s.title_font || 'Fredoka'))];
     
     fonts.forEach(font => {
       const fontName = font.replace(/ /g, '+');
@@ -148,7 +148,7 @@ const StorySelection = () => {
               const aspectRatioCorrectedUrl = await enforceAspectRatio(data.personalizedCoverUrl);
               
               // Get the title font and color from the story (with fallbacks)
-              const titleFont = (story as any).title_font || 'Bubblegum Sans';
+              const titleFont = (story as any).title_font || 'Fredoka';
               const titleColor = (story as any).title_color || '#FFD700';
               
               // Flatten the cover with title text using story-specific font and color
@@ -306,7 +306,7 @@ const StorySelection = () => {
                     <CardTitle 
                       className="text-3xl text-center"
                       style={{
-                        fontFamily: "'Bubblegum Sans', cursive",
+                        fontFamily: "'Fredoka', cursive",
                         color: getColorValue(personalization.favoriteColor) || 'inherit'
                       }}
                     >

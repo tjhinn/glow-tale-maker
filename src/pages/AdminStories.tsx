@@ -47,9 +47,9 @@ const AdminStories = () => {
 
   const [formData, setFormData] = useState({
     title: '',
-    title_font: 'Bubblegum Sans',
+    title_font: 'Fredoka',
     title_color: '#FFD700',
-    page_font: 'Inter',
+    page_font: 'Fredoka',
     moral: '',
     hero_gender: 'boy',
     illustration_style: 'whimsical_storybook',
@@ -281,9 +281,9 @@ const AdminStories = () => {
   const resetForm = () => {
     setFormData({
       title: '',
-      title_font: 'Bubblegum Sans',
+      title_font: 'Fredoka',
       title_color: '#FFD700',
-      page_font: 'Inter',
+      page_font: 'Fredoka',
       moral: '',
       hero_gender: 'both',
       illustration_style: 'whimsical_storybook',
@@ -299,9 +299,9 @@ const AdminStories = () => {
     setEditingStory(story);
     setFormData({
       title: story.title,
-      title_font: story.title_font || 'Bubblegum Sans',
+      title_font: story.title_font || 'Fredoka',
       title_color: story.title_color || '#FFD700',
-      page_font: story.page_font || 'Inter',
+      page_font: story.page_font || 'Fredoka',
       moral: story.moral,
       hero_gender: story.hero_gender,
       illustration_style: story.illustration_style,
@@ -491,7 +491,7 @@ const AdminStories = () => {
                         id="title_font"
                         value={formData.title_font}
                         onChange={(e) => setFormData({ ...formData, title_font: e.target.value })}
-                        placeholder="e.g., Bubblegum Sans, Pacifico, Fredoka One"
+                        placeholder="e.g., Fredoka, Pacifico, Bangers"
                         required
                       />
                       <p className="text-xs text-muted-foreground mt-1">
