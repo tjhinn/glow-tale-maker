@@ -9,8 +9,11 @@ const corsHeaders = {
 };
 
 // Batch configuration
-const PAGES_PER_BATCH = 3;
-const TOTAL_BATCHES = 4;
+const PAGES_PER_BATCH = 2;
+const TOTAL_BATCHES = 6;
+
+// Max image dimension for PDF pages (reduces CPU and file size)
+const MAX_PAGE_WIDTH = 1200;
 
 // Text wrapping helper function for PDF text
 function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
