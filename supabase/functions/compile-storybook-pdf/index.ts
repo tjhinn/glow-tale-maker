@@ -435,13 +435,19 @@ serve(async (req) => {
       const coverBuffer = await coverBlob.arrayBuffer();
       const coverBytes = new Uint8Array(coverBuffer);
       const coverImage = await embedImage(pdfDoc, coverBytes, `[${orderId}]`);
-      const coverPage = pdfDoc.addPage([coverImage.width, coverImage.height]);
+      
+      // Scale cover to max width
+      const coverScale = Math.min(1, MAX_PAGE_WIDTH / coverImage.width);
+      const coverWidth = Math.round(coverImage.width * coverScale);
+      const coverHeight = Math.round(coverImage.height * coverScale);
+      
+      const coverPage = pdfDoc.addPage([coverWidth, coverHeight]);
       
       coverPage.drawImage(coverImage, {
         x: 0,
         y: 0,
-        width: coverImage.width,
-        height: coverImage.height,
+        width: coverWidth,
+        height: coverHeight,
       });
 
       // Add story pages for batch 1

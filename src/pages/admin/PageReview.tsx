@@ -349,10 +349,12 @@ export function PageReview({
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>
                   Processing batch {currentBatch} of {TOTAL_BATCHES}...
-                  {currentBatch === 1 && " (Cover + Pages 1-3)"}
-                  {currentBatch === 2 && " (Pages 4-6)"}
-                  {currentBatch === 3 && " (Pages 7-9)"}
-                  {currentBatch === 4 && " (Pages 10-12)"}
+                  {currentBatch === 1 && " (Cover + Pages 1-2)"}
+                  {currentBatch === 2 && " (Pages 3-4)"}
+                  {currentBatch === 3 && " (Pages 5-6)"}
+                  {currentBatch === 4 && " (Pages 7-8)"}
+                  {currentBatch === 5 && " (Pages 9-10)"}
+                  {currentBatch === 6 && " (Pages 11-12)"}
                 </span>
               </div>
               <div className="mt-2 h-2 bg-background rounded-full overflow-hidden">

@@ -129,7 +129,7 @@ const AdminOrders = () => {
       if (updateError) throw updateError;
 
       // Trigger PDF compilation (all 4 batches)
-      for (let batch = 1; batch <= 4; batch++) {
+      for (let batch = 1; batch <= 6; batch++) {
         const { error } = await supabase.functions.invoke("compile-storybook-pdf", {
           body: { orderId, batch },
         });
