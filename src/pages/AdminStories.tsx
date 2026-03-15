@@ -47,9 +47,9 @@ const AdminStories = () => {
 
   const [formData, setFormData] = useState({
     title: '',
-    title_font: 'Bubblegum Sans',
+    title_font: 'Fredoka',
     title_color: '#FFD700',
-    page_font: 'Inter',
+    page_font: 'Fredoka',
     moral: '',
     hero_gender: 'boy',
     illustration_style: 'whimsical_storybook',
