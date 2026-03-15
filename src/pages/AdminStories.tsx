@@ -299,9 +299,9 @@ const AdminStories = () => {
     setEditingStory(story);
     setFormData({
       title: story.title,
-      title_font: story.title_font || 'Bubblegum Sans',
+      title_font: story.title_font || 'Fredoka',
       title_color: story.title_color || '#FFD700',
-      page_font: story.page_font || 'Inter',
+      page_font: story.page_font || 'Fredoka',
       moral: story.moral,
       hero_gender: story.hero_gender,
       illustration_style: story.illustration_style,
