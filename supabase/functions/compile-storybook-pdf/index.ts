@@ -463,33 +463,23 @@ serve(async (req) => {
       pdfDoc.registerFontkit(fontkit);
 
       // Re-embed fonts (required after loading existing PDF)
-      const pageFontUrl = getGoogleFontUrl(pageFont);
-      const pageFontBoldUrl = getGoogleFontBoldUrl(pageFont);
-      const fallbackFontUrl = getGoogleFontUrl('Fredoka');
+      console.log(`[${orderId}] Loading page font: ${pageFont}`);
 
-      console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
-
-      const [pageFontResponse, boldFontResponse] = await Promise.all([
-        fetch(pageFontUrl),
-        fetch(pageFontBoldUrl)
-      ]);
-
-      // Handle page font with fallback to Inter
-      let pageFontBytes: ArrayBuffer;
-      if (pageFontResponse.ok) {
-        pageFontBytes = await pageFontResponse.arrayBuffer();
-      } else {
-        console.log(`[${orderId}] Custom font "${pageFont}" not found, falling back to Fredoka`);
-        const fallbackResponse = await fetch(fallbackFontUrl);
-        pageFontBytes = await fallbackResponse.arrayBuffer();
+      let pageFontBytes = await fetchFontWithFallbacks(pageFont, 'regular');
+      if (!pageFontBytes) {
+        const fredokaBytes = await fetchFontWithFallbacks('Fredoka', 'regular');
+        if (fredokaBytes) {
+          pageFontBytes = fredokaBytes;
+        } else {
+          const interUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+          const interResponse = await fetch(interUrl);
+          pageFontBytes = await interResponse.arrayBuffer();
+        }
       }
 
-      // Handle bold page font with fallback to regular
-      let boldFontBytes: ArrayBuffer;
-      if (boldFontResponse.ok) {
-        boldFontBytes = await boldFontResponse.arrayBuffer();
-      } else {
-        console.log(`[${orderId}] Bold variant of "${pageFont}" not found, falling back to regular`);
+      let boldFontBytes = await fetchFontWithFallbacks(pageFont, 'bold');
+      if (!boldFontBytes) {
+        console.log(`[${orderId}] Bold variant not found, using regular font`);
         boldFontBytes = pageFontBytes;
       }
 
