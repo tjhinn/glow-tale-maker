@@ -341,25 +341,37 @@ serve(async (req) => {
 
     // Fetch font with fallback chain: static -> variable (wdth,wght) -> variable (wght) -> null
     async function fetchFontWithFallbacks(fontName: string, variant: 'regular' | 'bold'): Promise<ArrayBuffer | null> {
-      const staticUrl = variant === 'bold' ? getGoogleFontBoldUrl(fontName) : getGoogleFontUrl(fontName);
-      
-      // Try static font first
-      const staticResponse = await fetch(staticUrl);
-      if (staticResponse.ok) {
+      const folderName = fontName.toLowerCase().replace(/\s+/g, '');
+      const cleanName = fontName.replace(/\s+/g, '');
+
+      // Priority 1: Static weight-specific files (Medium/SemiBold for proper visual weight)
+      const weightSuffix = variant === 'bold' ? 'SemiBold' : 'Medium';
+      const staticWeightUrl = `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/static/${cleanName}-${weightSuffix}.ttf`;
+      console.log(`[${orderId}] Trying static ${weightSuffix} font for "${fontName}"...`);
+      const staticWeightResponse = await fetch(staticWeightUrl);
+      if (staticWeightResponse.ok) {
+        console.log(`[${orderId}] Loaded static ${weightSuffix} font for "${fontName}"`);
+        return await staticWeightResponse.arrayBuffer();
+      }
+
+      // Priority 2: Standard static files (Regular/Bold)
+      const standardUrl = variant === 'bold' ? getGoogleFontBoldUrl(fontName) : getGoogleFontUrl(fontName);
+      const standardResponse = await fetch(standardUrl);
+      if (standardResponse.ok) {
         console.log(`[${orderId}] Loaded static ${variant} font for "${fontName}"`);
-        return await staticResponse.arrayBuffer();
+        return await standardResponse.arrayBuffer();
       }
       
-      // Try variable font (wdth,wght)
+      // Priority 3: Variable font (wdth,wght)
       const varUrl = getGoogleFontVariableUrl(fontName);
-      console.log(`[${orderId}] Static ${variant} not found for "${fontName}", trying variable font...`);
+      console.log(`[${orderId}] Static fonts not found for "${fontName}", trying variable font...`);
       const varResponse = await fetch(varUrl);
       if (varResponse.ok) {
         console.log(`[${orderId}] Loaded variable font (wdth,wght) for "${fontName}"`);
         return await varResponse.arrayBuffer();
       }
       
-      // Try variable font (wght only)
+      // Priority 4: Variable font (wght only)
       const wghtUrl = getGoogleFontVariableWghtOnlyUrl(fontName);
       const wghtResponse = await fetch(wghtUrl);
       if (wghtResponse.ok) {
