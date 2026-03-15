@@ -3,7 +3,7 @@
  * Uses HTML Canvas to draw both the image and styled text
  * @param coverUrl - URL of the cover image
  * @param title - The title text to render
- * @param titleFont - Google Font name to use for the title (default: 'Bubblegum Sans')
+ * @param titleFont - Google Font name to use for the title (default: 'Fredoka')
  */
 export async function flattenCoverWithTitle(
   coverUrl: string,
