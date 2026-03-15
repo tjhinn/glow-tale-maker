@@ -430,7 +430,7 @@ serve(async (req) => {
       // Re-embed fonts (required after loading existing PDF)
       const pageFontUrl = getGoogleFontUrl(pageFont);
       const pageFontBoldUrl = getGoogleFontBoldUrl(pageFont);
-      const fallbackFontUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-400-normal.ttf';
+      const fallbackFontUrl = getGoogleFontUrl('Fredoka');
 
       console.log(`[${orderId}] Loading page font: ${pageFont} from ${pageFontUrl}`);
 
