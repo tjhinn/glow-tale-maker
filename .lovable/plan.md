@@ -1,35 +1,25 @@
 
 
-## Plan: Increase Left and Right Margins of Text Box in PDF Pages
+## Plan: Delete All Orders and Related Storage Files
 
-### Problem
-The text inside the white transparent box on PDF story pages sits too close to the left and right edges of the box.
+### What will be done
+Delete all 4 orders from the database and clean up their associated files from storage buckets, while preserving story templates.
 
-### Current Values
-- `textBoxX = 40` (box starts 40px from page edge)
-- `textBoxWidth = image.width - 80` (80px total horizontal margin for the box)
-- `maxTextWidth = textBoxWidth - 40` (only 20px inner padding on each side of text within the box)
+### Steps
 
-The inner padding of 20px per side is too tight.
+1. **Clean up storage buckets** — Call the existing `cleanup-orphaned-storage` edge function (which already preserves story template folders in `story-images`) to delete files from:
+   - `order-images` (all order-specific generated pages)
+   - `hero-photos` (uploaded/illustrated hero photos)
+   - `generated-pdfs` (compiled PDF files)
+   - Orphaned folders in `story-images` (only non-template folders)
 
-### Solution
-Increase the inner text padding from 40px total to 80px total (40px per side), giving the text more breathing room inside the box.
+2. **Delete all 4 orders from the database**:
+   - `0b7aa2a6-1ac6-4291-9c84-3f6a54de3fa0`
+   - `ae345469-74b5-4da4-9a00-354a1e72b65a`
+   - `b6e610c5-fa1f-48b0-9ed8-017b7a3a4293`
+   - `861ef155-5c09-4af9-8b6a-df90ab35df13`
 
-### File: `supabase/functions/compile-storybook-pdf/index.ts`
-
-**Line 169** -- Change `maxTextWidth` calculation:
-```typescript
-// Before:
-const maxTextWidth = textBoxWidth - 40;
-
-// After:
-const maxTextWidth = textBoxWidth - 80;
-```
-
-This doubles the inner padding from 20px to 40px on each side of the text within the white box, while keeping the box itself the same size.
-
-### Testing
-1. Go to Admin, then Order Management
-2. Click "Regenerate PDF" on an order
-3. Open the resulting PDF and verify the text has more space from the left and right edges of the white box
+### Safety
+- The cleanup function explicitly preserves story template folders by checking against the `stories` table
+- Orders will be deleted via `DELETE FROM orders` — no other tables are affected (no foreign key dependencies from orders)
 
