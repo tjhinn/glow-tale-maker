@@ -303,7 +303,7 @@ serve(async (req) => {
     const pageFont = story.page_font || 'Fredoka';
     
 
-    // Helper function to build Google Fonts GitHub URL
+    // Helper function to build Google Fonts GitHub URL (tries static then variable font)
     function getGoogleFontUrl(fontName: string): string {
       const folderName = fontName.toLowerCase().replace(/\s+/g, '');
       const fileName = fontName.replace(/\s+/g, '') + '-Regular.ttf';
@@ -314,6 +314,52 @@ serve(async (req) => {
       const folderName = fontName.toLowerCase().replace(/\s+/g, '');
       const fileName = fontName.replace(/\s+/g, '') + '-Bold.ttf';
       return `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/${fileName}`;
+    }
+
+    // Variable font URL (e.g. Fredoka[wdth,wght].ttf)
+    function getGoogleFontVariableUrl(fontName: string): string {
+      const folderName = fontName.toLowerCase().replace(/\s+/g, '');
+      const cleanName = fontName.replace(/\s+/g, '');
+      // Try common variable font axis patterns
+      return `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/${cleanName}%5Bwdth%2Cwght%5D.ttf`;
+    }
+
+    function getGoogleFontVariableWghtOnlyUrl(fontName: string): string {
+      const folderName = fontName.toLowerCase().replace(/\s+/g, '');
+      const cleanName = fontName.replace(/\s+/g, '');
+      return `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/${cleanName}%5Bwght%5D.ttf`;
+    }
+
+    // Fetch font with fallback chain: static -> variable (wdth,wght) -> variable (wght) -> null
+    async function fetchFontWithFallbacks(fontName: string, variant: 'regular' | 'bold'): Promise<ArrayBuffer | null> {
+      const staticUrl = variant === 'bold' ? getGoogleFontBoldUrl(fontName) : getGoogleFontUrl(fontName);
+      
+      // Try static font first
+      const staticResponse = await fetch(staticUrl);
+      if (staticResponse.ok) {
+        console.log(`[${orderId}] Loaded static ${variant} font for "${fontName}"`);
+        return await staticResponse.arrayBuffer();
+      }
+      
+      // Try variable font (wdth,wght)
+      const varUrl = getGoogleFontVariableUrl(fontName);
+      console.log(`[${orderId}] Static ${variant} not found for "${fontName}", trying variable font...`);
+      const varResponse = await fetch(varUrl);
+      if (varResponse.ok) {
+        console.log(`[${orderId}] Loaded variable font (wdth,wght) for "${fontName}"`);
+        return await varResponse.arrayBuffer();
+      }
+      
+      // Try variable font (wght only)
+      const wghtUrl = getGoogleFontVariableWghtOnlyUrl(fontName);
+      const wghtResponse = await fetch(wghtUrl);
+      if (wghtResponse.ok) {
+        console.log(`[${orderId}] Loaded variable font (wght) for "${fontName}"`);
+        return await wghtResponse.arrayBuffer();
+      }
+      
+      console.log(`[${orderId}] No font files found for "${fontName}"`);
+      return null;
     }
 
     // Verify all pages are generated and approved
