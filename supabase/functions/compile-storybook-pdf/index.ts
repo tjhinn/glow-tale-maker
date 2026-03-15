@@ -142,13 +142,19 @@ async function addStoryPage(
   const imageBuffer = await imageBlob.arrayBuffer();
   const imageBytes = new Uint8Array(imageBuffer);
   const image = await embedImage(pdfDoc, imageBytes, logPrefix);
-  const page = pdfDoc.addPage([image.width, image.height]);
+  
+  // Scale down to max width for smaller PDF size and less CPU usage
+  const scale = Math.min(1, MAX_PAGE_WIDTH / image.width);
+  const pageWidth = Math.round(image.width * scale);
+  const pageHeight = Math.round(image.height * scale);
+  
+  const page = pdfDoc.addPage([pageWidth, pageHeight]);
   
   page.drawImage(image, {
     x: 0,
     y: 0,
-    width: image.width,
-    height: image.height,
+    width: pageWidth,
+    height: pageHeight,
   });
 
   // Add text overlay with personalized word highlighting
