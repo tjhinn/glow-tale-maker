@@ -138,22 +138,24 @@ const Personalize = () => {
                 Meet Your Hero
               </h3>
               
-              <div className="space-y-2">
-                <Label htmlFor="heroName">Child's Name</Label>
-                <Input id="heroName" placeholder="Enter the hero's name" value={formData.heroName} onChange={e => handleInputChange("heroName", e.target.value)} className="border-primary/30" maxLength={15} />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="heroName">Child's Name</Label>
+                  <Input id="heroName" placeholder="Enter the hero's name" value={formData.heroName} onChange={e => handleInputChange("heroName", e.target.value)} className="border-primary/30" maxLength={15} />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select onValueChange={value => handleInputChange("gender", value)}>
-                  <SelectTrigger className="border-primary/30">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="boy">Boy</SelectItem>
-                    <SelectItem value="girl">Girl</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select onValueChange={value => handleInputChange("gender", value)}>
+                    <SelectTrigger className="border-primary/30">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="boy">Boy</SelectItem>
+                      <SelectItem value="girl">Girl</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
