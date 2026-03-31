@@ -9,6 +9,17 @@
 
 ---
 
+## 🎯 Recent Updates (2026-03-31)
+
+**Update Personalization Form Inputs - COMPLETED:**
+- ✅ Removed Favorite Food field from form state, UI, and localStorage data
+- ✅ Removed Favorite Food display from admin OrderCard
+- ✅ Replaced Pet Type text input with dropdown (Dog, Cat, Rabbit, Bear, Bird, Hamster)
+- ✅ Replaced Favorite Color text input with pastel color dropdown (Light Pink, Lavender, Mint, Peach, Sky Blue, Soft Yellow, Light Coral, Lilac)
+- ✅ Added pastel color hex mappings to colorUtils.ts
+
+---
+
 ## 🎯 Recent Updates (2026-03-15)
 
 **Fix CPU Time Exceeded in PDF Compilation - COMPLETED:**
