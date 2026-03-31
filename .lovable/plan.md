@@ -1,25 +1,23 @@
 
 
-## Plan: Delete All Orders and Related Storage Files
+## Plan: Update Personalization Form Inputs
 
-### What will be done
-Delete all 4 orders from the database and clean up their associated files from storage buckets, while preserving story templates.
+### Changes
 
-### Steps
+#### 1. Remove Favorite Food field
+- **`src/pages/Personalize.tsx`**: Remove `favoriteFood` from state, the input field, and the data saved to localStorage
+- **`src/pages/admin/OrderCard.tsx`**: Remove the favoriteFood display block
+- Keep `{favoriteFood}` placeholder handling in all other files (edge functions, Preview, Checkout, etc.) — they already default to empty string via `|| ''`, so existing stories using the placeholder will just render blank. No breakage.
 
-1. **Clean up storage buckets** — Call the existing `cleanup-orphaned-storage` edge function (which already preserves story template folders in `story-images`) to delete files from:
-   - `order-images` (all order-specific generated pages)
-   - `hero-photos` (uploaded/illustrated hero photos)
-   - `generated-pdfs` (compiled PDF files)
-   - Orphaned folders in `story-images` (only non-template folders)
+#### 2. Replace Pet Type text input with dropdown
+- **`src/pages/Personalize.tsx`**: Replace the `<Input>` for petType with a `<Select>` dropdown containing: Dog, Cat, Rabbit, Bear, Bird, Hamster
 
-2. **Delete all 4 orders from the database**:
-   - `0b7aa2a6-1ac6-4291-9c84-3f6a54de3fa0`
-   - `ae345469-74b5-4da4-9a00-354a1e72b65a`
-   - `b6e610c5-fa1f-48b0-9ed8-017b7a3a4293`
-   - `861ef155-5c09-4af9-8b6a-df90ab35df13`
+#### 3. Replace Favorite Color text input with pastel color dropdown
+- **`src/pages/Personalize.tsx`**: Replace the `<Input>` for favoriteColor with a `<Select>` dropdown showing pastel color options (e.g., Light Pink, Lavender, Mint, Peach, Sky Blue, Soft Yellow, Light Coral, Lilac)
+- **`src/lib/colorUtils.ts`**: Ensure these pastel names map to appropriate hex values (add any missing entries)
 
-### Safety
-- The cleanup function explicitly preserves story template folders by checking against the `stories` table
-- Orders will be deleted via `DELETE FROM orders` — no other tables are affected (no foreign key dependencies from orders)
+### Files modified
+- `src/pages/Personalize.tsx` — all 3 changes
+- `src/pages/admin/OrderCard.tsx` — remove food display
+- `src/lib/colorUtils.ts` — add pastel color mappings if missing
 
