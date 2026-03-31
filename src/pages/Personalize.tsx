@@ -196,7 +196,7 @@ const Personalize = () => {
                 Story Magic
               </h3>
               
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">Hometown</Label>
                   <Input id="city" placeholder="Where does your hero live?" value={formData.city} onChange={e => handleInputChange("city", e.target.value)} className="border-primary/30" maxLength={15} />
