@@ -36,11 +36,11 @@ const COLOR_MAP: Record<string, string> = {
   sky: '#81D4FA',
   
   // Pastel colors (dropdown options)
-  'light pink': '#FFB6C1',
-  'sky blue': '#87CEEB',
-  'soft yellow': '#FFFACD',
-  'light coral': '#F08080',
-  lilac: '#C8A2C8',
+  'light pink': '#F48FB1',
+  'sky blue': '#64B5F6',
+  'soft yellow': '#FFF176',
+  'light coral': '#E57373',
+  lilac: '#CE93D8',
 
   // Basic
   white: '#FFFFFF',
