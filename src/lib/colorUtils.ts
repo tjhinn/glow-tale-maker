@@ -35,6 +35,13 @@ const COLOR_MAP: Record<string, string> = {
   salmon: '#FF8A80',
   sky: '#81D4FA',
   
+  // Pastel colors (dropdown options)
+  'light pink': '#FFB6C1',
+  'sky blue': '#87CEEB',
+  'soft yellow': '#FFFACD',
+  'light coral': '#F08080',
+  lilac: '#C8A2C8',
+
   // Basic
   white: '#FFFFFF',
   black: '#212121',

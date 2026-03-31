@@ -140,12 +140,6 @@ export function OrderCard({ order, children }: OrderCardProps) {
                 <span className="font-medium">{personalization.favoriteColor}</span>
               </div>
             )}
-            {personalization.favoriteFood && (
-              <div>
-                <span className="text-muted-foreground">Food:</span>{" "}
-                <span className="font-medium">{personalization.favoriteFood}</span>
-              </div>
-            )}
           </div>
         </div>
 
