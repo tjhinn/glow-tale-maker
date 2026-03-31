@@ -1,10 +1,10 @@
 
 
-## Plan: Make Story Magic Section a 2-Column Grid
+## Plan: Make "Meet Your Hero" Section a 2-Column Grid
 
-The Story Magic section stacks Hometown and Favorite Color vertically (`space-y-4`), making it 4 lines tall. The Magical Companion section uses a `grid grid-cols-1 md:grid-cols-2` layout, making it 2 lines.
+Same fix as the other sections — wrap Child's Name and Gender inputs in a `grid grid-cols-1 md:grid-cols-2 gap-4` layout so they sit side-by-side on desktop.
 
 ### Change
 
-**`src/pages/Personalize.tsx`** (lines 199-223): Replace the `space-y-4` wrapper div with the same `grid grid-cols-1 md:grid-cols-2 gap-4` layout used by Magical Companion, placing Hometown and Favorite Color side by side on desktop.
+**`src/pages/Personalize.tsx`** (lines 141-157): Replace the two stacked `space-y-2` divs with a single `grid grid-cols-1 md:grid-cols-2 gap-4` wrapper, placing Child's Name and Gender side by side.
 
