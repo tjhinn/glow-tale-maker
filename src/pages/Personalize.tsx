@@ -211,14 +211,19 @@ const Personalize = () => {
                       <SelectValue placeholder="Select a color" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Light Pink"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#F48FB1' }} />Light Pink</div></SelectItem>
-                      <SelectItem value="Lavender"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#B39DDB' }} />Lavender</div></SelectItem>
-                      <SelectItem value="Mint"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#80CBC4' }} />Mint</div></SelectItem>
-                      <SelectItem value="Peach"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#FFAB91' }} />Peach</div></SelectItem>
-                      <SelectItem value="Sky Blue"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#64B5F6' }} />Sky Blue</div></SelectItem>
-                      <SelectItem value="Soft Yellow"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#FFF176' }} />Soft Yellow</div></SelectItem>
+                      <SelectItem value="Bold Red"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#C62828' }} />Bold Red</div></SelectItem>
                       <SelectItem value="Light Coral"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#E57373' }} />Light Coral</div></SelectItem>
+                      <SelectItem value="Light Pink"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#F48FB1' }} />Light Pink</div></SelectItem>
+                      <SelectItem value="Peach"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#FFAB91' }} />Peach</div></SelectItem>
+                      <SelectItem value="Dark Orange"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#E65100' }} />Dark Orange</div></SelectItem>
+                      <SelectItem value="Light Green"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#81C784' }} />Light Green</div></SelectItem>
+                      <SelectItem value="Dark Green"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#2E7D32' }} />Dark Green</div></SelectItem>
+                      <SelectItem value="Mint"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#80CBC4' }} />Mint</div></SelectItem>
+                      <SelectItem value="Sky Blue"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#64B5F6' }} />Sky Blue</div></SelectItem>
+                      <SelectItem value="Dark Blue"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#1565C0' }} />Dark Blue</div></SelectItem>
+                      <SelectItem value="Lavender"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#B39DDB' }} />Lavender</div></SelectItem>
                       <SelectItem value="Lilac"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#CE93D8' }} />Lilac</div></SelectItem>
+                      <SelectItem value="Bold Purple"><div className="flex items-center gap-2"><div className="w-4 h-4 rounded-sm border border-gray-200" style={{ backgroundColor: '#7B1FA2' }} />Bold Purple</div></SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
