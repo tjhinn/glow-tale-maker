@@ -97,7 +97,6 @@ const Personalize = () => {
         petType: formData.petType,
         petName: formData.petName,
         favoriteColor: formData.favoriteColor,
-        favoriteFood: formData.favoriteFood,
         city: formData.city,
         heroPhotoUrl: originalPhotoUrl
       };
