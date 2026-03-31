@@ -167,7 +167,19 @@ const Personalize = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="petType">Pet Type</Label>
-                  <Input id="petType" placeholder="e.g., cat, dog, rabbit" value={formData.petType} onChange={e => handleInputChange("petType", e.target.value)} className="border-accent/30" maxLength={15} />
+                  <Select onValueChange={value => handleInputChange("petType", value)} value={formData.petType}>
+                    <SelectTrigger className="border-accent/30">
+                      <SelectValue placeholder="Select pet type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Dog">Dog</SelectItem>
+                      <SelectItem value="Cat">Cat</SelectItem>
+                      <SelectItem value="Rabbit">Rabbit</SelectItem>
+                      <SelectItem value="Bear">Bear</SelectItem>
+                      <SelectItem value="Bird">Bird</SelectItem>
+                      <SelectItem value="Hamster">Hamster</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
