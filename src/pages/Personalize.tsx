@@ -22,7 +22,6 @@ const Personalize = () => {
     petName: "",
     city: "",
     favoriteColor: "",
-    favoriteFood: "",
     photo: null as File | null
   });
   const [isLoading, setIsLoading] = useState(false);
