@@ -202,16 +202,23 @@ const Personalize = () => {
                   <Input id="city" placeholder="Where does your hero live?" value={formData.city} onChange={e => handleInputChange("city", e.target.value)} className="border-primary/30" maxLength={15} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="favoriteColor">Favorite Color</Label>
-                    <Input id="favoriteColor" placeholder="e.g., blue, pink" value={formData.favoriteColor} onChange={e => handleInputChange("favoriteColor", e.target.value)} className="border-primary/30" maxLength={15} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="favoriteFood">Favorite Food</Label>
-                    <Input id="favoriteFood" placeholder="e.g., pizza, cookies" value={formData.favoriteFood} onChange={e => handleInputChange("favoriteFood", e.target.value)} className="border-primary/30" maxLength={15} />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="favoriteColor">Favorite Color</Label>
+                  <Select onValueChange={value => handleInputChange("favoriteColor", value)} value={formData.favoriteColor}>
+                    <SelectTrigger className="border-primary/30">
+                      <SelectValue placeholder="Select a color" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Light Pink">Light Pink</SelectItem>
+                      <SelectItem value="Lavender">Lavender</SelectItem>
+                      <SelectItem value="Mint">Mint</SelectItem>
+                      <SelectItem value="Peach">Peach</SelectItem>
+                      <SelectItem value="Sky Blue">Sky Blue</SelectItem>
+                      <SelectItem value="Soft Yellow">Soft Yellow</SelectItem>
+                      <SelectItem value="Light Coral">Light Coral</SelectItem>
+                      <SelectItem value="Lilac">Lilac</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
