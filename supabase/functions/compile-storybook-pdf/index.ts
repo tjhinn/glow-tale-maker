@@ -354,7 +354,18 @@ serve(async (req) => {
         return await staticWeightResponse.arrayBuffer();
       }
 
-      // Priority 2: Standard static files (Regular/Bold)
+      // Priority 2: Fontsource CDN weight-specific TTFs
+      const fontsourceWeight = variant === 'bold' ? '600' : '500';
+      const fontsourceName = fontName.toLowerCase().replace(/\s+/g, '-');
+      const fontsourceUrl = `https://cdn.jsdelivr.net/fontsource/fonts/${fontsourceName}@latest/latin-${fontsourceWeight}-normal.ttf`;
+      console.log(`[${orderId}] Trying Fontsource CDN ${fontsourceWeight} for "${fontName}"...`);
+      const fontsourceResponse = await fetch(fontsourceUrl);
+      if (fontsourceResponse.ok) {
+        console.log(`[${orderId}] Loaded Fontsource ${fontsourceWeight} font for "${fontName}"`);
+        return await fontsourceResponse.arrayBuffer();
+      }
+
+      // Priority 3: Standard static files (Regular/Bold)
       const standardUrl = variant === 'bold' ? getGoogleFontBoldUrl(fontName) : getGoogleFontUrl(fontName);
       const standardResponse = await fetch(standardUrl);
       if (standardResponse.ok) {
