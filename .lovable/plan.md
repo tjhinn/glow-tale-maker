@@ -1,38 +1,60 @@
+I'm using knowledge
 
+## Plan: Fix Remaining PDF Page Spacing Errors
 
-## Plan: Fix PDF Font Crash (`Cannot read properties of undefined reading 'tag'`)
+### What’s actually causing it
+The current fix in `supabase/functions/compile-storybook-pdf/index.ts` inserts `U+200C` between `fi/fl/ff/...` via `breakLigatures()`. In Fredoka with `pdf-lib/fontkit`, that character is not behaving like a harmless zero-width separator, so words render with visible gaps like `f ix`, `puf fed`, `f lowers`, and `f lutt ered`.
 
-### Problem
-The ligature-stripped fonts uploaded to storage (`fredoka-500-noliga.ttf`, `fredoka-600-noliga.ttf`) have corrupted OpenType GSUB tables. When `fontkit` tries to do text layout via `widthOfTextAtSize`, it crashes because `selectScript` finds an undefined entry in the broken GSUB table.
+The cover does not have this problem because `src/lib/flattenCoverWithTitle.ts` already draws text character-by-character on canvas instead of sending whole word runs through the font layout engine.
 
-The fonts load and embed successfully (36KB each), but crash at text layout time — which is why the error occurs on page 1 after the cover renders fine (cover uses Canvas API, not pdf-lib text layout).
+### Implementation
+1. **Remove the current ligature workaround**
+   - Delete `breakLigatures()`.
+   - Stop modifying page text with zero-width characters.
+   - Keep only whitespace cleanup.
 
-### Root Cause
-Stripping the `liga` feature from the font likely left dangling references in the GSUB table structure, causing fontkit to hit `undefined.tag`.
+2. **Switch page text rendering to character-by-character**
+   - In `compile-storybook-pdf`, add helpers to:
+     - measure text by summing single-character widths
+     - draw text one character at a time
+   - Use these helpers for both normal text and highlighted personalized words.
 
-### Solution
-Remove the broken noliga font files (Priority 0) from the fallback chain entirely. Instead, prevent ligature issues at the **text level** by inserting a Unicode Zero-Width Non-Joiner (U+200C) between character pairs that form ligatures (`fi`, `fl`, `ff`, `ffi`, `ffl`). This tells the font engine not to merge those characters, achieving the same result as stripping ligatures from the font — without corrupting font tables.
+3. **Make line measurement match rendering exactly**
+   - Replace `font.widthOfTextAtSize(segment.text + ' ', ...)` with:
+     - word width measured from characters
+     - space width handled separately
+   - Only add spaces between words, not after the last word on a line.
+   - This keeps centering accurate and removes hidden spacing drift.
 
-### Changes
+4. **Keep the font-weight fix**
+   - Leave the working Fontsource 500/600 fallback chain in place.
+   - No new font uploads or storage work are needed.
 
-**`supabase/functions/compile-storybook-pdf/index.ts`**:
+5. **Fix the project source of truth**
+   - Update `docs/tasks.md` so it no longer says the ligature-free uploaded fonts are the finished solution.
+   - Replace that note with the final per-character rendering fix once implemented.
 
-1. **Remove Priority 0** (lines ~347-360): Delete the entire noliga font block from `fetchFontWithFallbacks`. Fontsource CDN (Priority 2) becomes the effective source for Fredoka.
+### Technical details
+- Drawing characters individually prevents ligature substitution without corrupting font files or injecting control characters.
+- This follows the same successful rendering pattern already used for cover typography.
+- A small width cache can be added for repeated characters to keep PDF generation efficient.
 
-2. **Add a text sanitizer function** that breaks ligature sequences:
-```typescript
-function breakLigatures(text: string): string {
-  return text
-    .replace(/ffi/g, 'f\u200Cfi')
-    .replace(/ffl/g, 'f\u200Cfl')
-    .replace(/ff/g, 'f\u200Cf')
-    .replace(/fi/g, 'f\u200Ci')
-    .replace(/fl/g, 'f\u200Cl');
-}
-```
+### QA after implementation
+Regenerate the same storybook and verify these render cleanly:
+- `fix`
+- `puffed`
+- `floating`
+- `flowers`
+- `butterflies`
+- `finally`
+- `fluffy`
+- `followed`
 
-3. **Apply `breakLigatures`** to text before `widthOfTextAtSize` (line ~206) and `drawText` calls in `addStoryPage`.
+Also confirm:
+- personalized words still stay bold/colored
+- lines remain properly centered
+- no PDF compilation crashes return
 
-### Files modified
-- `supabase/functions/compile-storybook-pdf/index.ts` — remove noliga font priority, add ligature-breaking text sanitizer
-
+### Files to modify
+- `supabase/functions/compile-storybook-pdf/index.ts`
+- `docs/tasks.md`
