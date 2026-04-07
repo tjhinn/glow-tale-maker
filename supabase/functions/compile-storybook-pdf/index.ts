@@ -373,7 +373,7 @@ serve(async (req) => {
         return await standardResponse.arrayBuffer();
       }
       
-      // Priority 3: Variable font (wdth,wght)
+      // Priority 4: Variable font (wdth,wght)
       const varUrl = getGoogleFontVariableUrl(fontName);
       console.log(`[${orderId}] Static fonts not found for "${fontName}", trying variable font...`);
       const varResponse = await fetch(varUrl);
@@ -382,7 +382,7 @@ serve(async (req) => {
         return await varResponse.arrayBuffer();
       }
       
-      // Priority 4: Variable font (wght only)
+      // Priority 5: Variable font (wght only)
       const wghtUrl = getGoogleFontVariableWghtOnlyUrl(fontName);
       const wghtResponse = await fetch(wghtUrl);
       if (wghtResponse.ok) {
