@@ -76,19 +76,52 @@ function personalizeText(template: string, personalization: any): string {
 
 // Convert color name to RGB
 function colorNameToRgb(colorName: string): { r: number; g: number; b: number } {
+  const name = (colorName || '').toLowerCase().trim();
+
+  // Full 13-color palette matching the app's dropdown
   const colors: Record<string, { r: number; g: number; b: number }> = {
-    red: { r: 0.9, g: 0.2, b: 0.2 },
-    blue: { r: 0.2, g: 0.4, b: 0.9 },
-    green: { r: 0.2, g: 0.7, b: 0.3 },
-    yellow: { r: 0.95, g: 0.8, b: 0.1 },
-    orange: { r: 1, g: 0.55, b: 0 },
-    purple: { r: 0.6, g: 0.2, b: 0.8 },
-    pink: { r: 1, g: 0.4, b: 0.7 },
-    brown: { r: 0.6, g: 0.4, b: 0.2 },
-    black: { r: 0.1, g: 0.1, b: 0.1 },
-    white: { r: 0.95, g: 0.95, b: 0.95 },
+    'bold red':    { r: 0.776, g: 0.157, b: 0.157 },
+    'light coral': { r: 0.898, g: 0.451, b: 0.451 },
+    'light pink':  { r: 0.957, g: 0.561, b: 0.694 },
+    'peach':       { r: 1.0,   g: 0.671, b: 0.569 },
+    'dark orange': { r: 0.902, g: 0.318, b: 0.0   },
+    'light green': { r: 0.506, g: 0.780, b: 0.518 },
+    'dark green':  { r: 0.180, g: 0.490, b: 0.196 },
+    'mint':        { r: 0.502, g: 0.796, b: 0.769 },
+    'sky blue':    { r: 0.392, g: 0.710, b: 0.965 },
+    'dark blue':   { r: 0.082, g: 0.396, b: 0.753 },
+    'lavender':    { r: 0.702, g: 0.616, b: 0.859 },
+    'lilac':       { r: 0.808, g: 0.576, b: 0.847 },
+    'bold purple': { r: 0.482, g: 0.122, b: 0.635 },
+    // Legacy basic names for backwards compatibility
+    'red':    { r: 0.776, g: 0.157, b: 0.157 },
+    'blue':   { r: 0.082, g: 0.396, b: 0.753 },
+    'green':  { r: 0.180, g: 0.490, b: 0.196 },
+    'yellow': { r: 0.95,  g: 0.8,   b: 0.1   },
+    'orange': { r: 0.902, g: 0.318, b: 0.0   },
+    'purple': { r: 0.482, g: 0.122, b: 0.635 },
+    'pink':   { r: 0.957, g: 0.561, b: 0.694 },
+    'brown':  { r: 0.6,   g: 0.4,   b: 0.2   },
+    'black':  { r: 0.1,   g: 0.1,   b: 0.1   },
+    'white':  { r: 0.95,  g: 0.95,  b: 0.95  },
   };
-  return colors[colorName.toLowerCase()] || { r: 0.2, g: 0.2, b: 0.8 };
+
+  if (colors[name]) return colors[name];
+
+  // Hex fallback: parse #RRGGBB or #RGB
+  if (name.startsWith('#')) {
+    try {
+      let hex = name.slice(1);
+      if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      const r = parseInt(hex.substring(0, 2), 16) / 255;
+      const g = parseInt(hex.substring(2, 4), 16) / 255;
+      const b = parseInt(hex.substring(4, 6), 16) / 255;
+      if (!isNaN(r) && !isNaN(g) && !isNaN(b)) return { r, g, b };
+    } catch { /* fall through to default */ }
+  }
+
+  // Default: dark blue
+  return { r: 0.082, g: 0.396, b: 0.753 };
 }
 
 // Parse text and identify personalized words
