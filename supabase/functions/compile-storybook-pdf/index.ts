@@ -344,6 +344,21 @@ serve(async (req) => {
       const folderName = fontName.toLowerCase().replace(/\s+/g, '');
       const cleanName = fontName.replace(/\s+/g, '');
 
+      // Priority 0: Ligature-free fonts hosted in Supabase storage
+      // pdf-lib cannot handle OpenType ligatures (fi, fl, ff, ffi, ffl), causing
+      // words like "finally", "fluffy", "puffed" to render with broken spacing.
+      // These fonts have the 'liga' feature stripped out.
+      const noLigaWeight = variant === 'bold' ? '600' : '500';
+      const noLigaFontName = fontName.toLowerCase().replace(/\s+/g, '-');
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+      const noLigaUrl = `${supabaseUrl}/storage/v1/object/public/story-images/fonts/${noLigaFontName}-${noLigaWeight}-noliga.ttf`;
+      console.log(`[${orderId}] Trying ligature-free font for "${fontName}" (${noLigaWeight})...`);
+      const noLigaResponse = await fetch(noLigaUrl);
+      if (noLigaResponse.ok) {
+        console.log(`[${orderId}] Loaded ligature-free ${noLigaWeight} font for "${fontName}"`);
+        return await noLigaResponse.arrayBuffer();
+      }
+
       // Priority 1: Static weight-specific files (Medium/SemiBold for proper visual weight)
       const weightSuffix = variant === 'bold' ? 'SemiBold' : 'Medium';
       const staticWeightUrl = `https://raw.githubusercontent.com/google/fonts/main/ofl/${folderName}/static/${cleanName}-${weightSuffix}.ttf`;
