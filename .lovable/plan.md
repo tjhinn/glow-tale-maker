@@ -1,39 +1,38 @@
 
 
-## Plan: Fix Thin Font Weight in PDF Page Text
+## Plan: Fix PDF Font Crash (`Cannot read properties of undefined reading 'tag'`)
 
 ### Problem
-Fredoka has no static weight files on the Google Fonts GitHub repo -- only a variable font `Fredoka[wdth,wght].ttf`. When pdf-lib embeds this variable font, it renders at the default (lightest) weight (~300), making text appear thin. The cover text looks fine because it uses the Canvas API which handles variable font weights natively.
+The ligature-stripped fonts uploaded to storage (`fredoka-500-noliga.ttf`, `fredoka-600-noliga.ttf`) have corrupted OpenType GSUB tables. When `fontkit` tries to do text layout via `widthOfTextAtSize`, it crashes because `selectScript` finds an undefined entry in the broken GSUB table.
+
+The fonts load and embed successfully (36KB each), but crash at text layout time — which is why the error occurs on page 1 after the cover renders fine (cover uses Canvas API, not pdf-lib text layout).
 
 ### Root Cause
-In `compile-storybook-pdf/index.ts`, the `fetchFontWithFallbacks` function tries:
-1. Static `static/Fredoka-Medium.ttf` -- **404** (no static folder exists)
-2. Static `Fredoka-Regular.ttf` / `Fredoka-Bold.ttf` -- **404**
-3. Variable `Fredoka[wdth,wght].ttf` -- **found**, but renders at minimum weight
+Stripping the `liga` feature from the font likely left dangling references in the GSUB table structure, causing fontkit to hit `undefined.tag`.
 
 ### Solution
-Add a new priority in the fallback chain: try **Fontsource CDN** static weight TTFs before falling through to the variable font. Fontsource provides individual weight files:
-- Regular (Medium 500): `https://cdn.jsdelivr.net/fontsource/fonts/fredoka@latest/latin-500-normal.ttf`
-- Bold (SemiBold 600): `https://cdn.jsdelivr.net/fontsource/fonts/fredoka@latest/latin-600-normal.ttf`
+Remove the broken noliga font files (Priority 0) from the fallback chain entirely. Instead, prevent ligature issues at the **text level** by inserting a Unicode Zero-Width Non-Joiner (U+200C) between character pairs that form ligatures (`fi`, `fl`, `ff`, `ffi`, `ffl`). This tells the font engine not to merge those characters, achieving the same result as stripping ligatures from the font — without corrupting font tables.
 
-This approach is **generic** -- it works for any Google Font, not just Fredoka. The fallback chain becomes:
+### Changes
 
-1. Google Fonts GitHub static files (e.g. `static/FontName-Medium.ttf`)
-2. **Fontsource CDN weight-specific TTFs** (new)
-3. Google Fonts GitHub standard static files (`FontName-Regular.ttf`)
-4. Variable font (last resort)
+**`supabase/functions/compile-storybook-pdf/index.ts`**:
 
-### Change
+1. **Remove Priority 0** (lines ~347-360): Delete the entire noliga font block from `fetchFontWithFallbacks`. Fontsource CDN (Priority 2) becomes the effective source for Fredoka.
 
-**`supabase/functions/compile-storybook-pdf/index.ts`** -- In the `fetchFontWithFallbacks` function (~line 343), insert a new priority step between the static GitHub attempt and the standard Regular/Bold attempt. This adds Fontsource CDN URLs:
-
+2. **Add a text sanitizer function** that breaks ligature sequences:
+```typescript
+function breakLigatures(text: string): string {
+  return text
+    .replace(/ffi/g, 'f\u200Cfi')
+    .replace(/ffl/g, 'f\u200Cfl')
+    .replace(/ff/g, 'f\u200Cf')
+    .replace(/fi/g, 'f\u200Ci')
+    .replace(/fl/g, 'f\u200Cl');
+}
 ```
-// New priority: Fontsource CDN static weight files
-const weight = variant === 'bold' ? '600' : '500';
-const fontsourceName = fontName.toLowerCase().replace(/\s+/g, '-');
-const fontsourceUrl = `https://cdn.jsdelivr.net/fontsource/fonts/${fontsourceName}@latest/latin-${weight}-normal.ttf`;
-```
+
+3. **Apply `breakLigatures`** to text before `widthOfTextAtSize` (line ~206) and `drawText` calls in `addStoryPage`.
 
 ### Files modified
-- `supabase/functions/compile-storybook-pdf/index.ts` -- add Fontsource CDN fallback in `fetchFontWithFallbacks`
+- `supabase/functions/compile-storybook-pdf/index.ts` — remove noliga font priority, add ligature-breaking text sanitizer
 
