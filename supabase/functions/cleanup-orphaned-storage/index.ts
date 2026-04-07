@@ -57,10 +57,36 @@ Deno.serve(async (req) => {
     }
 
     // Parse request body
-    const { dryRun = false } = await req.json().catch(() => ({}));
+    const { dryRun = false, targetFiles = null } = await req.json().catch(() => ({}));
 
     // Create service role client for storage operations
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+    // If targetFiles is provided, delete only those specific files and return
+    if (targetFiles && Array.isArray(targetFiles) && targetFiles.length > 0) {
+      const results: Record<string, { deleted: string[]; errors: string[] }> = {};
+      
+      for (const { bucket, paths } of targetFiles) {
+        if (!bucket || !Array.isArray(paths)) continue;
+        results[bucket] = { deleted: [], errors: [] };
+        
+        if (!dryRun) {
+          const { error: deleteError } = await adminClient.storage.from(bucket).remove(paths);
+          if (deleteError) {
+            results[bucket].errors.push(deleteError.message);
+          } else {
+            results[bucket].deleted.push(...paths);
+          }
+        } else {
+          results[bucket].deleted.push(...paths);
+        }
+      }
+      
+      return new Response(JSON.stringify({ dryRun, targetedCleanup: results }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Get all story IDs (these folders should be preserved in story-images)
     const { data: stories, error: storiesError } = await adminClient
