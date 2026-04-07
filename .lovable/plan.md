@@ -1,60 +1,35 @@
-I'm using knowledge
 
-## Plan: Fix Remaining PDF Page Spacing Errors
 
-### What’s actually causing it
-The current fix in `supabase/functions/compile-storybook-pdf/index.ts` inserts `U+200C` between `fi/fl/ff/...` via `breakLigatures()`. In Fredoka with `pdf-lib/fontkit`, that character is not behaving like a harmless zero-width separator, so words render with visible gaps like `f ix`, `puf fed`, `f lowers`, and `f lutt ered`.
+## Plan: Fix Personalized Text Color in PDF
 
-The cover does not have this problem because `src/lib/flattenCoverWithTitle.ts` already draws text character-by-character on canvas instead of sending whole word runs through the font layout engine.
+### Problem
+The `colorNameToRgb` function in `compile-storybook-pdf/index.ts` (line 78-92) only maps 10 basic color names (red, blue, green, etc.) and defaults to dark blue `(0.2, 0.2, 0.8)` for anything unrecognized. The app's 13-color palette uses compound names like "Light Pink", "Bold Purple", "Dark Orange" that are not in this map, so every personalized word renders in dark blue regardless of the user's choice.
 
-### Implementation
-1. **Remove the current ligature workaround**
-   - Delete `breakLigatures()`.
-   - Stop modifying page text with zero-width characters.
-   - Keep only whitespace cleanup.
+### Solution
+Replace the `colorNameToRgb` function with a complete map matching all 13 dropdown options plus a hex-parsing fallback for any hex value that might be passed directly.
 
-2. **Switch page text rendering to character-by-character**
-   - In `compile-storybook-pdf`, add helpers to:
-     - measure text by summing single-character widths
-     - draw text one character at a time
-   - Use these helpers for both normal text and highlighted personalized words.
+### Changes
 
-3. **Make line measurement match rendering exactly**
-   - Replace `font.widthOfTextAtSize(segment.text + ' ', ...)` with:
-     - word width measured from characters
-     - space width handled separately
-   - Only add spaces between words, not after the last word on a line.
-   - This keeps centering accurate and removes hidden spacing drift.
+**`supabase/functions/compile-storybook-pdf/index.ts`** -- replace `colorNameToRgb` with:
 
-4. **Keep the font-weight fix**
-   - Leave the working Fontsource 500/600 fallback chain in place.
-   - No new font uploads or storage work are needed.
+| Color Name | Hex | RGB (0-1) |
+|---|---|---|
+| bold red | #C62828 | (0.776, 0.157, 0.157) |
+| light coral | #E57373 | (0.898, 0.451, 0.451) |
+| light pink | #F48FB1 | (0.957, 0.561, 0.694) |
+| peach | #FFAB91 | (1.0, 0.671, 0.569) |
+| dark orange | #E65100 | (0.902, 0.318, 0.0) |
+| light green | #81C784 | (0.506, 0.780, 0.518) |
+| dark green | #2E7D32 | (0.180, 0.490, 0.196) |
+| mint | #80CBC4 | (0.502, 0.796, 0.769) |
+| sky blue | #64B5F6 | (0.392, 0.710, 0.965) |
+| dark blue | #1565C0 | (0.082, 0.396, 0.753) |
+| lavender | #B39DDB | (0.702, 0.616, 0.859) |
+| lilac | #CE93D8 | (0.808, 0.576, 0.847) |
+| bold purple | #7B1FA2 | (0.482, 0.122, 0.635) |
 
-5. **Fix the project source of truth**
-   - Update `docs/tasks.md` so it no longer says the ligature-free uploaded fonts are the finished solution.
-   - Replace that note with the final per-character rendering fix once implemented.
+Add a hex fallback: if the value starts with `#`, parse it directly to RGB. Keep the dark blue default only as a last resort.
 
-### Technical details
-- Drawing characters individually prevents ligature substitution without corrupting font files or injecting control characters.
-- This follows the same successful rendering pattern already used for cover typography.
-- A small width cache can be added for repeated characters to keep PDF generation efficient.
+### Files modified
+- `supabase/functions/compile-storybook-pdf/index.ts` -- replace `colorNameToRgb` with full 13-color palette + hex parser
 
-### QA after implementation
-Regenerate the same storybook and verify these render cleanly:
-- `fix`
-- `puffed`
-- `floating`
-- `flowers`
-- `butterflies`
-- `finally`
-- `fluffy`
-- `followed`
-
-Also confirm:
-- personalized words still stay bold/colored
-- lines remain properly centered
-- no PDF compilation crashes return
-
-### Files to modify
-- `supabase/functions/compile-storybook-pdf/index.ts`
-- `docs/tasks.md`
