@@ -15,14 +15,31 @@ const TOTAL_BATCHES = 6;
 // Max image dimension for PDF pages (reduces CPU and file size)
 const MAX_PAGE_WIDTH = 1200;
 
-// Break ligature sequences to prevent pdf-lib spacing issues
-function breakLigatures(text: string): string {
-  return text
-    .replace(/ffi/g, 'f\u200Cfi')
-    .replace(/ffl/g, 'f\u200Cfl')
-    .replace(/ff/g, 'f\u200Cf')
-    .replace(/fi/g, 'f\u200Ci')
-    .replace(/fl/g, 'f\u200Cl');
+// Measure text width character-by-character to avoid ligature substitution
+function measureTextWidth(text: string, font: any, fontSize: number): number {
+  let width = 0;
+  for (const char of text) {
+    width += font.widthOfTextAtSize(char, fontSize);
+  }
+  return width;
+}
+
+// Draw text character-by-character to prevent ligature merging
+function drawTextCharByChar(
+  page: any,
+  text: string,
+  x: number,
+  y: number,
+  font: any,
+  fontSize: number,
+  color: any
+) {
+  let cursorX = x;
+  for (const char of text) {
+    page.drawText(char, { x: cursorX, y, size: fontSize, font, color });
+    cursorX += font.widthOfTextAtSize(char, fontSize);
+  }
+  return cursorX;
 }
 
 // Text wrapping helper function for PDF text
