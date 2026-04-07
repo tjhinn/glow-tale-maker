@@ -15,14 +15,31 @@ const TOTAL_BATCHES = 6;
 // Max image dimension for PDF pages (reduces CPU and file size)
 const MAX_PAGE_WIDTH = 1200;
 
-// Break ligature sequences to prevent pdf-lib spacing issues
-function breakLigatures(text: string): string {
-  return text
-    .replace(/ffi/g, 'f\u200Cfi')
-    .replace(/ffl/g, 'f\u200Cfl')
-    .replace(/ff/g, 'f\u200Cf')
-    .replace(/fi/g, 'f\u200Ci')
-    .replace(/fl/g, 'f\u200Cl');
+// Measure text width character-by-character to avoid ligature substitution
+function measureTextWidth(text: string, font: any, fontSize: number): number {
+  let width = 0;
+  for (const char of text) {
+    width += font.widthOfTextAtSize(char, fontSize);
+  }
+  return width;
+}
+
+// Draw text character-by-character to prevent ligature merging
+function drawTextCharByChar(
+  page: any,
+  text: string,
+  x: number,
+  y: number,
+  font: any,
+  fontSize: number,
+  color: any
+) {
+  let cursorX = x;
+  for (const char of text) {
+    page.drawText(char, { x: cursorX, y, size: fontSize, font, color });
+    cursorX += font.widthOfTextAtSize(char, fontSize);
+  }
+  return cursorX;
 }
 
 // Text wrapping helper function for PDF text
@@ -169,12 +186,12 @@ async function addStoryPage(
 
   // Add text overlay with personalized word highlighting
    const rawText = pageData.text || '';
-  const pageText = breakLigatures(rawText
+  const pageText = rawText
     .replace(/\r\n/g, ' ')
     .replace(/\n/g, ' ')
     .replace(/\r/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim());
+    .trim();
   
   if (pageText) {
     const textBoxHeight = Math.round(196 * scale);
@@ -201,7 +218,9 @@ async function addStoryPage(
     const segments = parseTextWithPersonalization(pageText, personalization);
     const favoriteColor = colorNameToRgb(personalization.favoriteColor || 'blue');
     
-    // PASS 1: Build lines array with segments and widths
+    // PASS 1: Build lines array with segments and widths (char-by-char measurement)
+    const spaceWidth = measureTextWidth(' ', regularFont, baseFontSize);
+    
     interface TextLine {
       segments: Array<{ text: string; isPersonalized: boolean; width: number }>;
       totalWidth: number;
@@ -210,23 +229,28 @@ async function addStoryPage(
     const lines: TextLine[] = [];
     let currentLine: TextLine = { segments: [], totalWidth: 0 };
     
-    for (const segment of segments) {
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i];
       const font = segment.isPersonalized ? boldFont : regularFont;
       const fontSize = segment.isPersonalized ? personalizedFontSize : baseFontSize;
-      const wordWidth = font.widthOfTextAtSize(segment.text + ' ', fontSize);
+      const wordWidth = measureTextWidth(segment.text, font, fontSize);
+      const widthWithSpace = wordWidth + spaceWidth;
       
-      // Check if word fits on current line
-      if (currentLine.totalWidth + wordWidth > maxTextWidth && currentLine.segments.length > 0) {
+      // Check if word fits on current line (use width + space for test, except first word)
+      const testWidth = currentLine.segments.length > 0 ? widthWithSpace : wordWidth;
+      if (currentLine.totalWidth + testWidth > maxTextWidth && currentLine.segments.length > 0) {
         lines.push(currentLine);
         currentLine = { segments: [], totalWidth: 0 };
       }
       
+      // Add space before word if not first on line
+      const precedingSpace = currentLine.segments.length > 0 ? spaceWidth : 0;
       currentLine.segments.push({ 
         text: segment.text, 
         isPersonalized: segment.isPersonalized, 
         width: wordWidth 
       });
-      currentLine.totalWidth += wordWidth;
+      currentLine.totalWidth += precedingSpace + wordWidth;
     }
     if (currentLine.segments.length > 0) lines.push(currentLine);
     
@@ -235,26 +259,23 @@ async function addStoryPage(
     const verticalPadding = (textBoxHeight - totalTextHeight) / 2;
     let currentY = textBoxY + textBoxHeight - verticalPadding - baseFontSize;
     
-    // PASS 2: Render each line centered horizontally
+    // PASS 2: Render each line centered horizontally, char-by-char
     for (const line of lines) {
       const lineStartX = textBoxX + (textBoxWidth - line.totalWidth) / 2;
       let currentX = lineStartX;
       
-      for (const seg of line.segments) {
+      for (let s = 0; s < line.segments.length; s++) {
+        const seg = line.segments[s];
         const font = seg.isPersonalized ? boldFont : regularFont;
         const fontSize = seg.isPersonalized ? personalizedFontSize : baseFontSize;
         const color = seg.isPersonalized 
           ? rgb(favoriteColor.r, favoriteColor.g, favoriteColor.b)
           : rgb(0, 0, 0);
         
-        page.drawText(seg.text + ' ', {
-          x: currentX,
-          y: currentY,
-          size: fontSize,
-          font: font,
-          color: color,
-        });
+        // Add space before word (except first word on line)
+        if (s > 0) currentX += spaceWidth;
         
+        drawTextCharByChar(page, seg.text, currentX, currentY, font, fontSize, color);
         currentX += seg.width;
       }
       

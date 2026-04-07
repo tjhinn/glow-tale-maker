@@ -12,10 +12,13 @@
 ## 🎯 Recent Updates (2026-04-07)
 
 **Fix PDF Text Ligature Spacing Bug - COMPLETED:**
-- ✅ Root cause: Fontsource Fredoka font contains OpenType ligature features (fi, fl, ff) that pdf-lib cannot render, causing words like "finally", "fluffy", "puffed" to display with broken spacing
-- ✅ Created ligature-free versions of Fredoka 500 and 600 weight fonts (stripped `liga` GSUB feature)
-- ✅ Uploaded stripped fonts to Supabase storage (`story-images/fonts/`)
-- ✅ Added Priority 0 in `fetchFontWithFallbacks` to use ligature-free fonts from storage before any CDN fallback
+- ✅ Root cause: pdf-lib/fontkit applies OpenType ligature substitutions (fi, fl, ff) that cause broken word spacing in fonts like Fredoka
+- ✅ Initial attempt with ligature-stripped fonts failed (corrupted GSUB tables crashed fontkit)
+- ✅ Second attempt with U+200C ZWNJ characters failed (rendered as visible gaps)
+- ✅ Final fix: character-by-character measurement and drawing prevents ligature substitution entirely
+- ✅ Added `measureTextWidth()` and `drawTextCharByChar()` helpers
+- ✅ Line-building uses per-char width sums with explicit space tracking (no trailing spaces)
+- ✅ Matches the same pattern used successfully for cover title rendering
 
 ---
 
