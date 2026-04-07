@@ -15,6 +15,16 @@ const TOTAL_BATCHES = 6;
 // Max image dimension for PDF pages (reduces CPU and file size)
 const MAX_PAGE_WIDTH = 1200;
 
+// Break ligature sequences to prevent pdf-lib spacing issues
+function breakLigatures(text: string): string {
+  return text
+    .replace(/ffi/g, 'f\u200Cfi')
+    .replace(/ffl/g, 'f\u200Cfl')
+    .replace(/ff/g, 'f\u200Cf')
+    .replace(/fi/g, 'f\u200Ci')
+    .replace(/fl/g, 'f\u200Cl');
+}
+
 // Text wrapping helper function for PDF text
 function wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
   const words = text.split(' ');
@@ -158,13 +168,13 @@ async function addStoryPage(
   });
 
   // Add text overlay with personalized word highlighting
-  const rawText = pageData.text || '';
-  const pageText = rawText
+   const rawText = pageData.text || '';
+  const pageText = breakLigatures(rawText
     .replace(/\r\n/g, ' ')
     .replace(/\n/g, ' ')
     .replace(/\r/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim());
   
   if (pageText) {
     const textBoxHeight = Math.round(196 * scale);
@@ -343,21 +353,6 @@ serve(async (req) => {
     async function fetchFontWithFallbacks(fontName: string, variant: 'regular' | 'bold'): Promise<ArrayBuffer | null> {
       const folderName = fontName.toLowerCase().replace(/\s+/g, '');
       const cleanName = fontName.replace(/\s+/g, '');
-
-      // Priority 0: Ligature-free fonts hosted in Supabase storage
-      // pdf-lib cannot handle OpenType ligatures (fi, fl, ff, ffi, ffl), causing
-      // words like "finally", "fluffy", "puffed" to render with broken spacing.
-      // These fonts have the 'liga' feature stripped out.
-      const noLigaWeight = variant === 'bold' ? '600' : '500';
-      const noLigaFontName = fontName.toLowerCase().replace(/\s+/g, '-');
-      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-      const noLigaUrl = `${supabaseUrl}/storage/v1/object/public/story-images/fonts/${noLigaFontName}-${noLigaWeight}-noliga.ttf`;
-      console.log(`[${orderId}] Trying ligature-free font for "${fontName}" (${noLigaWeight})...`);
-      const noLigaResponse = await fetch(noLigaUrl);
-      if (noLigaResponse.ok) {
-        console.log(`[${orderId}] Loaded ligature-free ${noLigaWeight} font for "${fontName}"`);
-        return await noLigaResponse.arrayBuffer();
-      }
 
       // Priority 1: Static weight-specific files (Medium/SemiBold for proper visual weight)
       const weightSuffix = variant === 'bold' ? 'SemiBold' : 'Medium';
