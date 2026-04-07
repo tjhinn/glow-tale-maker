@@ -186,12 +186,12 @@ async function addStoryPage(
 
   // Add text overlay with personalized word highlighting
    const rawText = pageData.text || '';
-  const pageText = breakLigatures(rawText
+  const pageText = rawText
     .replace(/\r\n/g, ' ')
     .replace(/\n/g, ' ')
     .replace(/\r/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim());
+    .trim();
   
   if (pageText) {
     const textBoxHeight = Math.round(196 * scale);
