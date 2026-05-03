@@ -229,8 +229,8 @@ const AdminOrders = () => {
 
   return (
     <PageWrapper>
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-6">Order Management</h1>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6">Order Management</h1>
 
         <div className="mb-6">
           <Button
