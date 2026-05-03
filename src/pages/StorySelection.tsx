@@ -123,12 +123,7 @@ const StorySelection = () => {
           
           data = { personalizedCoverUrl: result.personalizedCoverUrl };
         } catch (genError: unknown) {
-          console.error("Personalized cover generation error:", genError);
-          toast({
-            title: "Cover generation failed",
-            description: genError instanceof Error ? genError.message : "Please try again later.",
-            variant: "destructive"
-          });
+          handleError(genError, { context: "cover_generation", toast });
           setIsLoading(false);
           return;
         }
@@ -223,13 +218,7 @@ const StorySelection = () => {
       }));
       navigate("/preview");
     } catch (error) {
-      console.error("Cover generation error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      toast({
-        title: "Something went wrong",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      handleError(error, { context: "cover_generation", toast });
     } finally {
       setIsLoading(false);
     }
