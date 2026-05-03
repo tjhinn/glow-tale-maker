@@ -8,6 +8,7 @@ import { Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { supabase } from "@/integrations/supabase/client";
+import { handleError } from "@/lib/handleError";
 import sample1 from "@/assets/sample-story-1.jpg";
 
 

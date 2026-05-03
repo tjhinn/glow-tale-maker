@@ -16,6 +16,7 @@ import AdminStories from "./pages/AdminStories";
 import AdminCarousel from "./pages/AdminCarousel";
 import AdminReviews from "./pages/AdminReviews";
 import NotFound from "./pages/NotFound";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -24,8 +25,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/create" element={<Personalize />} />
           <Route path="/stories" element={<StorySelection />} />
@@ -39,9 +41,10 @@ const App = () => (
           <Route path="/admin/carousel" element={<AdminCarousel />} />
           <Route path="/admin/reviews" element={<AdminReviews />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );

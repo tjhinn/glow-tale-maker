@@ -10,6 +10,7 @@ import { OrderCard } from "./admin/OrderCard";
 import { OrderActions } from "./admin/OrderActions";
 import { OrderErrorAlert } from "./admin/OrderErrorAlert";
 import { OrderFilters } from "./admin/OrderFilters";
+import { handleError } from "@/lib/handleError";
 
 interface PersonalizationData {
   heroName: string;
@@ -142,12 +143,7 @@ const AdminOrders = () => {
       });
       refetch();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to regenerate PDF",
-        variant: "destructive",
-      });
-      console.error("Error regenerating PDF:", error);
+      handleError(error, { context: "pdf_regenerate", toast });
     } finally {
       setRegeneratingPdfOrders((prev) => {
         const next = new Set(prev);
@@ -202,12 +198,7 @@ const AdminOrders = () => {
       });
       refetch();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to approve order",
-        variant: "destructive",
-      });
-      console.error("Error approving order:", error);
+      handleError(error, { context: "approve", toast });
     } finally {
       setApprovingOrders((prev) => {
         const next = new Set(prev);
@@ -229,8 +220,8 @@ const AdminOrders = () => {
 
   return (
     <PageWrapper>
-      <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold mb-6">Order Management</h1>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-6">Order Management</h1>
 
         <div className="mb-6">
           <Button

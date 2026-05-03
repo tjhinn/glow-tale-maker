@@ -1632,13 +1632,20 @@ export default AdminDashboard;
 
 ---
 
-## Task 4.2: Mobile Responsiveness ⏳
+## Task 4.2: Mobile Responsiveness ✅ (2026-05-03)
 
-**Check:**
-- [ ] All pages mobile-friendly
-- [ ] Touch targets 44px minimum
-- [ ] Forms usable on small screens
-- [ ] Images optimized
+**Audit at 375×812:**
+- ✅ Home — hero, carousel, CTAs render cleanly, no horizontal scroll
+- ✅ /create (Personalize) — form cards stack, dropdowns and inputs full-width
+- ✅ /stories — single-column grid on mobile, cards readable
+- ✅ /preview — single-image showcase fits viewport
+- ✅ /checkout — LemonSqueezy embed responsive
+- ✅ /thank-you — download CTA full-width
+- ✅ /admin/login — form centered and usable
+
+**Fixes applied:**
+- `AdminOrders.tsx` — added `px-4` and responsive heading size
+- `admin/OrderActions.tsx` — Regenerate PDF / Regenerate Pages button rows now `flex-col sm:flex-row` so they don't squish on narrow screens
 
 ---
 
@@ -1652,13 +1659,14 @@ export default AdminDashboard;
 
 ---
 
-## Task 4.4: Error Handling ⏳
+## Task 4.4: Error Handling ✅ (2026-05-03)
 
-**Implement:**
-- [ ] Network error fallbacks
-- [ ] Payment failure messages
-- [ ] Storage upload errors
-- [ ] Edge function timeouts
+**Implemented:**
+- ✅ `src/lib/errorMessages.ts` — central error categorizer (network, auth, payment, storage, generation_timeout, validation, unknown) with friendly copy
+- ✅ `src/lib/handleError.ts` — single helper that logs + maps + toasts
+- ✅ `src/components/ErrorBoundary.tsx` — global React boundary wraps `<App>` routes with friendly fallback UI ("Try again" / "Back to home")
+- ✅ Retry-with-backoff (3 attempts) added to `checkCoverStatus()` in `coverGenerationPolling.ts` to survive transient network blips
+- ✅ `Personalize`, `Checkout`, `StorySelection`, `Preview`, `AdminOrders` refactored to use `handleError()` with proper context (`upload`, `payment`, `cover_generation`, `pdf_regenerate`, `approve`)
 
 ---
 

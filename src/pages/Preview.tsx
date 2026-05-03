@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
 import { GenerationLoadingModal } from "@/components/story/GenerationLoadingModal";
+import { handleError } from "@/lib/handleError";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -273,12 +274,7 @@ const Preview = () => {
         });
       }
     } catch (error) {
-      console.error("Cover regeneration error:", error);
-      toast({
-        title: "Regeneration failed",
-        description: error instanceof Error ? error.message : "Please try again.",
-        variant: "destructive",
-      });
+      handleError(error, { context: "cover_generation", toast });
     } finally {
       setIsRegenerating(false);
     }

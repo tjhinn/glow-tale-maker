@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import { supabase } from "@/integrations/supabase/client";
+import { handleError } from "@/lib/handleError";
 const Personalize = () => {
   const navigate = useNavigate();
   const {
@@ -107,12 +108,7 @@ const Personalize = () => {
       });
       navigate("/stories");
     } catch (error) {
-      console.error("Error:", error);
-      toast({
-        title: "Something went wrong",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      handleError(error, { context: "upload", toast });
     } finally {
       setIsLoading(false);
     }
