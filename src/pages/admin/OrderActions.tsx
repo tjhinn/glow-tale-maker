@@ -193,7 +193,7 @@ export function OrderActions({
                 </Button>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={() => onRegeneratePdf(orderId)}
                 disabled={isRegeneratingPdf}
@@ -255,7 +255,7 @@ export function OrderActions({
                 </Button>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={() => onRegeneratePdf(orderId)}
                 disabled={isRegeneratingPdf}
