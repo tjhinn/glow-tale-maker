@@ -47,36 +47,46 @@ export async function startCoverGeneration(params: StartGenerationParams): Promi
 }
 
 export async function checkCoverStatus(jobId: string): Promise<CoverGenerationResult> {
-  const response = await fetch(
-    `${SUPABASE_URL}/functions/v1/check-cover-status`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-      },
-      body: JSON.stringify({ jobId }),
+  // Retry with backoff up to 3 times to survive transient network blips
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/check-cover-status`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+          },
+          body: JSON.stringify({ jobId }),
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to check status: ${response.status}`);
+      }
+      const data = await response.json();
+      return {
+        status: data.status,
+        personalizedCoverUrl: data.personalizedCoverUrl,
+        errorMessage: data.errorMessage,
+      };
+    } catch (err) {
+      lastError = err;
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+      }
     }
-  );
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `Failed to check status: ${response.status}`);
   }
-
-  const data = await response.json();
-  
-  return {
-    status: data.status,
-    personalizedCoverUrl: data.personalizedCoverUrl,
-    errorMessage: data.errorMessage,
-  };
+  throw lastError instanceof Error ? lastError : new Error('Failed to check status');
 }
 
 interface PollOptions {
   maxAttempts?: number;
   intervalMs?: number;
   onStatusChange?: (status: string) => void;
+  onAttempt?: (attempt: number, maxAttempts: number) => void;
 }
 
 export async function pollForCoverCompletion(
@@ -93,6 +103,7 @@ export async function pollForCoverCompletion(
   let lastStatus = '';
 
   while (attempts < maxAttempts) {
+    options.onAttempt?.(attempts + 1, maxAttempts);
     const result = await checkCoverStatus(jobId);
     
     if (result.status !== lastStatus) {
