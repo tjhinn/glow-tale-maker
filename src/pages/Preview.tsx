@@ -273,12 +273,7 @@ const Preview = () => {
         });
       }
     } catch (error) {
-      console.error("Cover regeneration error:", error);
-      toast({
-        title: "Regeneration failed",
-        description: error instanceof Error ? error.message : "Please try again.",
-        variant: "destructive",
-      });
+      handleError(error, { context: "cover_generation", toast });
     } finally {
       setIsRegenerating(false);
     }
