@@ -10,6 +10,7 @@ import { OrderCard } from "./admin/OrderCard";
 import { OrderActions } from "./admin/OrderActions";
 import { OrderErrorAlert } from "./admin/OrderErrorAlert";
 import { OrderFilters } from "./admin/OrderFilters";
+import { handleError } from "@/lib/handleError";
 
 interface PersonalizationData {
   heroName: string;
@@ -142,12 +143,7 @@ const AdminOrders = () => {
       });
       refetch();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to regenerate PDF",
-        variant: "destructive",
-      });
-      console.error("Error regenerating PDF:", error);
+      handleError(error, { context: "pdf_regenerate", toast });
     } finally {
       setRegeneratingPdfOrders((prev) => {
         const next = new Set(prev);
@@ -202,12 +198,7 @@ const AdminOrders = () => {
       });
       refetch();
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to approve order",
-        variant: "destructive",
-      });
-      console.error("Error approving order:", error);
+      handleError(error, { context: "approve", toast });
     } finally {
       setApprovingOrders((prev) => {
         const next = new Set(prev);
