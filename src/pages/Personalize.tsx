@@ -107,12 +107,7 @@ const Personalize = () => {
       });
       navigate("/stories");
     } catch (error) {
-      console.error("Error:", error);
-      toast({
-        title: "Something went wrong",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      handleError(error, { context: "upload", toast });
     } finally {
       setIsLoading(false);
     }
