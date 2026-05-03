@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
 import { GenerationLoadingModal } from "@/components/story/GenerationLoadingModal";
+import { handleError } from "@/lib/handleError";
 import {
   AlertDialog,
   AlertDialogAction,
