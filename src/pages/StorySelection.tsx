@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { GenerationLoadingModal } from "@/components/story/GenerationLoadingModal";
 import { startCoverGeneration, pollForCoverCompletion } from "@/lib/coverGenerationPolling";
 import { getColorValue } from "@/lib/colorUtils";
+import { handleError } from "@/lib/handleError";
 
 const StorySelection = () => {
   const navigate = useNavigate();
