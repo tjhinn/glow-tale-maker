@@ -22,7 +22,7 @@ const Checkout = () => {
   const hasDiscount = localStorage.getItem("shareDiscount") === "true";
   
   const basePrice = 500; // $5.00 USD in cents
-  const discount = hasDiscount ? Math.round(basePrice * 0.1) : 0;
+  const discount = hasDiscount ? Math.round(basePrice * 0.2) : 0;
   const finalPrice = basePrice - discount;
 
   // Load personalization and story data
@@ -79,7 +79,7 @@ const Checkout = () => {
           userEmail: email,
           amount: finalPrice,
           discountApplied: hasDiscount,
-          discountCode: hasDiscount ? "SHARE10" : undefined,
+          discountCode: hasDiscount ? "SHARE20" : undefined,
           personalizationData: paymentData,
           storyId: selectedStory.id,
         },
@@ -170,7 +170,7 @@ const Checkout = () => {
               {hasDiscount && (
                 <div className="p-4 rounded-xl bg-success/10 border-2 border-success text-center glow-soft">
                   <Sparkles className="w-8 h-8 text-success mx-auto mb-2 animate-sparkle" />
-                  <p className="text-success font-bold font-heading">🎉 10% Discount Applied!</p>
+                  <p className="text-success font-bold font-heading">🎉 20% Discount Applied!</p>
                   <p className="text-sm text-success-foreground mt-1">
                     You saved ${(discount / 100).toFixed(2)}
                   </p>

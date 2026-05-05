@@ -88,7 +88,7 @@ const Preview = () => {
     // Toast notification
     toast({
       title: "🎉 Discount unlocked!",
-      description: "10% off applied to your order.",
+      description: "20% off applied to your order.",
       className: "bg-success text-success-foreground",
     });
 
@@ -363,7 +363,7 @@ const Preview = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="font-heading text-2xl">Did you complete sharing?</AlertDialogTitle>
             <AlertDialogDescription>
-              To unlock your 10% discount, please confirm that you shared {personalization?.heroName}'s magical story!
+              To unlock your 20% discount, please confirm that you shared {personalization?.heroName}'s magical story!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -496,7 +496,7 @@ const Preview = () => {
                   🎉 Discount Unlocked!
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  10% off will be applied at checkout
+                  20% off will be applied at checkout
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   9 more magical pages await in the full storybook!
@@ -507,7 +507,7 @@ const Preview = () => {
               <div className="space-y-4">
                 <div className="p-6 rounded-xl bg-primary/5 border border-primary/20">
                   <p className="text-center text-foreground leading-relaxed">
-                    ✨ 9 more magical pages await! Share {personalization.heroName}'s story preview to unlock a <span className="font-bold text-primary">special 10% discount!</span>
+                    ✨ 9 more magical pages await! Share {personalization.heroName}'s story preview to unlock a <span className="font-bold text-primary">special 20% discount!</span>
                   </p>
                 </div>
                 
