@@ -21,7 +21,7 @@ const Checkout = () => {
   const [selectedStory, setSelectedStory] = useState<any>(null);
   const hasDiscount = localStorage.getItem("shareDiscount") === "true";
   
-  const basePrice = 999; // $9.99 USD in cents
+  const basePrice = 500; // $5.00 USD in cents
   const discount = hasDiscount ? Math.round(basePrice * 0.1) : 0;
   const finalPrice = basePrice - discount;
 
