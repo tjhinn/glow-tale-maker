@@ -112,6 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
         attributes: {
           checkout_data: {
             email: paymentRequest.userEmail,
+            discount_code: paymentRequest.discountCode,
             custom: {
               order_id: order.id,
             },
