@@ -1,18 +1,21 @@
 import { ReactNode } from "react";
+import { SiteFooter } from "./SiteFooter";
 
 interface PageWrapperProps {
   children: ReactNode;
   className?: string;
   showHeader?: boolean;
+  showFooter?: boolean;
 }
 
 export const PageWrapper = ({ 
   children, 
   className = "", 
-  showHeader = true 
+  showHeader = true,
+  showFooter = true,
 }: PageWrapperProps) => {
   return (
-    <div className="min-h-screen gradient-warm">
+    <div className="min-h-screen gradient-warm flex flex-col">
       {showHeader && (
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-primary/20">
           <div className="container mx-auto px-4 py-4">
@@ -22,7 +25,8 @@ export const PageWrapper = ({
           </div>
         </header>
       )}
-      <main className={className}>{children}</main>
+      <main className={`flex-1 ${className}`}>{children}</main>
+      {showFooter && <SiteFooter />}
     </div>
   );
 };
