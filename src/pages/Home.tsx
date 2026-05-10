@@ -222,20 +222,7 @@ The Hero</span>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-border/50 bg-secondary/10">
-        <div className="container mx-auto px-4 text-center space-y-4">
-          <div className="flex justify-center items-center gap-2">
-            <Sparkles className="w-5 h-5 text-accent" />
-            <p className="text-lg font-semibold font-heading">YourFairyTale.ai</p>
-          </div>
-          <p className="text-muted-foreground text-lg">
-            Creating magical memories, one story at a time
-          </p>
-          <p className="text-xs text-muted-foreground">
-            © 2025 YourFairyTale.ai • All rights reserved
-          </p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>;
 };
 export default Home;
