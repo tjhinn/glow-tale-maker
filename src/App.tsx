@@ -16,6 +16,9 @@ import AdminStories from "./pages/AdminStories";
 import AdminCarousel from "./pages/AdminCarousel";
 import AdminReviews from "./pages/AdminReviews";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Refund from "./pages/Refund";
+import Privacy from "./pages/Privacy";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
           <Route path="/admin/stories" element={<AdminStories />} />
           <Route path="/admin/carousel" element={<AdminCarousel />} />
           <Route path="/admin/reviews" element={<AdminReviews />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/refund" element={<Refund />} />
+          <Route path="/privacy" element={<Privacy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
