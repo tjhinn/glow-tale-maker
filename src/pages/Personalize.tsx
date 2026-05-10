@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,11 @@ const Personalize = () => {
     photo: null as File | null
   });
   const [isLoading, setIsLoading] = useState(false);
+  // Reset any stale share discount / order state from a previous abandoned flow
+  useEffect(() => {
+    localStorage.removeItem("shareDiscount");
+    localStorage.removeItem("orderId");
+  }, []);
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
