@@ -1,19 +1,22 @@
-## Plan: Change Checkout Price to $5
+## Plan: Fix Sticky Share Discount Bug (Minimum Approach)
 
-### Change
-In `src/pages/Checkout.tsx` line 24, update:
-```ts
-const basePrice = 999; // $9.99 USD in cents
-```
-to:
-```ts
-const basePrice = 500; // $5.00 USD in cents
-```
+### Problem
+`localStorage.shareDiscount` is only cleared in `ThankYou.tsx` after a successful purchase. If a user abandons the flow at any point after sharing, the discount persists. When they start a new storybook, they see the discount already applied on Preview/Checkout with no option to share again.
 
-This updates the displayed Base Price, Total, and "Pay Securely $X" button on the Checkout page (and the discount math, if a share discount is applied).
+### Solution
+Clear `localStorage.shareDiscount` at the start of every new order flow so each storybook begins fresh.
 
-### Important caveat
-The amount the customer is **actually charged** is controlled by the LemonSqueezy product **variant** (`LEMONSQUEEZY_VARIANT_ID`), not by this code. The `amount` we send is only stored on the order record for our own reference. To actually charge $5, the price must also be updated on the LemonSqueezy variant in the LemonSqueezy dashboard (or a new $5 variant created and the `LEMONSQUEEZY_VARIANT_ID` secret updated).
+### Changes
 
-### Files modified
-- `src/pages/Checkout.tsx` — change `basePrice` to `500`
+1. **`src/pages/Personalize.tsx`**
+   - Add a `useEffect` on component mount that removes `shareDiscount` (and `orderId` as a safety net) from `localStorage`.
+   - This ensures the discount is reset when the user lands on the first step of personalization.
+
+2. **`src/pages/StorySelection.tsx`**
+   - Add a `useEffect` on component mount that removes `shareDiscount` from `localStorage`.
+   - This acts as a secondary safety net if the user navigates directly to story selection.
+
+### Technical Details
+- No new dependencies.
+- No backend changes.
+- `ThankYou.tsx` already clears these keys after 5 seconds — that behavior remains unchanged.

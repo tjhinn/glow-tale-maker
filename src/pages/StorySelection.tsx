@@ -22,6 +22,11 @@ const StorySelection = () => {
   const [personalization, setPersonalization] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Safety net: clear stale share discount when entering a new selection flow
+  useEffect(() => {
+    localStorage.removeItem("shareDiscount");
+  }, []);
+
   // Load personalization data from localStorage
   useEffect(() => {
     const savedData = localStorage.getItem("personalizationData");
