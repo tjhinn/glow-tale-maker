@@ -9,6 +9,25 @@
 
 ---
 
+## 🎯 Recent Updates (2026-05-10)
+
+**Share-Discount Stale State Fix - COMPLETED:**
+- ✅ `Personalize.tsx` clears `localStorage.shareDiscount` and `localStorage.orderId` on mount
+- ✅ `StorySelection.tsx` clears `localStorage.shareDiscount` on mount as a safety net
+- ✅ Each new storybook flow starts fresh, so the Share option reappears on Preview
+
+**AI Photo Validation - COMPLETED:**
+- ✅ New `supabase/functions/validate-child-photo/index.ts` edge function
+- ✅ Uses Lovable AI Gateway (`google/gemini-2.5-flash`) — multimodal, no extra API key
+- ✅ Checks: subject is a child (0–12), photo is safe (no NSFW), is a real photo (not drawing/screenshot/meme), face clearly visible
+- ✅ `Personalize.tsx` invokes validation after upload; on failure, deletes the file, clears `formData.photo`, and shows a friendly toast
+
+**Tasks.md Story Count Correction - COMPLETED:**
+- ✅ Verified DB: 4 active stories, all `hero_gender: 'both'`
+- ✅ Removed stale "1 active story" / "need boy & girl stories" notes
+
+---
+
 ## 🎯 Recent Updates (2026-04-07)
 
 **Fix PDF Text Ligature Spacing Bug - COMPLETED:**
@@ -301,17 +320,18 @@
   - Added display_order field for custom sorting on homepage
 
 **Current State:**
-- 📚 Database: 1 active story ("The Sky Garden" - gender: both)
+- 📚 Database: 4 active stories (all `hero_gender: 'both'`)
+  - {heroName} and The Sky Garden
+  - {heroName}'s Journey Beyond the Stars
+  - {heroName} and the Moonlight Library
+  - {heroName}, the Cloud Painter
 - 📦 Orders: 0 orders placed
 - ✅ All secrets configured (RESEND, LOVABLE, LEMONSQUEEZY)
 - ✅ Storage buckets configured with proper RLS
 
 **Next Steps:**
-1. Add more stories to database (need stories for 'boy' and 'girl' genders)
-2. Test complete end-to-end flow (personalize → checkout → PDF → email)
-3. Begin Phase 4: Testing & Polish
-4. Mobile responsiveness verification
-5. Add loading animations and error handling
+1. End-to-end flow testing (Task 4.1)
+2. Animation & polish — sparkles, confetti, loading states (Task 4.3)
 
 ---
 
@@ -1686,16 +1706,13 @@ export default AdminDashboard;
 
 **Next Steps:**
 1. ✅ Fix edge function imports (completed)
-2. Test complete end-to-end flow (personalize → story → checkout → PDF → email)
-3. Add more stories to database (currently only 1 story)
-4. Begin Phase 4: Testing & Polish
-5. Mobile responsiveness testing
-6. Add animations and error handling
+2. End-to-end flow testing (Task 4.1)
+3. Animation & polish — sparkles, confetti, loading states (Task 4.3)
 
-**Last Updated:** 2025-11-25  
+**Last Updated:** 2026-05-10  
 **Maintainer:** AI Assistant
 
 ---
 
-**Last Updated:** 2025-11-07  
+**Last Updated:** 2026-05-10  
 **Maintainer:** YourFairyTale.ai Team
