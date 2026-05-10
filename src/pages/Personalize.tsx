@@ -296,7 +296,7 @@ const Personalize = () => {
               </Button>
               <Button variant="magical" size="lg" onClick={handleContinue} className="flex-1 group text-2xl" disabled={isLoading}>
                 <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
-                Continue 
+                {loadingMessage || "Continue"}
               </Button>
             </div>
           </CardContent>
