@@ -26,6 +26,7 @@ const Personalize = () => {
     photo: null as File | null
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>("");
   // Reset any stale share discount / order state from a previous abandoned flow
   useEffect(() => {
     localStorage.removeItem("shareDiscount");
@@ -69,7 +70,9 @@ const Personalize = () => {
       return;
     }
     setIsLoading(true);
+    setLoadingMessage("");
     let originalPhotoUrl = '';
+    let uploadedFilePath = '';
     try {
       // Upload photo if exists
       if (formData.photo) {
@@ -88,12 +91,43 @@ const Personalize = () => {
           setIsLoading(false);
           return;
         }
+        uploadedFilePath = filePath;
         const {
           data: {
             publicUrl
           }
         } = supabase.storage.from('hero-photos').getPublicUrl(filePath);
         originalPhotoUrl = publicUrl;
+
+        // Validate the photo with AI before proceeding
+        setLoadingMessage("Checking your photo…");
+        const { data: validation, error: validationError } = await supabase.functions.invoke(
+          'validate-child-photo',
+          { body: { photoUrl: originalPhotoUrl } }
+        );
+
+        if (validationError) {
+          await supabase.storage.from('hero-photos').remove([uploadedFilePath]);
+          toast({
+            title: "Could not check photo",
+            description: "Please try again in a moment.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        if (validation && validation.valid === false) {
+          await supabase.storage.from('hero-photos').remove([uploadedFilePath]);
+          setFormData(prev => ({ ...prev, photo: null }));
+          toast({
+            title: "Let's try a different photo",
+            description: validation.reason || "Please choose another photo.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Save personalization data (WITHOUT illustrated character)
@@ -116,6 +150,7 @@ const Personalize = () => {
       handleError(error, { context: "upload", toast });
     } finally {
       setIsLoading(false);
+      setLoadingMessage("");
     }
   };
   return <PageWrapper>
