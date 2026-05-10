@@ -8,6 +8,7 @@ import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles"
 import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero-illustration.jpg";
 import Autoplay from "embla-carousel-autoplay";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 const Home = () => {
   const navigate = useNavigate();
   const [carouselImages, setCarouselImages] = useState<any[]>([]);
