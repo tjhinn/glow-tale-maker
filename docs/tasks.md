@@ -9,6 +9,25 @@
 
 ---
 
+## 🎯 Recent Updates (2026-05-10)
+
+**Share-Discount Stale State Fix - COMPLETED:**
+- ✅ `Personalize.tsx` clears `localStorage.shareDiscount` and `localStorage.orderId` on mount
+- ✅ `StorySelection.tsx` clears `localStorage.shareDiscount` on mount as a safety net
+- ✅ Each new storybook flow starts fresh, so the Share option reappears on Preview
+
+**AI Photo Validation - COMPLETED:**
+- ✅ New `supabase/functions/validate-child-photo/index.ts` edge function
+- ✅ Uses Lovable AI Gateway (`google/gemini-2.5-flash`) — multimodal, no extra API key
+- ✅ Checks: subject is a child (0–12), photo is safe (no NSFW), is a real photo (not drawing/screenshot/meme), face clearly visible
+- ✅ `Personalize.tsx` invokes validation after upload; on failure, deletes the file, clears `formData.photo`, and shows a friendly toast
+
+**Tasks.md Story Count Correction - COMPLETED:**
+- ✅ Verified DB: 4 active stories, all `hero_gender: 'both'`
+- ✅ Removed stale "1 active story" / "need boy & girl stories" notes
+
+---
+
 ## 🎯 Recent Updates (2026-04-07)
 
 **Fix PDF Text Ligature Spacing Bug - COMPLETED:**

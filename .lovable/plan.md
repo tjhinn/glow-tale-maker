@@ -1,78 +1,37 @@
-## Plan: Validate Uploaded Child Photos
+## Update tasks.md to reflect current state
 
-### Goal
-Before accepting a photo on the Personalize page, verify it actually shows a child and is safe (no NSFW, violence, or off-topic content like screenshots, memes, animals, multiple adults). If it fails, block upload with a clear, friendly message.
+### Changes
 
-### Approach
-Use **Lovable AI** (`google/gemini-2.5-flash`, multimodal) via a new edge function. Gemini handles both image understanding and safety classification in a single call — no extra provider or API key needed.
+**1. Update "Current State" block (around line 304)**
 
-### Flow
+Replace:
 ```
-User selects photo
-    ↓
-Personalize.tsx uploads to `hero-photos` storage (as today)
-    ↓
-Calls new edge function `validate-child-photo` with the public URL
-    ↓
-Edge function asks Gemini:
-   - Is the main subject a child (roughly 0–12)?
-   - Is the photo safe (no nudity, violence, gore, weapons)?
-   - Is it a real photo (not a screenshot, drawing, meme, document)?
-   - Is the face clearly visible?
-    ↓
-Returns { valid: true } OR { valid: false, reason: "..." }
-    ↓
-If invalid → delete the just-uploaded file, toast the reason, clear photo input
-If valid   → proceed as today
+- 📚 Database: 1 active story ("The Sky Garden" - gender: both)
+```
+with:
+```
+- 📚 Database: 4 active stories (all gender: both)
+  - {heroName} and The Sky Garden
+  - {heroName}'s Journey Beyond the Stars
+  - {heroName} and the Moonlight Library
+  - {heroName}, the Cloud Painter
 ```
 
-### Validation Rules (sent as structured output to Gemini)
-The model returns JSON:
-```ts
-{
-  isChild: boolean,
-  isSafe: boolean,
-  isRealPhoto: boolean,
-  faceVisible: boolean,
-  reason: string  // short, parent-friendly explanation if any check fails
-}
-```
+**2. Update "Next Steps" lists (lines 309-314 and 1687-1693)**
 
-A photo is accepted only when all four booleans are true.
+Remove the stale "Add more stories to database (need stories for boy/girl genders)" item — all 4 stories already use `hero_gender: 'both'`, which covers every child.
 
-### Friendly Rejection Messages
-The edge function maps failure reasons into kind, on-brand copy:
-- Not a child → "Hmm, we couldn't spot a child in this photo. Try one where your little hero is the star! ✨"
-- Not safe → "This photo can't be used. Please choose a different one. 💛"
-- Not a real photo → "Looks like a drawing or screenshot — please upload a real photo of your child."
-- Face not visible → "We need to see your hero's face clearly to bring them into the story!"
+Reorder remaining next steps so the live priorities surface first:
+- End-to-end flow testing (Task 4.1)
+- Animation & polish (Task 4.3)
 
-### Files to Create / Edit
+**3. Add a new "Recent Updates" entry at the top (2026-05-10)** documenting the recent fixes so future sessions don't re-derive them:
+- Share-discount stale-state fix on Personalize/StorySelection
+- New `validate-child-photo` edge function (Gemini 2.5 Flash multimodal)
+- Tasks.md story-count correction
 
-1. **New: `supabase/functions/validate-child-photo/index.ts`**
-   - POST `{ photoUrl: string }` → `{ valid, reason }`
-   - Calls Lovable AI Gateway with `google/gemini-2.5-flash` using structured output (Zod schema).
-   - Uses `LOVABLE_API_KEY` (already provisioned). CORS headers included.
-   - Handles 429 / 402 with clear errors.
+**4. Refresh the trailing "Last Updated" footer** to `2026-05-10`.
 
-2. **Edit: `src/pages/Personalize.tsx`**
-   - In `handleContinue`, after the storage upload succeeds:
-     - Show "Checking photo…" loading state.
-     - `supabase.functions.invoke('validate-child-photo', { body: { photoUrl: originalPhotoUrl } })`.
-     - If invalid: delete the uploaded file from `hero-photos`, clear `formData.photo`, toast the friendly reason, stop.
-     - If valid: continue to story selection as today.
-   - Validation runs on Continue (not on file pick) so we only spend AI credits once the user commits, and we already have the public URL.
-
-### Loading & UX
-- Reuse existing toast + Continue button spinner; add "Checking your photo…" subtitle while validating (~2–4s).
-
-### Out of Scope
-- No client-side image moderation library (heavier bundle, lower quality than Gemini).
-- No retry/appeal flow — user just picks a different photo.
-- No admin override (can be added later if false positives become an issue).
-
-### Why Gemini 2.5 Flash
-- Multimodal (sees the actual image).
-- Built-in safety classifier → catches NSFW reliably.
-- Cheap and fast (~1–2s per call).
-- Already supported by Lovable AI Gateway → no new secrets.
+### Out of scope
+- No code changes.
+- No DB changes — DB is already correct; only the doc was stale.
