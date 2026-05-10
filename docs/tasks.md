@@ -320,17 +320,18 @@
   - Added display_order field for custom sorting on homepage
 
 **Current State:**
-- 📚 Database: 1 active story ("The Sky Garden" - gender: both)
+- 📚 Database: 4 active stories (all `hero_gender: 'both'`)
+  - {heroName} and The Sky Garden
+  - {heroName}'s Journey Beyond the Stars
+  - {heroName} and the Moonlight Library
+  - {heroName}, the Cloud Painter
 - 📦 Orders: 0 orders placed
 - ✅ All secrets configured (RESEND, LOVABLE, LEMONSQUEEZY)
 - ✅ Storage buckets configured with proper RLS
 
 **Next Steps:**
-1. Add more stories to database (need stories for 'boy' and 'girl' genders)
-2. Test complete end-to-end flow (personalize → checkout → PDF → email)
-3. Begin Phase 4: Testing & Polish
-4. Mobile responsiveness verification
-5. Add loading animations and error handling
+1. End-to-end flow testing (Task 4.1)
+2. Animation & polish — sparkles, confetti, loading states (Task 4.3)
 
 ---
 
