@@ -11,6 +11,16 @@
 
 ## 🎯 Recent Updates (2026-05-10)
 
+**LemonSqueezy Checkout 401 Fix - COMPLETED (2026-05-11):**
+- ✅ Confirmed Lovable Cloud backend was healthy and checkout function was reachable
+- ✅ Found root cause: `LEMONSQUEEZY_API_KEY` had been replaced with an invalid 52-character value after the expired-key fix
+- ✅ Replaced it with a valid full LemonSqueezy API token; checkout now returns a hosted checkout URL
+- ✅ Added safe checkout diagnostics that log token shape/length only, never the secret value
+- ✅ Trimmed LemonSqueezy secrets before use to prevent copy/paste whitespace issues
+- ✅ Added a safe redirect URL fallback so direct function tests don't send `null/thank-you` to LemonSqueezy
+- ✅ Improved checkout error handling so users see a friendly payment message instead of raw edge-function errors
+- ✅ Removed synthetic pending test orders created during verification
+
 **Share-Discount Stale State Fix - COMPLETED:**
 - ✅ `Personalize.tsx` clears `localStorage.shareDiscount` and `localStorage.orderId` on mount
 - ✅ `StorySelection.tsx` clears `localStorage.shareDiscount` on mount as a safety net

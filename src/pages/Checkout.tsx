@@ -11,6 +11,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { handleError } from "@/lib/handleError";
 import sample1 from "@/assets/sample-story-1.jpg";
 
+const extractFunctionErrorMessage = async (error: any) => {
+  const response = error?.context;
+  if (response && typeof response.clone === "function") {
+    try {
+      const body = await response.clone().json();
+      if (typeof body?.error === "string") return body.error;
+    } catch (_parseError) {
+      // Keep the original message fallback below.
+    }
+  }
+
+  return error?.message || "Failed to open secure checkout.";
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -86,8 +99,9 @@ const Checkout = () => {
       });
 
       if (error) {
-        console.error("Error creating checkout:", error);
-        throw error;
+        const checkoutErrorMessage = await extractFunctionErrorMessage(error);
+        console.error("Error creating checkout:", error, checkoutErrorMessage);
+        throw new Error(checkoutErrorMessage);
       }
 
       // Store order ID for thank you page
@@ -97,12 +111,7 @@ const Checkout = () => {
       window.location.href = data.checkoutUrl;
       
     } catch (error: any) {
-      console.error("Error processing payment:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to process payment. Please try again.",
-        variant: "destructive",
-      });
+      handleError(error, { context: "payment", toast });
       setProcessing(false);
     }
   };

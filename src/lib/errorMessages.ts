@@ -77,6 +77,16 @@ export function categorizeError(error: unknown, context?: string): FriendlyError
 
   // Payment
   if (context === "payment" || msg.includes("payment") || msg.includes("lemonsqueezy") || msg.includes("stripe")) {
+    if (msg.includes("api key") || msg.includes("checkout setup") || msg.includes("unauthenticated")) {
+      return {
+        category: "payment",
+        title: "Checkout setup needs attention",
+        description:
+          "The secure checkout connection is configured incorrectly. Please contact support and we'll fix it right away.",
+        actionLabel: "Try again",
+      };
+    }
+
     return {
       category: "payment",
       title: "Payment couldn't be completed",
