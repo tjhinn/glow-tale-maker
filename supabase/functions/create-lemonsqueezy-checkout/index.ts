@@ -36,13 +36,27 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const paymentRequest: PaymentRequest = await req.json();
 
-    // Get environment variables
-    const LEMONSQUEEZY_API_KEY = Deno.env.get("LEMONSQUEEZY_API_KEY");
-    const LEMONSQUEEZY_STORE_ID = Deno.env.get("LEMONSQUEEZY_STORE_ID");
-    const LEMONSQUEEZY_VARIANT_ID = Deno.env.get("LEMONSQUEEZY_VARIANT_ID");
+    // Get environment variables (trim to defend against accidental whitespace/newlines)
+    const LEMONSQUEEZY_API_KEY = Deno.env.get("LEMONSQUEEZY_API_KEY")?.trim();
+    const LEMONSQUEEZY_STORE_ID = Deno.env.get("LEMONSQUEEZY_STORE_ID")?.trim();
+    const LEMONSQUEEZY_VARIANT_ID = Deno.env.get("LEMONSQUEEZY_VARIANT_ID")?.trim();
 
     if (!LEMONSQUEEZY_API_KEY || !LEMONSQUEEZY_STORE_ID || !LEMONSQUEEZY_VARIANT_ID) {
       throw new Error("LemonSqueezy configuration is incomplete");
+    }
+
+    // Safe diagnostics — never logs the secret itself
+    const keyLen = LEMONSQUEEZY_API_KEY.length;
+    const looksLikeJwt = LEMONSQUEEZY_API_KEY.split(".").length === 3;
+    const startsWithEy = LEMONSQUEEZY_API_KEY.startsWith("ey");
+    console.log(
+      `[LS] key_len=${keyLen} looks_like_jwt=${looksLikeJwt} starts_with_ey=${startsWithEy} store_id=${LEMONSQUEEZY_STORE_ID} variant_id=${LEMONSQUEEZY_VARIANT_ID}`,
+    );
+    if (!looksLikeJwt || !startsWithEy) {
+      console.warn(
+        "[LS] LEMONSQUEEZY_API_KEY does not look like a LemonSqueezy API key (expected a long JWT-like token starting with 'ey'). Got length " +
+          keyLen,
+      );
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -155,7 +169,12 @@ const handler = async (req: Request): Promise<Response> => {
     if (!lemonSqueezyResponse.ok) {
       const errorText = await lemonSqueezyResponse.text();
       console.error("LemonSqueezy API error:", errorText);
-      throw new Error(`LemonSqueezy API error: ${lemonSqueezyResponse.status}`);
+      let friendly = `LemonSqueezy API error: ${lemonSqueezyResponse.status}`;
+      if (lemonSqueezyResponse.status === 401) {
+        friendly =
+          "LemonSqueezy rejected the API key (401 Unauthenticated). Please paste a fresh API key from LemonSqueezy → Settings → API into the LEMONSQUEEZY_API_KEY secret. Make sure you copy the full token (it's a long string starting with 'ey') and that it belongs to the same store as the configured Store ID.";
+      }
+      throw new Error(friendly);
     }
 
     const lemonSqueezyData = await lemonSqueezyResponse.json();
