@@ -9,6 +9,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const getSiteOrigin = (req: Request) => {
+  const origin = req.headers.get("origin");
+  if (origin?.startsWith("http")) return origin;
+
+  const referer = req.headers.get("referer");
+  if (referer) {
+    try {
+      return new URL(referer).origin;
+    } catch (_error) {
+      // Fall back below
+    }
+  }
+
+  return "https://your-fairy-tale.lovable.app";
+};
+
 interface PaymentRequest {
   userEmail: string;
   amount: number;
@@ -119,6 +135,8 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't fail the order if email fails
     }
 
+    const siteOrigin = getSiteOrigin(req);
+
     // Create LemonSqueezy checkout session
     const checkoutPayload = {
       data: {
@@ -132,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
             },
           },
           product_options: {
-            redirect_url: `${req.headers.get("origin")}/thank-you?order_id=${order.id}`,
+            redirect_url: `${siteOrigin}/thank-you?order_id=${order.id}`,
           },
           checkout_options: {
             discount: false,
@@ -170,6 +188,15 @@ const handler = async (req: Request): Promise<Response> => {
       const errorText = await lemonSqueezyResponse.text();
       console.error("LemonSqueezy API error:", errorText);
       let friendly = `LemonSqueezy API error: ${lemonSqueezyResponse.status}`;
+      try {
+        const parsed = JSON.parse(errorText);
+        const detail = parsed?.errors?.[0]?.detail;
+        if (typeof detail === "string" && detail.length > 0) {
+          friendly = `LemonSqueezy checkout setup error: ${detail}`;
+        }
+      } catch (_error) {
+        // Keep the status-only fallback if LemonSqueezy returns non-JSON.
+      }
       if (lemonSqueezyResponse.status === 401) {
         friendly =
           "LemonSqueezy rejected the API key (401 Unauthenticated). Please paste a fresh API key from LemonSqueezy → Settings → API into the LEMONSQUEEZY_API_KEY secret. Make sure you copy the full token (it's a long string starting with 'ey') and that it belongs to the same store as the configured Store ID.";
