@@ -1,41 +1,47 @@
-## Add Footer Links + Legal Pages
+Do I know what the issue is? Yes.
 
-### 1. New shared `SiteFooter` component
-Create `src/components/layout/SiteFooter.tsx` containing:
-- "YourFairyTale.ai" + sparkle (current Home footer style)
-- Tagline line
-- **New row of links**: Terms of Service · Refund Policy · Privacy Policy (using `react-router-dom` `Link`)
-- Copyright line
+The hosted backend is healthy, the checkout function is being called, and all required LemonSqueezy secrets exist. The failure is specifically LemonSqueezy rejecting the current `LEMONSQUEEZY_API_KEY` with HTTP 401.
 
-Styled with existing semantic tokens (`text-muted-foreground`, `border-border/50`, `bg-secondary/10`, `font-heading`).
+What changed from the logs:
+- Before the secret update, LemonSqueezy said: `Your API key has expired.`
+- After the secret update, LemonSqueezy says: `Unauthenticated.`
 
-### 2. Wire footer into every customer-facing page
-- `Home.tsx` — replace inline footer with `<SiteFooter />`
-- `Personalize.tsx`, `StorySelection.tsx`, `Preview.tsx`, `Checkout.tsx`, `ThankYou.tsx`, `NotFound.tsx`, plus the 3 new legal pages — append `<SiteFooter />` at the bottom of each
-- Admin pages **excluded** (internal tools — no public footer needed)
+That means the new secret value is reaching the backend, but LemonSqueezy does not accept it as a valid API key. This is most likely because the pasted value is the wrong credential, incomplete, copied with extra text/spaces, revoked, or not the LemonSqueezy API key from the correct account.
 
-### 3. Three new legal pages
-Routes added to `App.tsx`:
-- `/terms` → `src/pages/Terms.tsx`
-- `/refund` → `src/pages/Refund.tsx`
-- `/privacy` → `src/pages/Privacy.tsx`
+Plan to fix:
 
-Each page uses `PageWrapper`, a centered prose container, `<h1>` title, last-updated date, sectioned `<h2>` headings, and `<SiteFooter />`.
+1. Update the LemonSqueezy API key again
+   - Use a fresh LemonSqueezy API key from LemonSqueezy account settings.
+   - Store it in `LEMONSQUEEZY_API_KEY` only.
+   - Do not paste the Store ID, Variant ID, webhook secret, key name, or masked value.
 
-### Page contents (standard boilerplate, tailored to YourFairyTale.ai)
+2. Add safer backend diagnostics to the checkout function
+   - Keep the secret value hidden.
+   - Log only non-sensitive facts like whether the key exists, trimmed length, and a short non-secret fingerprint.
+   - Trim whitespace before sending the Authorization header.
+   - Return a clearer checkout setup error instead of the generic “Edge Function returned a non-2xx status code.”
 
-**Terms of Service** (~10 sections):
-Acceptance, Eligibility (parent/guardian 18+), Service Description (AI-personalized digital storybook), Account & Submitted Content (photos, names), License You Grant Us (limited use to fulfill order), Acceptable Use (no NSFW, no third-party photos without consent), Intellectual Property (we own templates; you own personalization data; final PDF licensed for personal non-commercial use), Payments (USD via LemonSqueezy), Disclaimers (AI generation may vary), Limitation of Liability, Governing Law, Changes to Terms, Contact.
+3. Verify the LemonSqueezy product setup
+   - Confirm `LEMONSQUEEZY_STORE_ID` and `LEMONSQUEEZY_VARIANT_ID` still point to the same LemonSqueezy account as the API key.
+   - If the key belongs to a different LemonSqueezy account, checkout will continue to fail.
 
-**Refund Policy** (~6 sections):
-Digital product nature, 7-day satisfaction guarantee for generation issues (broken PDF, wrong personalization), no refunds after PDF download for change-of-mind, how to request (email support), processing time (5–10 business days), partial refunds for partial defects, contact.
+4. Test checkout after the secret update
+   - Run the checkout function and confirm LemonSqueezy returns a checkout URL.
+   - Confirm the app redirects to LemonSqueezy instead of showing the red error toast.
 
-**Privacy Policy** (~10 sections):
-Data we collect (email, child's first name, photo, personalization), how we use it (generate the storybook, fulfill order, customer support), AI processing (third-party AI gateway for image generation, no training on your data), storage & retention (photos auto-expire, orders kept for record-keeping), children's privacy (COPPA — only parents/guardians submit data on behalf of children), cookies, third parties (LemonSqueezy payments, Resend email, Lovable Cloud hosting), your rights (access/delete), security, international transfers, changes, contact.
+5. Update project docs
+   - Mark the checkout debugging task in `docs/tasks.md` with the completed fix and testing steps.
 
-Tone: friendly but clear; placeholder contact email `support@yourfairytale.ai`. Last-updated dates set to 2026-05-10.
+How to test after implementation:
+- Go to `/checkout`.
+- Enter an email.
+- Click “Pay Securely”.
+- Expected result: the browser redirects to a LemonSqueezy hosted checkout page.
 
-### Out of scope
-- No translations
-- No cookie consent banner
-- No backend changes
+<lov-actions>
+  <lov-open-history>View History</lov-open-history>
+</lov-actions>
+
+<lov-actions>
+<lov-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</lov-link>
+</lov-actions>
