@@ -179,7 +179,7 @@ serve(async (req) => {
                 </a>
               </center>
               <div class="note">
-                <strong>📅 Important:</strong> Your download link will be available for 7 days. 
+                <strong>📅 Important:</strong> Your download link will be available for 1 month. 
                 Please save your storybook to your device before it expires.
               </div>
               <p class="message">
