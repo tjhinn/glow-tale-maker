@@ -5,6 +5,7 @@ import { User, Mail, Calendar, DollarSign, Loader2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { getFreshaSignedPdfUrl } from "@/lib/pdfSignedUrl";
 import { useToast } from "@/hooks/use-toast";
+import { replacePlaceholders } from "@/lib/replacePlaceholders";
 
 interface PersonalizationData {
   heroName: string;
@@ -104,7 +105,11 @@ export function OrderCard({ order, children }: OrderCardProps) {
         <div className="space-y-1 text-xs">
           <div>
             <span className="text-muted-foreground">Story: </span>
-            <span className="font-medium">{order.story?.title || "Unknown"}</span>
+            <span className="font-medium">
+              {order.story?.title
+                ? replacePlaceholders(order.story.title, personalization)
+                : "Unknown"}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <DollarSign className="h-3 w-3 text-muted-foreground" />
