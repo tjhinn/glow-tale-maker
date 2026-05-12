@@ -176,11 +176,11 @@ const ThankYou = () => {
 
         {/* Back to Home */}
         <div className="text-center">
-          <Button variant="magical" size="lg" onClick={handleBackHome} className="group">
+          <Button variant="magical" size="lg" onClick={handleBackHome} className="group text-xl">
             <Sparkles className="w-4 h-4 group-hover:animate-sparkle" />
             Create Another Fairy Tale
           </Button>
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-muted-foreground mt-4 text-base">
             ✨ Ready to craft more magical memories?
           </p>
         </div>
