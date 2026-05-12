@@ -28,7 +28,6 @@ type OrderStatus =
   | "pages_in_progress"
   | "pages_ready_for_review"
   | "pending_admin_review"
-  | "approved"
   | "email_sent"
   | "cancelled";
 
@@ -38,7 +37,6 @@ type StatusFilter =
   | "pending_payment"
   | "payment_received"
   | "pending_admin_review"
-  | "approved"
   | "email_sent";
 
 const AdminOrders = () => {
