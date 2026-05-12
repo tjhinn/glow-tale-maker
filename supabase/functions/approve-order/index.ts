@@ -68,134 +68,131 @@ serve(async (req) => {
     // Extract personalization data
     const personalization = order.personalization_data as any;
     const heroName = personalization?.heroName || "Little Hero";
-    const storyTitle = order.stories?.title || "Your Magical Storybook";
-    
+
+    // Replace personalization placeholders in any string (e.g. story title)
+    const replacePlaceholders = (text: string) => {
+      if (!text) return text;
+      return text
+        .replace(/{heroName}/g, personalization?.heroName || "")
+        .replace(/{petName}/g, personalization?.petName || "")
+        .replace(/{petType}/g, personalization?.petType || "")
+        .replace(/{favoriteColor}/g, personalization?.favoriteColor || "")
+        .replace(/{favoriteFood}/g, personalization?.favoriteFood || "")
+        .replace(/{city}/g, personalization?.city || "");
+    };
+
+    const storyTitle = replacePlaceholders(
+      order.stories?.title || "Your Magical Storybook"
+    );
+
     console.log(`Sending email for hero: ${heroName}, story: ${storyTitle}`);
 
     // Send email
     console.log(`Sending email to: ${order.user_email}`);
     
+    const headingFont = "'Fredoka', 'Trebuchet MS', 'Comic Sans MS', sans-serif";
+    const bodyFont = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
     const emailHtml = `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-              line-height: 1.6;
-              color: #333;
-              background-color: #fffdf8;
-              margin: 0;
-              padding: 0;
-            }
-            .container {
-              max-width: 600px;
-              margin: 40px auto;
-              background: white;
-              border-radius: 16px;
-              overflow: hidden;
-              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            }
-            .header {
-              background: linear-gradient(135deg, #FF8B00 0%, #FFE97F 100%);
-              padding: 40px 30px;
-              text-align: center;
-            }
-            .header h1 {
-              margin: 0;
-              color: white;
-              font-size: 28px;
-              font-weight: 700;
-            }
-            .content {
-              padding: 40px 30px;
-            }
-            .greeting {
-              font-size: 20px;
-              font-weight: 600;
-              color: #0a0a0a;
-              margin-bottom: 20px;
-            }
-            .message {
-              font-size: 16px;
-              color: #333;
-              margin-bottom: 30px;
-            }
-            .download-button {
-              display: inline-block;
-              background: #FF8B00;
-              color: white;
-              text-decoration: none;
-              padding: 16px 40px;
-              border-radius: 50px;
-              font-weight: 600;
-              font-size: 18px;
-              margin: 20px 0;
-              box-shadow: 0 4px 12px rgba(255, 139, 0, 0.3);
-            }
-            .download-button:hover {
-              background: #e67e00;
-            }
-            .note {
-              background: #fff8e1;
-              border-left: 4px solid #FFE97F;
-              padding: 15px;
-              margin: 20px 0;
-              font-size: 14px;
-              color: #666;
-            }
-            .footer {
-              text-align: center;
-              padding: 30px;
-              color: #666;
-              font-size: 14px;
-              border-top: 1px solid #eee;
-            }
-            .sparkle {
-              font-size: 24px;
-            }
-          </style>
+          <title>${heroName}'s storybook has arrived</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
         </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1><span class="sparkle">✨</span> Your Magical Storybook is Ready! <span class="sparkle">✨</span></h1>
-            </div>
-            <div class="content">
-              <p class="greeting">Dear ${heroName}'s Family,</p>
-              <p class="message">
-                We're thrilled to let you know that <strong>${heroName}'s</strong> personalized storybook 
-                "<strong>${storyTitle}</strong>" has been lovingly crafted and is ready for download!
-              </p>
-              <p class="message">
-                This magical tale was created just for ${heroName}, featuring their unique adventure, 
-                favorite things, and beautiful illustrations that bring their story to life.
-              </p>
-              <center>
-                <a href="${order.pdf_url}" class="download-button">
-                  📖 Download Your Storybook
-                </a>
-              </center>
-              <div class="note">
-                <strong>📅 Important:</strong> Your download link will be available for 1 month. 
-                Please save your storybook to your device before it expires.
-              </div>
-              <p class="message">
-                We hope ${heroName} loves their personalized adventure! Share their joy with us by 
-                tagging @YourFairyTale on social media.
-              </p>
-              <p class="message">
-                With love and magic,<br>
-                <strong>The YourFairyTale.ai Team</strong> 💖
-              </p>
-            </div>
-            <div class="footer">
-              <p>© ${new Date().getFullYear()} YourFairyTale.ai - Where imagination comes to life</p>
-              <p>This email was sent to ${order.user_email}</p>
-            </div>
+        <body style="margin:0;padding:0;background-color:#FFFDF8;font-family:${bodyFont};color:#0A0A0A;line-height:1.6;">
+          <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
+            ✨ ${heroName}'s very own fairy tale is ready to read tonight.
           </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFDF8;padding:32px 16px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 8px 32px rgba(255,139,0,0.12);">
+                  <!-- Header -->
+                  <tr>
+                    <td style="background:linear-gradient(135deg,#FF8B00 0%,#FFB347 50%,#FFE97F 100%);padding:48px 32px;text-align:center;">
+                      <div style="font-size:32px;line-height:1;margin-bottom:12px;">✨ 📖 ✨</div>
+                      <h1 style="margin:0;font-family:${headingFont};font-size:30px;font-weight:600;color:#FFFFFF;letter-spacing:-0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.12);">
+                        ${heroName}'s Story is Ready
+                      </h1>
+                    </td>
+                  </tr>
+
+                  <!-- Body -->
+                  <tr>
+                    <td style="padding:40px 36px 16px 36px;">
+                      <p style="margin:0 0 20px;font-size:18px;font-weight:600;color:#0A0A0A;font-family:${headingFont};">
+                        Hi there 👋
+                      </p>
+                      <p style="margin:0 0 18px;font-size:16px;color:#333;line-height:1.65;">
+                        Something magical just happened. <strong>${heroName}'s</strong> very own fairy tale —
+                        <em style="color:#7A5FFF;">"${storyTitle}"</em> — has been lovingly illustrated, page by page,
+                        and is ready to be read tonight.
+                      </p>
+                      <p style="margin:0 0 28px;font-size:16px;color:#333;line-height:1.65;">
+                        Every sparkle, every brushstroke, every word — made just for ${heroName}.
+                      </p>
+
+                      <!-- Sparkle divider -->
+                      <div style="text-align:center;margin:8px 0 24px;color:#7A5FFF;letter-spacing:8px;font-size:14px;">
+                        ✦ ✦ ✦
+                      </div>
+                      <p style="margin:0 0 28px;text-align:center;font-style:italic;color:#7A5FFF;font-size:15px;">
+                        Turn the page — the magic begins…
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- CTA -->
+                  <tr>
+                    <td align="center" style="padding:0 36px 32px;">
+                      <a href="${order.pdf_url}"
+                         style="display:inline-block;background-color:#FF8B00;color:#FFFFFF !important;text-decoration:none;padding:18px 44px;border-radius:50px;font-weight:600;font-size:18px;font-family:${headingFont};box-shadow:0 6px 20px rgba(255,139,0,0.35);">
+                        📖 Open ${heroName}'s Storybook
+                      </a>
+                    </td>
+                  </tr>
+
+                  <!-- Info note -->
+                  <tr>
+                    <td style="padding:0 36px 32px;">
+                      <div style="background-color:#FFF8E1;border-left:4px solid #FFE97F;border-radius:8px;padding:16px 18px;font-size:14px;color:#5C5043;line-height:1.55;">
+                        <strong style="color:#0A0A0A;">📅 Save the magic.</strong>
+                        Your download link will be available for <strong>1 month</strong>.
+                        Save the storybook to your device so ${heroName} can revisit the adventure anytime.
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- Sign-off -->
+                  <tr>
+                    <td style="padding:0 36px 40px;">
+                      <p style="margin:0;font-size:16px;color:#333;line-height:1.65;">
+                        With love and a little bit of magic, ✨<br>
+                        <strong style="font-family:${headingFont};color:#0A0A0A;">The YourFairyTale.ai Team</strong>
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background-color:#FFFDF8;padding:24px 36px;border-top:1px solid #F0E9DC;text-align:center;">
+                      <p style="margin:0 0 6px;font-size:12px;color:#999;font-family:${headingFont};">
+                        ✨ YourFairyTale.ai — where imagination comes to life ✨
+                      </p>
+                      <p style="margin:0;font-size:11px;color:#B5B5B5;">
+                        © ${new Date().getFullYear()} YourFairyTale.ai · Sent to ${order.user_email}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `;
@@ -203,7 +200,7 @@ serve(async (req) => {
     const { error: emailError } = await resend.emails.send({
       from: "YourFairyTale.ai <onboarding@resend.dev>",
       to: [order.user_email],
-      subject: `✨ Your Magical Storybook is Ready!`,
+      subject: `✨ ${heroName}'s storybook has arrived`,
       html: emailHtml,
     });
 
