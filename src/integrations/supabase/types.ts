@@ -300,7 +300,6 @@ export type Database = {
         | "payment_received"
         | "generating_images"
         | "pending_admin_review"
-        | "approved"
         | "email_sent"
         | "cancelled"
         | "pages_in_progress"
@@ -438,7 +437,6 @@ export const Constants = {
         "payment_received",
         "generating_images",
         "pending_admin_review",
-        "approved",
         "email_sent",
         "cancelled",
         "pages_in_progress",
