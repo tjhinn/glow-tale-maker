@@ -11,6 +11,7 @@ import { Search } from "lucide-react";
 type StatusFilter =
   | "all"
   | "needs_attention"
+  | "pending_payment"
   | "payment_received"
   | "pending_admin_review"
   | "approved"
@@ -38,6 +39,7 @@ export function OrderFilters({
         <SelectContent>
           <SelectItem value="all">All Orders</SelectItem>
           <SelectItem value="needs_attention">⚠️ Needs Attention</SelectItem>
+          <SelectItem value="pending_payment">⏳ Awaiting Payment</SelectItem>
           <SelectItem value="payment_received">Payment Received</SelectItem>
           <SelectItem value="pending_admin_review">Pending Review</SelectItem>
           <SelectItem value="approved">Approved</SelectItem>

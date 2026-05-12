@@ -1,9 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Loader2, FileText, Send, RotateCcw, XCircle, BookOpen } from "lucide-react";
+import { Loader2, FileText, Send, RotateCcw, XCircle, BookOpen, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { PageReview } from "./PageReview";
 import { getFreshaSignedPdfUrl } from "@/lib/pdfSignedUrl";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type OrderStatus =
   | "payment_received"
@@ -13,7 +24,8 @@ type OrderStatus =
   | "pending_admin_review"
   | "approved"
   | "email_sent"
-  | "cancelled";
+  | "cancelled"
+  | "pending_payment";
 
 interface BatchProgress {
   currentBatch: number;
@@ -34,6 +46,8 @@ interface OrderActionsProps {
   onRegeneratePdf: (orderId: string) => void;
   onRegeneratePages: (orderId: string) => void;
   onRetry: (orderId: string) => void;
+  onDelete: (orderId: string) => void;
+  isDeleting: boolean;
   generatedPages?: any[];
   totalPages?: number;
   onRefetch?: () => void;
@@ -52,6 +66,8 @@ export function OrderActions({
   onRegeneratePdf,
   onRegeneratePages,
   onRetry,
+  onDelete,
+  isDeleting,
   generatedPages = [],
   totalPages = 12,
   onRefetch,
@@ -332,6 +348,45 @@ export function OrderActions({
         </Button>
       )}
       {renderActions()}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isDeleting}
+            className="w-full mt-2 text-destructive border-destructive/30 hover:bg-destructive/10"
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Order
+              </>
+            )}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the order from the database. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onDelete(orderId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
