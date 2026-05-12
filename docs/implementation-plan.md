@@ -239,7 +239,7 @@ LemonSqueezy payments working in test + live modes.
 Watermark clears only after payment success.
 
 
-Download links expire in 7 days.
+Download links expire in 1 month.
 
 
 No animation overload (respect prefers-reduced-motion).

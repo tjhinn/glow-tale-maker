@@ -619,10 +619,10 @@ serve(async (req) => {
         throw new Error(`Failed to upload PDF: ${uploadError.message}`);
       }
 
-      // Generate 7-day signed URL
+      // Generate 1-month signed URL
       const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from("generated-pdfs")
-        .createSignedUrl(fileName, 60 * 60 * 24 * 7); // 7 days
+        .createSignedUrl(fileName, 60 * 60 * 24 * 30); // 1 month
 
       if (signedUrlError || !signedUrlData) {
         throw new Error(`Failed to create signed URL: ${signedUrlError?.message}`);

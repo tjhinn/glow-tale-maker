@@ -187,7 +187,7 @@ Mitigation
 Low checkout conversion on mobile
 Keep single-column flow, sticky CTA, short inputs
 User privacy concerns (photos)
-Signed uploads, no persistent storage beyond 7 days
+Signed uploads, no persistent storage beyond 1 month
 Art style inconsistency
 Restrict to one illustrated style per story
 Performance drop with large PDFs
