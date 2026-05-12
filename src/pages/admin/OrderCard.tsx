@@ -44,7 +44,6 @@ const getStatusColor = (status: string) => {
     payment_received: "bg-blue-500",
     generating_images: "bg-yellow-500",
     pending_admin_review: "bg-orange-500",
-    approved: "bg-green-500",
     email_sent: "bg-emerald-500",
     cancelled: "bg-gray-500",
   };
