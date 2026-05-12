@@ -1,47 +1,65 @@
-Do I know what the issue is? Yes.
+## Goal
 
-The hosted backend is healthy, the checkout function is being called, and all required LemonSqueezy secrets exist. The failure is specifically LemonSqueezy rejecting the current `LEMONSQUEEZY_API_KEY` with HTTP 401.
+1. Give admins a way to manually delete any order from the Order Management page (with a confirmation prompt).
+2. Surface the previously-hidden `pending_payment` orders so admins can see what's "hanging".
+3. Automatically delete `pending_payment` orders that have been sitting unpaid for more than 120 minutes (2 × 60).
 
-What changed from the logs:
-- Before the secret update, LemonSqueezy said: `Your API key has expired.`
-- After the secret update, LemonSqueezy says: `Unauthenticated.`
+## Context found
 
-That means the new secret value is reaching the backend, but LemonSqueezy does not accept it as a valid API key. This is most likely because the pasted value is the wrong credential, incomplete, copied with extra text/spaces, revoked, or not the LemonSqueezy API key from the correct account.
+- Orders are inserted with `status = 'pending_payment'` by `create-lemonsqueezy-checkout`. The webhook later promotes them to `payment_received`.
+- The current admin filter dropdown does not include `pending_payment`, so abandoned checkouts are invisible in the UI today. There are 12 such rows already in the DB (all `tjhinn@gmail.com` from 2026‑05‑11).
+- `OrderActions.tsx` has no Delete button, and `AdminOrders.tsx` has no delete handler.
+- RLS on `orders` already allows admins to `DELETE`, so no policy change is needed.
 
-Plan to fix:
+## Changes
 
-1. Update the LemonSqueezy API key again
-   - Use a fresh LemonSqueezy API key from LemonSqueezy account settings.
-   - Store it in `LEMONSQUEEZY_API_KEY` only.
-   - Do not paste the Store ID, Variant ID, webhook secret, key name, or masked value.
+### 1. UI — manual delete
 
-2. Add safer backend diagnostics to the checkout function
-   - Keep the secret value hidden.
-   - Log only non-sensitive facts like whether the key exists, trimmed length, and a short non-secret fingerprint.
-   - Trim whitespace before sending the Authorization header.
-   - Return a clearer checkout setup error instead of the generic “Edge Function returned a non-2xx status code.”
+**`src/pages/admin/OrderActions.tsx`**
+- Add a small destructive "Delete Order" button at the bottom of every order card (shown for all statuses, not just cancelled).
+- Wrap it in a shadcn `AlertDialog` confirmation: "Delete this order permanently? This cannot be undone."
+- Accept a new `onDelete(orderId)` prop and an `isDeleting` flag.
 
-3. Verify the LemonSqueezy product setup
-   - Confirm `LEMONSQUEEZY_STORE_ID` and `LEMONSQUEEZY_VARIANT_ID` still point to the same LemonSqueezy account as the API key.
-   - If the key belongs to a different LemonSqueezy account, checkout will continue to fail.
+**`src/pages/AdminOrders.tsx`**
+- Add `deletingOrders` state set + `handleDelete(orderId)` that calls `supabase.from('orders').delete().eq('id', orderId)`, toasts result, then `refetch()`.
+- Pass `onDelete` and `isDeleting` into `<OrderActions>`.
 
-4. Test checkout after the secret update
-   - Run the checkout function and confirm LemonSqueezy returns a checkout URL.
-   - Confirm the app redirects to LemonSqueezy instead of showing the red error toast.
+**`src/pages/admin/OrderFilters.tsx`**
+- Add `"pending_payment"` to the `StatusFilter` union and a new `<SelectItem value="pending_payment">⏳ Awaiting Payment</SelectItem>` option so admins can find these orders.
+- Mirror the union update in `AdminOrders.tsx`.
 
-5. Update project docs
-   - Mark the checkout debugging task in `docs/tasks.md` with the completed fix and testing steps.
+**`src/pages/admin/OrderCard.tsx`**
+- Add `pending_payment: "bg-slate-400"` to `getStatusColor` so the new badge renders cleanly.
 
-How to test after implementation:
-- Go to `/checkout`.
-- Enter an email.
-- Click “Pay Securely”.
-- Expected result: the browser redirects to a LemonSqueezy hosted checkout page.
+### 2. Auto-delete after 120 minutes
 
-<lov-actions>
-  <lov-open-history>View History</lov-open-history>
-</lov-actions>
+**New edge function `supabase/functions/cleanup-pending-orders/index.ts`**
+- Uses the service-role client.
+- Deletes from `orders` where `status = 'pending_payment'` AND `created_at < now() - interval '120 minutes'`.
+- Returns `{ deleted: <count> }` and logs the count.
+- Standard CORS + try/catch.
 
-<lov-actions>
-<lov-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</lov-link>
-</lov-actions>
+**Scheduled job (via `supabase--insert`, not migration, since it embeds project URL + anon key)**
+- Enable `pg_cron` and `pg_net` extensions (idempotent).
+- Schedule the function to run every 15 minutes:
+  ```sql
+  select cron.schedule(
+    'cleanup-pending-orders-every-15min',
+    '*/15 * * * *',
+    $$ select net.http_post(
+      url := 'https://aoszitfxsnwxbocthejl.supabase.co/functions/v1/cleanup-pending-orders',
+      headers := '{"Content-Type":"application/json","apikey":"<anon>"}'::jsonb,
+      body := '{}'::jsonb
+    ); $$
+  );
+  ```
+
+### 3. Optional cleanup of existing backlog
+
+After the user confirms, run a one-off `DELETE FROM orders WHERE status = 'pending_payment' AND created_at < now() - interval '120 minutes'` via the insert tool to clear the 12 currently-hanging orders, OR just let the cron job do it on its first run.
+
+## Out of scope
+
+- No changes to the checkout function itself (the webhook will still promote real payments to `payment_received` before the 2h window).
+- No change to RLS policies (admins already have DELETE).
+- No soft-delete / archive table — user asked for true deletion.

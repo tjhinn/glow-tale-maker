@@ -40,6 +40,7 @@ interface OrderCardProps {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
+    pending_payment: "bg-slate-400",
     payment_received: "bg-blue-500",
     generating_images: "bg-yellow-500",
     pending_admin_review: "bg-orange-500",
