@@ -214,7 +214,7 @@ Confetti burst + thank-you toast
 Payment triggers Lovable Cloud function → generates full-resolution, non-watermarked PDF.
 
 
-Email confirmation with download link (expires in 7 days).
+Email confirmation with download link (expires in 1 month).
 
 
 🪶 Illustration Role
