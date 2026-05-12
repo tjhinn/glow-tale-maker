@@ -35,6 +35,7 @@ type OrderStatus =
 type StatusFilter =
   | "all"
   | "needs_attention"
+  | "pending_payment"
   | "payment_received"
   | "pending_admin_review"
   | "approved"
@@ -51,6 +52,7 @@ const AdminOrders = () => {
   const [regeneratingPdfOrders, setRegeneratingPdfOrders] = useState<Set<string>>(
     new Set()
   );
+  const [deletingOrders, setDeletingOrders] = useState<Set<string>>(new Set());
 
   const { data: orders, isLoading, refetch } = useQuery({
     queryKey: ["admin-orders", statusFilter, searchQuery],
@@ -208,6 +210,24 @@ const AdminOrders = () => {
     }
   };
 
+  const handleDelete = async (orderId: string) => {
+    setDeletingOrders((prev) => new Set(prev).add(orderId));
+    try {
+      const { error } = await supabase.from("orders").delete().eq("id", orderId);
+      if (error) throw error;
+      toast({ title: "Order deleted", description: "The order was permanently removed." });
+      refetch();
+    } catch (error) {
+      handleError(error, { context: "delete", toast });
+    } finally {
+      setDeletingOrders((prev) => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <PageWrapper>
@@ -265,6 +285,8 @@ const AdminOrders = () => {
                   onRegeneratePdf={handleRegeneratePdf}
                   onRegeneratePages={handleRegeneratePages}
                   onRetry={handleRetry}
+                  onDelete={handleDelete}
+                  isDeleting={deletingOrders.has(order.id)}
                   generatedPages={(order as any).generated_pages || []}
                   totalPages={Array.isArray((order as any).story?.pages) ? (order as any).story.pages.length : 12}
                   onRefetch={refetch}
