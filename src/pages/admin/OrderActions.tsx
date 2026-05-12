@@ -22,7 +22,6 @@ type OrderStatus =
   | "pages_in_progress"
   | "pages_ready_for_review"
   | "pending_admin_review"
-  | "approved"
   | "email_sent"
   | "cancelled"
   | "pending_payment";
@@ -250,7 +249,6 @@ export function OrderActions({
           </div>
         );
 
-      case "approved":
       case "email_sent":
         return (
           <div className="space-y-2">
