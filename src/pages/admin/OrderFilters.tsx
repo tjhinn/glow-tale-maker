@@ -14,7 +14,6 @@ type StatusFilter =
   | "pending_payment"
   | "payment_received"
   | "pending_admin_review"
-  | "approved"
   | "email_sent";
 
 interface OrderFiltersProps {
@@ -42,7 +41,6 @@ export function OrderFilters({
           <SelectItem value="pending_payment">⏳ Awaiting Payment</SelectItem>
           <SelectItem value="payment_received">Payment Received</SelectItem>
           <SelectItem value="pending_admin_review">Pending Review</SelectItem>
-          <SelectItem value="approved">Approved</SelectItem>
           <SelectItem value="email_sent">Completed</SelectItem>
         </SelectContent>
       </Select>
