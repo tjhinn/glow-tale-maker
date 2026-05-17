@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Upload, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PageWrapper } from "@/components/layout/PageWrapper";
@@ -25,6 +26,7 @@ const Personalize = () => {
     favoriteColor: "",
     photo: null as File | null
   });
+  const [consentGiven, setConsentGiven] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>("");
   // Reset any stale share discount / order state from a previous abandoned flow
@@ -65,6 +67,14 @@ const Personalize = () => {
       toast({
         title: "Missing information",
         description: "Please fill in your child's name, gender, and upload a photo to continue.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (!consentGiven) {
+      toast({
+        title: "Consent required",
+        description: "Please confirm parental consent to upload the photo.",
         variant: "destructive"
       });
       return;
@@ -286,6 +296,19 @@ const Personalize = () => {
                   <Sparkles className="h-4 w-4 text-accent" />
                   {formData.photo.name}
                 </div>}
+            </div>
+
+            {/* Parental consent */}
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-secondary/20 border border-primary/10">
+              <Checkbox
+                id="consent"
+                checked={consentGiven}
+                onCheckedChange={(checked) => setConsentGiven(checked === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="consent" className="text-sm font-normal leading-snug cursor-pointer">
+                I confirm I'm the parent/guardian and consent to uploading this photo.
+              </Label>
             </div>
 
             {/* Navigation Buttons */}
