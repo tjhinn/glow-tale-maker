@@ -8,6 +8,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function requireAdmin(req: Request): Promise<Response | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: userErr } = await userClient.auth.getUser();
+  if (userErr || !user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const { data: roleData } = await userClient
+    .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+  if (!roleData) {
+    return new Response(JSON.stringify({ error: "Forbidden: admin required" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  return null;
+}
+
 // Batch configuration
 const PAGES_PER_BATCH = 2;
 const TOTAL_BATCHES = 6;
@@ -326,6 +354,9 @@ serve(async (req) => {
   let orderId: string | null = null;
 
   try {
+    const denied = await requireAdmin(req);
+    if (denied) return denied;
+
     const body = await req.json();
     orderId = body.orderId;
     const batch = body.batch || 1; // Default to batch 1
