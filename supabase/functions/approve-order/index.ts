@@ -7,6 +7,43 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function escapeHtml(str: string): string {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+async function requireAdmin(req: Request): Promise<Response | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: userErr } = await userClient.auth.getUser();
+  if (userErr || !user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const { data: roleData } = await userClient
+    .from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+  if (!roleData) {
+    return new Response(JSON.stringify({ error: "Forbidden: admin required" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  return null;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -14,6 +51,9 @@ serve(async (req) => {
   }
 
   try {
+    const denied = await requireAdmin(req);
+    if (denied) return denied;
+
     // Initialize clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -67,28 +107,29 @@ serve(async (req) => {
 
     // Extract personalization data
     const personalization = order.personalization_data as any;
-    const heroName = personalization?.heroName || "Little Hero";
+    const rawHeroName = personalization?.heroName || "Little Hero";
+    const heroName = escapeHtml(rawHeroName);
 
     // Replace personalization placeholders in any string (e.g. story title)
     const replacePlaceholders = (text: string) => {
       if (!text) return text;
       return text
-        .replace(/{heroName}/g, personalization?.heroName || "")
-        .replace(/{petName}/g, personalization?.petName || "")
-        .replace(/{petType}/g, personalization?.petType || "")
-        .replace(/{favoriteColor}/g, personalization?.favoriteColor || "")
-        .replace(/{favoriteFood}/g, personalization?.favoriteFood || "")
-        .replace(/{city}/g, personalization?.city || "");
+        .replace(/{heroName}/g, escapeHtml(personalization?.heroName || ""))
+        .replace(/{petName}/g, escapeHtml(personalization?.petName || ""))
+        .replace(/{petType}/g, escapeHtml(personalization?.petType || ""))
+        .replace(/{favoriteColor}/g, escapeHtml(personalization?.favoriteColor || ""))
+        .replace(/{favoriteFood}/g, escapeHtml(personalization?.favoriteFood || ""))
+        .replace(/{city}/g, escapeHtml(personalization?.city || ""));
     };
 
     const storyTitle = replacePlaceholders(
       order.stories?.title || "Your Magical Storybook"
     );
 
-    console.log(`Sending email for hero: ${heroName}, story: ${storyTitle}`);
+    console.log(`[Order ${orderId}] Sending approval email`);
 
     // Send email
-    console.log(`Sending email to: ${order.user_email}`);
+    console.log(`[Order ${orderId}] Dispatching to recipient`);
     
     const headingFont = "'Fredoka', 'Trebuchet MS', 'Comic Sans MS', sans-serif";
     const bodyFont = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -200,7 +241,7 @@ serve(async (req) => {
     const { error: emailError } = await resend.emails.send({
       from: "YourFairyTale.ai <onboarding@resend.dev>",
       to: [order.user_email],
-      subject: `✨ ${heroName}'s storybook has arrived`,
+      subject: `✨ ${rawHeroName}'s storybook has arrived`,
       html: emailHtml,
     });
 
