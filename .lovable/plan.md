@@ -1,68 +1,75 @@
-## Why
+## Goal
 
-The customer email sent on order approval lives in `supabase/functions/approve-order/index.ts` (hardcoded HTML — no Resend dashboard needed). It currently looks generic and has two bugs visible in your screenshot:
+Replace `.lovable/plan.md` with a soft-launch readiness checklist so we can pick it up next session.
 
-1. The story title still shows the literal `{heroName}` placeholder (e.g. `"{heroName}, the Cloud Painter"`) — placeholders aren't being substituted before the title is injected into the email.
-2. The "available for 7 days" copy is still showing, even though we updated the link TTL to 1 month last round. The deployed function is stale and/or the title bug fix never landed in this codepath.
+## File to update
 
-## Bug fixes
+- `.lovable/plan.md` — overwrite the existing (stale) email-template plan with the checklist below.
 
-**1. Replace placeholders in the story title**
+## New `.lovable/plan.md` contents
 
-Before injecting `storyTitle` into the email HTML, run the same placeholder replacement we already use elsewhere (e.g. `ThankYou.tsx`'s `replaceStoryPlaceholders`). Pull values from `order.personalization_data` and substitute `{heroName}`, `{petName}`, `{petType}`, `{favoriteColor}`, `{favoriteFood}`, `{city}`.
+```markdown
+# Soft Launch Readiness — YourFairyTale.ai
 
-**2. "7 days" → "1 month"**
+Status: in progress. Resume from the first unchecked item.
 
-Verify line ~182 already says "1 month" (it does in the source — the screenshot is from a pre-fix send or a stale deploy). Redeploying `approve-order` after this edit will fix it going forward.
+## Launch blockers (must fix before inviting anyone)
 
-## Design refresh (fully on-brand)
+- [ ] **Buy custom domain** via Project Settings → Domains → Buy new domain (e.g. `yourfairytale.ai`). Auto-connects + SSL on publish.
+- [ ] **Verify sending domain in Resend**
+  - Add domain in Resend → Domains
+  - Add SPF, DKIM, DMARC DNS records (manage via Project Settings → Domains → ⋯ → Configure → Manage DNS records, since domain is bought through Lovable)
+  - Wait for "Verified" status
+- [ ] **Update `from` addresses** away from `onboarding@resend.dev`
+  - `supabase/functions/approve-order/index.ts`
+  - `supabase/functions/create-lemonsqueezy-checkout/index.ts`
+  - Use e.g. `YourFairyTale <hello@yourfairytale.ai>`
+- [ ] **Switch LemonSqueezy from test → live mode**
+  - Rotate secrets: `LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_VARIANT_ID`
+  - Update webhook URL in LemonSqueezy dashboard → live store
+  - Rotate `LEMONSQUEEZY_WEBHOOK_SECRET`
+- [ ] **Fix hardcoded admin recipient** in `create-lemonsqueezy-checkout/index.ts`
+  - Currently `admin@yourfairytale.ai` (mailbox doesn't exist yet)
+  - Swap to a real inbox until mailbox is set up
+- [ ] **Wipe test data** before launch
+  - Delete the 3 test orders
+  - Clear `order-images` bucket
+  - Clear generated test PDFs
+  - **Preserve:** `stories`, `reviews`, `carousel_images`, `user_roles`
+- [ ] **Publish to custom domain**
+- [ ] **Run one real end-to-end paid test** with a live card → refund afterward
 
-Rebuild the HTML template to feel like the app — storybook warmth, Fredoka headings, brand palette, sparkle accents, paper-white background.
+## Strongly recommended
 
-**Visual system**
-- Background: `#FFFDF8` (paper white) outside the card; white `#FFFFFF` inside
-- Card: `border-radius: 24px`, soft shadow `0 8px 32px rgba(255, 139, 0, 0.12)`, max-width 600px
-- Header band: gradient `linear-gradient(135deg, #FF8B00 0%, #FFB347 50%, #FFE97F 100%)` with subtle sparkle emoji decorations
-- Primary CTA button: solid `#FF8B00`, white text, 50px radius, glow shadow `0 6px 20px rgba(255, 139, 0, 0.35)`, hover darken
-- Accent divider: thin `#7A5FFF` (violet) line under the heading for a "magical" touch
-- Info note: soft gold `#FFF8E1` background, left border `#FFE97F`, with a small book emoji
-- Typography: Fredoka via Google Fonts `<link>` in `<head>` for headings, Inter fallback for body. Email-safe fallback stack: `Fredoka, 'Comic Sans MS', 'Trebuchet MS', sans-serif` for headings; `Inter, -apple-system, Segoe UI, sans-serif` for body. (Many email clients strip web fonts — fallbacks ensure it still feels friendly.)
+- [ ] Confirm `cleanup-pending-orders` cron is active and running
+- [ ] Document admin fulfillment SOP (cover gen → page review → PDF compile → approve)
+- [ ] Set up email rule so order notifications don't get lost
 
-**Layout (top to bottom)**
-1. Gradient header — large Fredoka heading "✨ {heroName}'s Story is Ready ✨" (uses replaced name, not literal placeholder)
-2. Soft personalized greeting — "Hi there 👋"
-3. Warm intro paragraph mentioning the personalized story title and the child's name
-4. Hero illustration moment — sparkle divider line + a single italic line like "*Turn the page — the magic begins…*"
-5. Big glowing CTA button — "📖 Open {heroName}'s Storybook"
-6. Soft gold info note — "Your storybook lives at this link for **1 month**. Save it to your device so you can read it again and again." 
-7. Closing line — "With love and a little bit of magic, ✨" / "The YourFairyTale.ai Team"
-8. Footer — copyright, sent-to address, small muted text
+## Legal & trust
 
-**Copy rewrite (warmer, on-brand voice — matches the "kind, nurturing, magical" tone)**
+- [ ] Review `/terms`, `/refund`, `/privacy` content
+- [x] Parental consent checkbox on Personalize page
+- [ ] Confirm 1-month download link expiry matches actual storage TTL
 
-Replace the current corporate phrasing ("We're thrilled to let you know that…") with storybook voice. Examples:
-- Subject: `✨ {heroName}'s storybook has arrived`
-- Heading: `✨ {heroName}'s Story is Ready ✨`
-- Intro: `Something magical just happened. {heroName}'s very own fairy tale — "{storyTitle}" — has been lovingly illustrated, page by page, and is ready to be read tonight.`
-- Sub-line: `Every sparkle, every brushstroke, every word — made just for {heroName}.`
-- CTA: `📖 Open {heroName}'s Storybook`
-- Info note: `Your download link will be available for 1 month. Save the storybook to your device so {heroName} can revisit the magic anytime.`
-- Sign-off: `With love and a little bit of magic, ✨\nThe YourFairyTale.ai Team`
+## Monitoring & security
 
-All `{heroName}` and `{storyTitle}` references in the copy will be substituted server-side before the HTML string is built.
+- [ ] Review Edge Function logs for recent errors
+- [ ] Run `security--run_security_scan` and resolve findings
+- [ ] Run Supabase linter
 
-## Files changed
+## Nice-to-have (post-soft-launch)
 
-- `supabase/functions/approve-order/index.ts` — replace the `emailHtml` template, add a small `replacePlaceholders(text, personalization)` helper at the top of the handler, run it on `storyTitle` before composing the HTML, update the subject line.
+- [ ] SEO basics (title, meta description, OG image, sitemap)
+- [ ] Analytics (Plausible / PostHog)
+- [ ] Sentry for error tracking
+- [ ] "Beta" badge in header
+- [ ] Audit loading / empty / error states across all pages
+
+## Execution order
+
+1. Buy domain → 2. Verify in Resend → 3. Update `from` addresses → 4. LemonSqueezy live + secrets → 5. Fix admin email → 6. Wipe test data → 7. Publish → 8. Real paid test → 9. Legal review → 10. Security scan → 11. Invite beta users
+```
 
 ## Out of scope
 
-- No changes to delivery (still Resend via `onboarding@resend.dev` sender — let me know if you want to switch to a verified branded sender domain like `hello@yourfairytale.ai`, that's a separate setup).
-- No changes to auth emails or other edge functions.
-- No DB changes.
-
-## Notes
-
-- The function auto-redeploys on save, so the "7 days" bug disappears as soon as the new code lands.
-- Email clients are notoriously strict — the design uses inline styles, table-free flex with simple block layout, and web-safe font fallbacks so it renders cleanly in Gmail, Apple Mail, and Outlook.
-- I'll keep the HTML self-contained (no external CSS, no JS) as required by email rendering.
+No code edits — this is documentation only.
