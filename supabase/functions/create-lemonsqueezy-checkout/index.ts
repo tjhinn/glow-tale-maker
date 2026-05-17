@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -9,21 +10,55 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const ALLOWED_ORIGINS = new Set<string>([
+  "https://your-fairy-tale.lovable.app",
+  "https://yourfairytale.ai",
+  "https://www.yourfairytale.ai",
+]);
+const DEFAULT_ORIGIN = "https://your-fairy-tale.lovable.app";
+
 const getSiteOrigin = (req: Request) => {
   const origin = req.headers.get("origin");
-  if (origin?.startsWith("http")) return origin;
-
+  if (origin && ALLOWED_ORIGINS.has(origin)) return origin;
   const referer = req.headers.get("referer");
   if (referer) {
     try {
-      return new URL(referer).origin;
+      const refOrigin = new URL(referer).origin;
+      if (ALLOWED_ORIGINS.has(refOrigin)) return refOrigin;
     } catch (_error) {
-      // Fall back below
+      // ignore
     }
   }
-
-  return "https://your-fairy-tale.lovable.app";
+  return DEFAULT_ORIGIN;
 };
+
+function escapeHtml(str: string): string {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
+const paymentRequestSchema = z.object({
+  userEmail: z.string().trim().email().max(254),
+  amount: z.number().int().positive().max(999999),
+  discountApplied: z.boolean(),
+  discountCode: z.string().max(50).optional(),
+  storyId: z.string().uuid(),
+  personalizationData: z.object({
+    heroName: z.string().trim().min(1).max(50),
+    gender: z.string().max(20),
+    petType: z.string().max(30).optional().default(""),
+    petName: z.string().max(30).optional().default(""),
+    favoriteColor: z.string().max(30).optional().default(""),
+    favoriteFood: z.string().max(50).optional().default(""),
+    city: z.string().max(80).optional().default(""),
+    originalPhotoUrl: z.string().url().max(2048),
+    personalizedCoverUrl: z.string().url().max(2048).optional(),
+  }),
+});
 
 interface PaymentRequest {
   userEmail: string;
@@ -50,7 +85,18 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const paymentRequest: PaymentRequest = await req.json();
+    const rawBody = await req.json();
+    const parsed = paymentRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid input",
+          details: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
+        }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
+      );
+    }
+    const paymentRequest = parsed.data as unknown as PaymentRequest;
 
     // Get environment variables (trim to defend against accidental whitespace/newlines)
     const LEMONSQUEEZY_API_KEY = Deno.env.get("LEMONSQUEEZY_API_KEY")?.trim();
@@ -103,10 +149,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Failed to create order");
     }
 
-    console.log("Order created:", order.id);
+    console.log(`[Order ${order.id}] Created`);
 
     // Send admin notification email
     try {
+      const p = paymentRequest.personalizationData;
       await resend.emails.send({
         from: "YourFairyTale <onboarding@resend.dev>",
         to: ["admin@yourfairytale.ai"],
@@ -114,22 +161,22 @@ const handler = async (req: Request): Promise<Response> => {
         html: `
           <h2>New Storybook Order</h2>
           <p><strong>Order ID:</strong> ${order.id}</p>
-          <p><strong>Customer Email:</strong> ${paymentRequest.userEmail}</p>
+          <p><strong>Customer Email:</strong> ${escapeHtml(paymentRequest.userEmail)}</p>
           <p><strong>Amount:</strong> $${(paymentRequest.amount / 100).toFixed(2)} USD</p>
           <p><strong>Discount Applied:</strong> ${paymentRequest.discountApplied ? "Yes" : "No"}</p>
           <hr>
           <h3>Personalization Details:</h3>
           <ul>
-            <li><strong>Hero Name:</strong> ${paymentRequest.personalizationData.heroName}</li>
-            <li><strong>Gender:</strong> ${paymentRequest.personalizationData.gender}</li>
-            <li><strong>Pet:</strong> ${paymentRequest.personalizationData.petName} (${paymentRequest.personalizationData.petType})</li>
-            <li><strong>Favorite Color:</strong> ${paymentRequest.personalizationData.favoriteColor}</li>
-            <li><strong>Favorite Food:</strong> ${paymentRequest.personalizationData.favoriteFood}</li>
-            <li><strong>City:</strong> ${paymentRequest.personalizationData.city}</li>
+            <li><strong>Hero Name:</strong> ${escapeHtml(p.heroName)}</li>
+            <li><strong>Gender:</strong> ${escapeHtml(p.gender)}</li>
+            <li><strong>Pet:</strong> ${escapeHtml(p.petName)} (${escapeHtml(p.petType)})</li>
+            <li><strong>Favorite Color:</strong> ${escapeHtml(p.favoriteColor)}</li>
+            <li><strong>Favorite Food:</strong> ${escapeHtml(p.favoriteFood)}</li>
+            <li><strong>City:</strong> ${escapeHtml(p.city)}</li>
           </ul>
         `,
       });
-      console.log("Admin notification email sent");
+      console.log(`[Order ${order.id}] Admin notification email sent`);
     } catch (emailError) {
       console.error("Failed to send admin email:", emailError);
       // Don't fail the order if email fails
@@ -207,7 +254,7 @@ const handler = async (req: Request): Promise<Response> => {
     const lemonSqueezyData = await lemonSqueezyResponse.json();
     const checkoutUrl = lemonSqueezyData.data.attributes.url;
 
-    console.log("LemonSqueezy checkout created:", checkoutUrl);
+    console.log(`[Order ${order.id}] LemonSqueezy checkout created`);
 
     return new Response(
       JSON.stringify({
