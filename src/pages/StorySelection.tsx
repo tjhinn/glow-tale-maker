@@ -169,18 +169,9 @@ const StorySelection = () => {
               if (uploadError) {
                 throw new Error(`Upload failed: ${uploadError.message}`);
               }
-              
-              // Verify the upload exists
-              const { data: verifyData } = await supabase.storage
-                .from('hero-photos')
-                .list('', { search: fileName });
-              
-              if (!verifyData || verifyData.length === 0) {
-                throw new Error("Upload verification failed - file not found");
-              }
-              
+
               // Get a signed URL via edge function (bucket is private; anon
-              // cannot read directly).
+              // cannot read directly). This also verifies the upload exists.
               const { data: signData, error: signError } = await supabase.functions.invoke(
                 'sign-hero-photo',
                 { body: { path: fileName } }
