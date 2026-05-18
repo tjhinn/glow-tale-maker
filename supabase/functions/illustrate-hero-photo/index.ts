@@ -128,17 +128,20 @@ serve(async (req) => {
       throw new Error(`Failed to upload illustrated hero: ${uploadError.message}`);
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
+    // Get a long-lived signed URL (private bucket).
+    const { data: urlData, error: signError } = await supabase.storage
       .from("hero-photos")
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 60 * 60 * 24 * 90);
+    if (signError || !urlData?.signedUrl) {
+      throw new Error(`Failed to sign illustrated hero URL: ${signError?.message ?? "unknown"}`);
+    }
 
     console.log(`[${orderId}] ✅ Hero illustration complete!`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        illustratedHeroUrl: urlData.publicUrl,
+        illustratedHeroUrl: urlData.signedUrl,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
