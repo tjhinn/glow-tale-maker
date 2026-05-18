@@ -116,17 +116,17 @@ const AdminCarousel = () => {
 
     setUploading(true);
     try {
-      // Upload to hero-photos bucket
+      // Upload to story-images bucket (public; carousel images are marketing assets,
+      // not customer-uploaded child photos).
       const fileName = `carousel-${Date.now()}-${imageFile.name}`;
       const { error: uploadError } = await supabase.storage
-        .from('hero-photos')
+        .from('story-images')
         .upload(fileName, imageFile);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('hero-photos')
+        .from('story-images')
         .getPublicUrl(fileName);
 
       // Insert into database

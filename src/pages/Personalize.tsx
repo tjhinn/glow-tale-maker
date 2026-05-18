@@ -86,13 +86,13 @@ const Personalize = () => {
     try {
       // Upload photo if exists
       if (formData.photo) {
-        const fileExt = formData.photo.name.split('.').pop();
-        const fileName = `original-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `${fileName}`;
-        const {
-          error: uploadError
-        } = await supabase.storage.from('hero-photos').upload(filePath, formData.photo);
-        if (uploadError) {
+        setLoadingMessage("Uploading photo…");
+        const base64 = await fileToBase64(formData.photo);
+        const { data: uploadData, error: uploadError } = await supabase.functions.invoke(
+          'upload-hero-photo',
+          { body: { base64, contentType: formData.photo.type } }
+        );
+        if (uploadError || !uploadData?.path || !uploadData?.signedUrl) {
           toast({
             title: "Upload failed",
             description: "Failed to upload photo. Please try again.",
@@ -101,13 +101,8 @@ const Personalize = () => {
           setIsLoading(false);
           return;
         }
-        uploadedFilePath = filePath;
-        const {
-          data: {
-            publicUrl
-          }
-        } = supabase.storage.from('hero-photos').getPublicUrl(filePath);
-        originalPhotoUrl = publicUrl;
+        uploadedFilePath = uploadData.path;
+        originalPhotoUrl = uploadData.signedUrl;
 
         // Validate the photo with AI before proceeding
         setLoadingMessage("Checking your photo…");
@@ -117,7 +112,6 @@ const Personalize = () => {
         );
 
         if (validationError) {
-          await supabase.storage.from('hero-photos').remove([uploadedFilePath]);
           toast({
             title: "Could not check photo",
             description: "Please try again in a moment.",
@@ -128,7 +122,6 @@ const Personalize = () => {
         }
 
         if (validation && validation.valid === false) {
-          await supabase.storage.from('hero-photos').remove([uploadedFilePath]);
           setFormData(prev => ({ ...prev, photo: null }));
           toast({
             title: "Let's try a different photo",
@@ -148,7 +141,8 @@ const Personalize = () => {
         petName: formData.petName,
         favoriteColor: formData.favoriteColor,
         city: formData.city,
-        heroPhotoUrl: originalPhotoUrl
+        heroPhotoUrl: originalPhotoUrl,
+        heroPhotoPath: uploadedFilePath
       };
       localStorage.setItem("personalizationData", JSON.stringify(personalizationData));
       toast({
@@ -163,6 +157,17 @@ const Personalize = () => {
       setLoadingMessage("");
     }
   };
+
+  const fileToBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve(result.includes(",") ? result.split(",")[1] : result);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
   return <PageWrapper>
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
         <Card className="shadow-2xl border-2 border-primary/20 relative overflow-hidden">
