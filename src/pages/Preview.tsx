@@ -239,14 +239,15 @@ const Preview = () => {
               throw new Error(`Upload failed: ${uploadError.message}`);
             }
             
-            // Get a signed URL of the flattened image (private bucket)
-            const { data: urlData, error: signError } = await supabase.storage
-              .from('hero-photos')
-              .createSignedUrl(fileName, 60 * 60 * 24 * 90);
-            if (signError || !urlData?.signedUrl) {
+            // Get a signed URL via edge function (bucket is private).
+            const { data: signData, error: signError } = await supabase.functions.invoke(
+              'sign-hero-photo',
+              { body: { path: fileName } }
+            );
+            if (signError || !signData?.signedUrl) {
               throw new Error(`Sign failed: ${signError?.message ?? "unknown"}`);
             }
-            flattenedCoverUrl = urlData.signedUrl;
+            flattenedCoverUrl = signData.signedUrl;
             console.log("Regenerated cover with title uploaded:", flattenedCoverUrl);
             break; // Success, exit retry loop
             
