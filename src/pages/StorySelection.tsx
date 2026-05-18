@@ -179,14 +179,16 @@ const StorySelection = () => {
                 throw new Error("Upload verification failed - file not found");
               }
               
-              // Get a signed URL of the flattened image (private bucket)
-              const { data: urlData, error: signError } = await supabase.storage
-                .from('hero-photos')
-                .createSignedUrl(fileName, 60 * 60 * 24 * 90);
-              if (signError || !urlData?.signedUrl) {
+              // Get a signed URL via edge function (bucket is private; anon
+              // cannot read directly).
+              const { data: signData, error: signError } = await supabase.functions.invoke(
+                'sign-hero-photo',
+                { body: { path: fileName } }
+              );
+              if (signError || !signData?.signedUrl) {
                 throw new Error(`Sign failed: ${signError?.message ?? "unknown"}`);
               }
-              flattenedCoverUrl = urlData.signedUrl;
+              flattenedCoverUrl = signData.signedUrl;
               console.log("Flattened cover with title uploaded and verified:", flattenedCoverUrl);
               break; // Success, exit retry loop
               
