@@ -230,16 +230,19 @@ OUTPUT REQUIREMENTS:
       throw new Error(`Failed to upload personalized cover: ${uploadError.message}`);
     }
 
-    const { data: urlData } = supabase.storage
+    const { data: urlData, error: signError } = await supabase.storage
       .from("hero-photos")
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 60 * 60 * 24 * 90);
+    if (signError || !urlData?.signedUrl) {
+      throw new Error(`Failed to sign personalized cover URL: ${signError?.message ?? "unknown"}`);
+    }
 
     // Update job to completed
     await supabase
       .from('cover_generation_jobs')
       .update({ 
         status: 'completed', 
-        personalized_cover_url: urlData.publicUrl,
+        personalized_cover_url: urlData.signedUrl,
         updated_at: new Date().toISOString()
       })
       .eq('id', jobId);
