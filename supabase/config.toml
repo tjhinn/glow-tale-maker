@@ -24,3 +24,9 @@ verify_jwt = true
 
 [functions.cleanup-orphaned-storage]
 verify_jwt = true
+
+[functions.upload-hero-photo]
+verify_jwt = false
+
+[functions.sign-hero-photo]
+verify_jwt = false
