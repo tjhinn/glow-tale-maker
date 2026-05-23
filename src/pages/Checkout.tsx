@@ -16,7 +16,11 @@ const extractFunctionErrorMessage = async (error: any) => {
   if (response && typeof response.clone === "function") {
     try {
       const body = await response.clone().json();
-      if (typeof body?.error === "string") return body.error;
+      const detail = Array.isArray(body?.details) && body.details.length > 0 ? body.details[0] : null;
+      if (typeof body?.error === "string") {
+        return detail ? `${body.error}: ${detail}` : body.error;
+      }
+      if (detail) return String(detail);
     } catch (_parseError) {
       // Keep the original message fallback below.
     }
@@ -82,8 +86,11 @@ const Checkout = () => {
       // Ensure we're using the correct field names for backwards compatibility
       const paymentData = {
         ...personalizationData,
-        // Map old photoUrl to new structure if needed
-        originalPhotoUrl: personalizationData.originalPhotoUrl || personalizationData.photoUrl,
+        // Map legacy/new field names to the schema expected by the edge function
+        originalPhotoUrl:
+          personalizationData.originalPhotoUrl ||
+          personalizationData.heroPhotoUrl ||
+          personalizationData.photoUrl,
       };
 
       // Call edge function to create LemonSqueezy checkout
