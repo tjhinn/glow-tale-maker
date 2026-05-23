@@ -7,7 +7,6 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { Confetti } from "@/components/animations/Confetti";
 import { Sparkles as SparklesAnimation } from "@/components/animations/Sparkles";
 import { supabase } from "@/integrations/supabase/client";
-import sample1 from "@/assets/sample-story-1.jpg";
 const ThankYou = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,7 +15,6 @@ const ThankYou = () => {
   const [loading, setLoading] = useState(true);
   const [personalization, setPersonalization] = useState<any>(null);
   const [selectedStory, setSelectedStory] = useState<any>(null);
-  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   
   // Replace placeholders in story text with personalization data
   const replaceStoryPlaceholders = (text: string) => {
@@ -48,7 +46,6 @@ const ThankYou = () => {
           if (!error && data && !data.error) {
             setHeroName(data.heroName || "your little hero");
             setPersonalization({ heroName: data.heroName });
-            setCoverUrl(data.personalizedCoverUrl || null);
             if (data.story) setSelectedStory(data.story);
           } else {
             tryLocalStorage();
@@ -73,7 +70,6 @@ const ThankYou = () => {
         const data = JSON.parse(savedData);
         setHeroName(data?.heroName || "your little hero");
         setPersonalization(data);
-        setCoverUrl(data?.personalizedCoverUrl || null);
       } else {
         setHeroName("your little hero");
       }
@@ -133,32 +129,6 @@ const ThankYou = () => {
               </p>
             </div>
           </CardHeader>
-        </Card>
-
-        {/* Preview Sneak Peek */}
-        <Card className="shadow-xl border-2 border-primary/30 mb-8 hover:glow-primary transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-accent/20 to-primary/20">
-            <CardTitle className="text-2xl text-center font-heading">
-              A Sneak Peek at the Magic
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8 text-center space-y-6">
-            <div className="mb-6 relative group max-w-md mx-auto">
-              <img 
-                src={coverUrl || sample1} 
-                alt="Preview of your personalized storybook cover featuring your child as the hero" 
-                className="w-full aspect-[4/3] object-cover block rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
-              />
-              
-              {/* Title is now baked into the image - no overlay needed */}
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-            </div>
-            
-            <p className="text-base text-muted-foreground">
-              ✨ Watch your inbox! Your completed storybook will arrive within 24 hours.
-            </p>
-          </CardContent>
         </Card>
 
         {/* Back to Home */}
