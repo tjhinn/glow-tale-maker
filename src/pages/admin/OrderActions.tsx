@@ -125,13 +125,22 @@ export function OrderActions({
       case "pages_ready_for_review":
         const approvedCount = generatedPages.filter((p: any) => p.status === "approved").length;
         const allApproved = approvedCount === totalPages;
+        const generatedCount = generatedPages.length;
+        const stillGenerating = status === "pages_in_progress";
         
         return (
           <div className="space-y-2">
+            {stillGenerating && (
+              <div className="flex items-center justify-center gap-2 text-amber-600 text-sm">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Generating pages… ({generatedCount}/{totalPages})</span>
+              </div>
+            )}
             <Button
               onClick={() => setShowPageReview(true)}
               className="w-full"
               variant="default"
+              disabled={generatedCount === 0}
             >
               <BookOpen className="mr-2 h-4 w-4" />
               Review Pages ({approvedCount}/{totalPages} approved)
