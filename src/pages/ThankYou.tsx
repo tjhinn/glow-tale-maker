@@ -40,37 +40,17 @@ const ThankYou = () => {
         const orderId = searchParams.get('order_id');
         
         if (orderId) {
-          // Fetch order from database
-          const { data: order, error } = await supabase
-            .from('orders')
-            .select('personalization_data, story_id, personalized_cover_url')
-            .eq('id', orderId)
-            .single();
-          
-          if (!error && order) {
-            const personalizationData = order.personalization_data as any;
-            setHeroName(personalizationData?.heroName || "your little hero");
-            setPersonalization(personalizationData);
-            setCoverUrl(
-              (order as any).personalized_cover_url ||
-              personalizationData?.personalizedCoverUrl ||
-              null
-            );
-            
-            // Fetch the story using story_id
-            if (order.story_id) {
-              const { data: story } = await supabase
-                .from('stories')
-                .select('id, title, moral')
-                .eq('id', order.story_id)
-                .single();
-              
-              if (story) {
-                setSelectedStory(story);
-              }
-            }
+          // Fetch via edge function (bypasses RLS for unauthenticated post-checkout visitors)
+          const { data, error } = await supabase.functions.invoke('get-order-cover', {
+            body: { orderId },
+          });
+
+          if (!error && data && !data.error) {
+            setHeroName(data.heroName || "your little hero");
+            setPersonalization({ heroName: data.heroName });
+            setCoverUrl(data.personalizedCoverUrl || null);
+            if (data.story) setSelectedStory(data.story);
           } else {
-            // Fallback to localStorage if database fetch fails
             tryLocalStorage();
           }
         } else {
