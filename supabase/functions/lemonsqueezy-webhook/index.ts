@@ -101,8 +101,25 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       console.log(`Order ${orderId} updated to status: ${orderStatus}`);
-      console.log(`Admin should manually start page generation from the Orders dashboard`);
-      
+
+      // Fire-and-forget: trigger auto page generation in the background
+      const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
+      if (internalSecret) {
+        const autoGenUrl = `${supabaseUrl}/functions/v1/auto-generate-pages`;
+        fetch(autoGenUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-internal-secret": internalSecret,
+          },
+          body: JSON.stringify({ orderId }),
+        })
+          .then((r) => console.log(`auto-generate-pages invoked: ${r.status}`))
+          .catch((e) => console.error("Failed to invoke auto-generate-pages:", e));
+      } else {
+        console.warn("INTERNAL_FUNCTION_SECRET not set; skipping auto page generation");
+      }
+
     } else if (eventName === "order_refunded") {
       orderStatus = "refunded";
       console.log(`Refund processed for order ${orderId}`);
