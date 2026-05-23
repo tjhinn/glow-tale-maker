@@ -30,3 +30,6 @@ verify_jwt = false
 
 [functions.sign-hero-photo]
 verify_jwt = false
+
+[functions.auto-generate-pages]
+verify_jwt = false
