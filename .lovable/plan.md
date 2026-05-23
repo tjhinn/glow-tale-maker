@@ -1,45 +1,15 @@
-## Problem
+## Goal
+Show the order's actual personalized cover on the Thank You page's "A Sneak Peek at the Magic" card.
 
-Clicking **Pay Securely** returns a 400 from `create-lemonsqueezy-checkout` with `"Invalid input"`. The edge function never reaches LemonSqueezy because zod validation fails before the API call.
+## Current behavior
+`src/pages/ThankYou.tsx` displays `personalization?.personalizedCoverUrl || sample1`. The order fetch only selects `personalization_data` and `story_id`, so the real `orders.personalized_cover_url` column is never read. When personalization data lacks that field (the common case post-payment), it falls back to the static `sample1` placeholder.
 
-## Root cause
+## Change
+In `src/pages/ThankYou.tsx`:
+1. Extend the Supabase select to include `personalized_cover_url`: 
+   `.select('personalization_data, story_id, personalized_cover_url')`.
+2. Add a `coverUrl` state, set it from `order.personalized_cover_url` when present, otherwise fall back to `personalizationData?.personalizedCoverUrl`.
+3. In the localStorage fallback path, also try `personalizationData?.personalizedCoverUrl`.
+4. Update the `<img src>` to `coverUrl || sample1` and keep `sample1` as last-resort placeholder while loading or if the order has no cover yet.
 
-`Personalize.tsx` saves the hero photo under the key **`heroPhotoUrl`**:
-
-```ts
-const personalizationData = {
-  heroName, gender, petType, petName, favoriteColor, city,
-  heroPhotoUrl: originalPhotoUrl,   // ← stored as heroPhotoUrl
-  heroPhotoPath: uploadedFilePath,
-};
-localStorage.setItem("personalizationData", JSON.stringify(personalizationData));
-```
-
-But `Checkout.tsx` only looks for `originalPhotoUrl` or the legacy `photoUrl`:
-
-```ts
-const paymentData = {
-  ...personalizationData,
-  originalPhotoUrl: personalizationData.originalPhotoUrl || personalizationData.photoUrl,
-};
-```
-
-So `originalPhotoUrl` is `undefined`, the request body fails the zod check in `create-lemonsqueezy-checkout` (`originalPhotoUrl: z.string().url()`), and the function returns `400 {error: "Invalid input"}`. The frontend only shows the generic toast, hiding the real reason.
-
-## Fix
-
-1. In `src/pages/Checkout.tsx`, extend the fallback chain to include the actual key used today:
-   ```ts
-   originalPhotoUrl:
-     personalizationData.originalPhotoUrl ||
-     personalizationData.heroPhotoUrl ||
-     personalizationData.photoUrl,
-   ```
-2. Surface the real backend error message in the toast so future validation failures are diagnosable: when the function returns a JSON `error`/`details`, include `details[0]` in the thrown message instead of the generic "Failed to open secure checkout."
-
-No edge-function or schema changes are needed — the checkout function's validation is correct; the client was sending the wrong field name.
-
-## Verification
-
-- Reproduce on `/checkout` with a real personalization in localStorage; clicking **Pay Securely** should redirect to LemonSqueezy.
-- Check `create-lemonsqueezy-checkout` logs show `[Order …] Created` instead of returning 400.
+No backend, schema, or other page changes.

@@ -16,6 +16,7 @@ const ThankYou = () => {
   const [loading, setLoading] = useState(true);
   const [personalization, setPersonalization] = useState<any>(null);
   const [selectedStory, setSelectedStory] = useState<any>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   
   // Replace placeholders in story text with personalization data
   const replaceStoryPlaceholders = (text: string) => {
@@ -42,7 +43,7 @@ const ThankYou = () => {
           // Fetch order from database
           const { data: order, error } = await supabase
             .from('orders')
-            .select('personalization_data, story_id')
+            .select('personalization_data, story_id, personalized_cover_url')
             .eq('id', orderId)
             .single();
           
@@ -50,6 +51,11 @@ const ThankYou = () => {
             const personalizationData = order.personalization_data as any;
             setHeroName(personalizationData?.heroName || "your little hero");
             setPersonalization(personalizationData);
+            setCoverUrl(
+              (order as any).personalized_cover_url ||
+              personalizationData?.personalizedCoverUrl ||
+              null
+            );
             
             // Fetch the story using story_id
             if (order.story_id) {
@@ -87,6 +93,7 @@ const ThankYou = () => {
         const data = JSON.parse(savedData);
         setHeroName(data?.heroName || "your little hero");
         setPersonalization(data);
+        setCoverUrl(data?.personalizedCoverUrl || null);
       } else {
         setHeroName("your little hero");
       }
@@ -158,7 +165,7 @@ const ThankYou = () => {
           <CardContent className="p-8 text-center space-y-6">
             <div className="mb-6 relative group max-w-md mx-auto">
               <img 
-                src={personalization?.personalizedCoverUrl || sample1} 
+                src={coverUrl || sample1} 
                 alt="Preview of your personalized storybook cover featuring your child as the hero" 
                 className="w-full aspect-[4/3] object-cover block rounded-lg shadow-2xl group-hover:scale-105 transition-transform duration-500" 
               />
