@@ -1,75 +1,49 @@
-## Goal
+## Auto-start page generation on payment
 
-Replace `.lovable/plan.md` with a soft-launch readiness checklist so we can pick it up next session.
+Trigger page generation immediately when LemonSqueezy confirms payment, so orders arrive in admin already as `pages_ready_for_review` (or in-progress) instead of sitting at `payment_received`.
 
-## File to update
+### Changes
 
-- `.lovable/plan.md` — overwrite the existing (stale) email-template plan with the checklist below.
+**1. New edge function `auto-generate-pages`** (`verify_jwt = false`)
+- Accepts `{ orderId }` plus a shared-secret header (`x-internal-secret`) to prevent public abuse.
+- Loads order + `stories.pages` via service role.
+- Sets order status to `pages_in_progress`.
+- Loops pages 1..N sequentially, calling the same logic as `generate-single-page` (extracted into a shared helper inlined in the function — safer than cross-function HTTP loops which would hit auth + timeout headaches).
+- Per-page failure → writes `error_log`, sets status to `generation_failed`, stops.
+- All pages succeed → status becomes `pages_ready_for_review`.
+- Runs via `EdgeRuntime.waitUntil(...)` so the HTTP response returns immediately.
 
-## New `.lovable/plan.md` contents
+**2. `lemonsqueezy-webhook`**
+- After updating order to `payment_received` on `order_created`, fire-and-forget a `fetch` to `auto-generate-pages` with the shared secret header. Do not await.
+- Idempotency: skip if order already past `payment_received`.
 
-```markdown
-# Soft Launch Readiness — YourFairyTale.ai
+**3. `generate-single-page`**
+- Keep admin-only for manual retries from the dashboard. No change to auth.
+- (Logic is duplicated inside `auto-generate-pages` rather than relaxing auth here, to keep the admin surface tight.)
 
-Status: in progress. Resume from the first unchecked item.
+**4. `supabase/config.toml`**
+- Add `[functions.auto-generate-pages] verify_jwt = false`.
 
-## Launch blockers (must fix before inviting anyone)
+**5. New secret `INTERNAL_FUNCTION_SECRET`**
+- Shared between `lemonsqueezy-webhook` and `auto-generate-pages` so only our webhook can trigger auto-generation.
 
-- [ ] **Buy custom domain** via Project Settings → Domains → Buy new domain (e.g. `yourfairytale.ai`). Auto-connects + SSL on publish.
-- [ ] **Verify sending domain in Resend**
-  - Add domain in Resend → Domains
-  - Add SPF, DKIM, DMARC DNS records (manage via Project Settings → Domains → ⋯ → Configure → Manage DNS records, since domain is bought through Lovable)
-  - Wait for "Verified" status
-- [ ] **Update `from` addresses** away from `onboarding@resend.dev`
-  - `supabase/functions/approve-order/index.ts`
-  - `supabase/functions/create-lemonsqueezy-checkout/index.ts`
-  - Use e.g. `YourFairyTale <hello@yourfairytale.ai>`
-- [ ] **Switch LemonSqueezy from test → live mode**
-  - Rotate secrets: `LEMONSQUEEZY_API_KEY`, `LEMONSQUEEZY_STORE_ID`, `LEMONSQUEEZY_VARIANT_ID`
-  - Update webhook URL in LemonSqueezy dashboard → live store
-  - Rotate `LEMONSQUEEZY_WEBHOOK_SECRET`
-- [ ] **Fix hardcoded admin recipient** in `create-lemonsqueezy-checkout/index.ts`
-  - Currently `admin@yourfairytale.ai` (mailbox doesn't exist yet)
-  - Swap to a real inbox until mailbox is set up
-- [ ] **Wipe test data** before launch
-  - Delete the 3 test orders
-  - Clear `order-images` bucket
-  - Clear generated test PDFs
-  - **Preserve:** `stories`, `reviews`, `carousel_images`, `user_roles`
-- [ ] **Publish to custom domain**
-- [ ] **Run one real end-to-end paid test** with a live card → refund afterward
+**6. Admin UI (`AdminOrders` / `OrderCard` / `OrderActions`)**
+- Render `pages_in_progress` with a spinner + "Generating pages…" badge.
+- Keep manual "Start Page Generation" button visible only for orders stuck in `payment_received` or `generation_failed` (fallback path).
 
-## Strongly recommended
+**7. Backfill / fallback**
+- Existing orders in `payment_received` keep the manual button — no migration needed.
+- If `auto-generate-pages` invocation fails to even start, order stays at `payment_received` and admin can trigger manually.
 
-- [ ] Confirm `cleanup-pending-orders` cron is active and running
-- [ ] Document admin fulfillment SOP (cover gen → page review → PDF compile → approve)
-- [ ] Set up email rule so order notifications don't get lost
+### Technical notes
 
-## Legal & trust
+- Sequential generation (not parallel) — matches the existing manual flow and avoids hitting AI rate limits on a 24-page book.
+- ~3min total runtime fits within Supabase edge function background execution via `EdgeRuntime.waitUntil`.
+- No DB schema changes; `pages_in_progress` and `generation_failed` already exist in the `order_status` enum (used by current manual flow).
+- No frontend customer-facing changes — this is admin-side only.
 
-- [ ] Review `/terms`, `/refund`, `/privacy` content
-- [x] Parental consent checkbox on Personalize page
-- [ ] Confirm 1-month download link expiry matches actual storage TTL
+### Files
 
-## Monitoring & security
-
-- [ ] Review Edge Function logs for recent errors
-- [ ] Run `security--run_security_scan` and resolve findings
-- [ ] Run Supabase linter
-
-## Nice-to-have (post-soft-launch)
-
-- [ ] SEO basics (title, meta description, OG image, sitemap)
-- [ ] Analytics (Plausible / PostHog)
-- [ ] Sentry for error tracking
-- [ ] "Beta" badge in header
-- [ ] Audit loading / empty / error states across all pages
-
-## Execution order
-
-1. Buy domain → 2. Verify in Resend → 3. Update `from` addresses → 4. LemonSqueezy live + secrets → 5. Fix admin email → 6. Wipe test data → 7. Publish → 8. Real paid test → 9. Legal review → 10. Security scan → 11. Invite beta users
-```
-
-## Out of scope
-
-No code edits — this is documentation only.
+- **New:** `supabase/functions/auto-generate-pages/index.ts`
+- **Edit:** `supabase/functions/lemonsqueezy-webhook/index.ts`, `supabase/config.toml`, `src/pages/AdminOrders.tsx` (+ `OrderCard.tsx` / `OrderActions.tsx` as needed)
+- **Secret:** add `INTERNAL_FUNCTION_SECRET`
