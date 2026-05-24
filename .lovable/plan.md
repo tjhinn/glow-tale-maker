@@ -1,43 +1,27 @@
-## Make hero & pet insertion conditional on template content
+# Fix: "Failed to approve page" error
 
-Some story page templates intentionally have no child character or animal (close-ups, environment-only scenes). The current AI prompt forces the model to "replace the generic hero" and "replace any existing companion animal", which causes it to insert a character/pet into pages where none should appear.
+## Root cause
 
-Update the prompts in both page-generation edge functions so the AI **detects first, then conditionally personalizes**.
+Postgres logs show: `permission denied for function update_generated_page`.
 
-### Files to change
-1. `supabase/functions/generate-single-page/index.ts` (admin single-page regeneration)
-2. `supabase/functions/auto-generate-pages/index.ts` (background bulk generation)
+A prior security-hardening migration (`20260517172505_...`) revoked `EXECUTE` on `public.update_generated_page` from `authenticated`. But the admin UI (`src/pages/admin/PageReview.tsx`) calls this RPC directly from the browser as an authenticated user. The function already enforces an internal admin/service_role check via JWT claims + `has_role`, but Postgres rejects the call before reaching that check because the role has no `EXECUTE` grant.
 
-Both share nearly identical prompt construction — apply the same change to both so behavior stays consistent.
+Result: every page Approve / Reject / Regenerate click from the admin dashboard fails with the toast "Failed to approve page N". Edge functions (service_role) are unaffected, which is why generation itself still works.
 
-### Prompt changes
+This is unrelated to the recent prompt edits in `generate-single-page` / `auto-generate-pages` — those changes only touched prompt text.
 
-Restructure the prompt with an explicit detection step up front:
+## Fix
 
-- **New "DETECT FIRST" section** at the top of the task:
-  - Inspect the template page (Image 1) and decide:
-    - Does it contain a generic child character? (yes/no)
-    - Does it contain a companion animal? (yes/no)
-  - This determines what to personalize — never add a character or animal that isn't already in the template.
+Add a new migration that grants `EXECUTE` on `update_generated_page` back to `authenticated`. The function's internal `IF v_jwt_role IS DISTINCT FROM 'service_role' AND NOT has_role(auth.uid(), 'admin') THEN RAISE EXCEPTION ...` keeps non-admin authenticated users locked out, so this is safe.
 
-- **CHARACTER REPLACEMENT** section becomes **conditional**:
-  - *If* a child character exists in the template → replace with personalized hero (existing instructions).
-  - *If no* child character exists (close-up of an object, scenery, hands, etc.) → leave the scene as-is. **Do NOT insert the hero.** Preserve the template exactly.
+```sql
+GRANT EXECUTE ON FUNCTION public.update_generated_page(
+  uuid, integer, text, text, timestamp with time zone, text
+) TO authenticated;
+```
 
-- **PET COMPANION REPLACEMENT** section becomes **conditional**:
-  - *If* a companion animal exists in the template → replace with personalized pet.
-  - *If no* animal exists → do NOT add one, even if the user provided a pet name/type.
+No client code changes needed.
 
-- **COLOR ACCENTS** stays as-is (subtle environmental accents are fine on any page).
+## Verification
 
-- Reinforce in **WHAT TO PRESERVE**: if the template has no hero/pet, the output should be visually identical to the template (still re-rendered for consistency, but no inserted figures).
-
-### Out of scope
-- No DB schema changes (no per-page "has_hero"/"has_pet" flags). Relying on the model's vision to detect is simpler and matches how the existing prompt already inspects the template.
-- No UI changes.
-- Cover generation is unaffected — cover always features hero + pet by design.
-
-### How to test
-1. Regenerate a page from a template that has no child (e.g. the Cloud Painter spread or Moonlight Library close-up) via Admin → Order → Generate page.
-2. Confirm output preserves the template without inserting the hero/pet.
-3. Regenerate a page that does feature a child + animal — confirm personalization still works as before.
+After the migration applies, open Admin → an order with generated pages, click Approve on a page. Toast should say "Page N approved" and the page status should flip to approved. Re-check postgres logs to confirm no more `permission denied` errors.

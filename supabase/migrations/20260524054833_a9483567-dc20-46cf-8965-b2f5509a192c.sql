@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.update_generated_page(uuid, integer, text, text, timestamp with time zone, text) TO authenticated;
