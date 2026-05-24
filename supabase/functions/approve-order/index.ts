@@ -214,7 +214,7 @@ serve(async (req) => {
                     <td style="padding:0 36px 40px;">
                       <p style="margin:0;font-size:16px;color:#333;line-height:1.65;">
                         With love and a little bit of magic, ✨<br>
-                        <strong style="font-family:${headingFont};color:#0A0A0A;">The YourFairyTale.ai Team</strong>
+                        <strong style="font-family:${headingFont};color:#0A0A0A;">The ArtBookMagic Team</strong>
                       </p>
                     </td>
                   </tr>
@@ -223,10 +223,10 @@ serve(async (req) => {
                   <tr>
                     <td style="background-color:#FFFDF8;padding:24px 36px;border-top:1px solid #F0E9DC;text-align:center;">
                       <p style="margin:0 0 6px;font-size:12px;color:#999;font-family:${headingFont};">
-                        ✨ YourFairyTale.ai — where imagination comes to life ✨
+                        ✨ ArtBookMagic — where imagination comes to life ✨
                       </p>
                       <p style="margin:0;font-size:11px;color:#B5B5B5;">
-                        © ${new Date().getFullYear()} YourFairyTale.ai · Sent to ${order.user_email}
+                        © ${new Date().getFullYear()} ArtBookMagic · Sent to ${order.user_email}
                       </p>
                     </td>
                   </tr>

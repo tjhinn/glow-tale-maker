@@ -12,10 +12,10 @@ const corsHeaders = {
 
 const ALLOWED_ORIGINS = new Set<string>([
   "https://your-fairy-tale.lovable.app",
-  "https://yourfairytale.ai",
-  "https://www.yourfairytale.ai",
+  "https://artbookmagic.com",
+  "https://www.artbookmagic.com",
 ]);
-const DEFAULT_ORIGIN = "https://your-fairy-tale.lovable.app";
+const DEFAULT_ORIGIN = "https://artbookmagic.com";
 
 const getSiteOrigin = (req: Request) => {
   const origin = req.headers.get("origin");

@@ -11,7 +11,7 @@ const Terms = () => {
           <section>
             <h2 className="text-2xl font-heading font-semibold mb-3">1. Acceptance of Terms</h2>
             <p>
-              By accessing or using YourFairyTale.ai (the “Service”), you agree to be bound by these Terms of Service.
+              By accessing or using ArtBookMagic (the “Service”), you agree to be bound by these Terms of Service.
               If you do not agree, please do not use the Service.
             </p>
           </section>
@@ -28,7 +28,7 @@ const Terms = () => {
           <section>
             <h2 className="text-2xl font-heading font-semibold mb-3">3. The Service</h2>
             <p>
-              YourFairyTale.ai generates a personalized digital storybook (delivered as a PDF) that incorporates the
+              ArtBookMagic generates a personalized digital storybook (delivered as a PDF) that incorporates the
               child’s name, likeness, and other personalization details you provide. The illustrations are produced
               with the help of artificial intelligence and may vary in style or quality from order to order.
             </p>
@@ -60,7 +60,7 @@ const Terms = () => {
           <section>
             <h2 className="text-2xl font-heading font-semibold mb-3">6. Intellectual Property</h2>
             <p>
-              The story templates, base illustrations, branding, and software are owned by YourFairyTale.ai. The final
+              The story templates, base illustrations, branding, and software are owned by ArtBookMagic. The final
               personalized PDF is licensed to you for personal, non-commercial use only. You may not resell or
               redistribute the storybook.
             </p>
@@ -85,7 +85,7 @@ const Terms = () => {
           <section>
             <h2 className="text-2xl font-heading font-semibold mb-3">9. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, YourFairyTale.ai shall not be liable for any indirect, incidental,
+              To the maximum extent permitted by law, ArtBookMagic shall not be liable for any indirect, incidental,
               special, or consequential damages. Our total liability for any claim shall not exceed the amount you paid
               for the order giving rise to the claim.
             </p>
@@ -103,8 +103,8 @@ const Terms = () => {
             <h2 className="text-2xl font-heading font-semibold mb-3">11. Contact</h2>
             <p>
               Questions about these Terms? Email us at{" "}
-              <a className="text-primary underline" href="mailto:support@yourfairytale.ai">
-                support@yourfairytale.ai
+              <a className="text-primary underline" href="mailto:support@artbookmagic.com">
+                support@artbookmagic.com
               </a>.
             </p>
           </section>

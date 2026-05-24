@@ -11,7 +11,7 @@ const Refund = () => {
           <section>
             <h2 className="text-2xl font-heading font-semibold mb-3">1. A Digital, Personalized Product</h2>
             <p>
-              Each YourFairyTale.ai storybook is a one-of-a-kind digital product, custom-generated from the photo and
+              Each ArtBookMagic storybook is a one-of-a-kind digital product, custom-generated from the photo and
               details you submit. Because of this, we cannot offer refunds for change-of-mind once your storybook PDF
               has been delivered.
             </p>
@@ -45,8 +45,8 @@ const Refund = () => {
             <h2 className="text-2xl font-heading font-semibold mb-3">4. How to Request a Refund</h2>
             <p>
               Email{" "}
-              <a className="text-primary underline" href="mailto:support@yourfairytale.ai">
-                support@yourfairytale.ai
+              <a className="text-primary underline" href="mailto:support@artbookmagic.com">
+                support@artbookmagic.com
               </a>{" "}
               from the address used to place the order. Include your order ID and a short description of the issue
               (screenshots help). We’ll reply within 2 business days.

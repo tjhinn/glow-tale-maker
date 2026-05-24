@@ -7,7 +7,7 @@ export const SiteFooter = () => {
       <div className="container mx-auto px-4 text-center space-y-4">
         <div className="flex justify-center items-center gap-2">
           <Sparkles className="w-5 h-5 text-accent" />
-          <p className="text-lg font-semibold font-heading">YourFairyTale.ai</p>
+          <p className="text-lg font-semibold font-heading">ArtBookMagic</p>
         </div>
         <p className="text-muted-foreground">
           Creating magical memories, one story at a time
@@ -26,7 +26,7 @@ export const SiteFooter = () => {
           </Link>
         </nav>
         <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} YourFairyTale.ai • All rights reserved
+          © {new Date().getFullYear()} ArtBookMagic • All rights reserved
         </p>
       </div>
     </footer>
