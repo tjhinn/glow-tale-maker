@@ -239,7 +239,7 @@ serve(async (req) => {
     `;
 
     const { error: emailError } = await resend.emails.send({
-      from: "YourFairyTale.ai <onboarding@resend.dev>",
+      from: "ArtBookMagic <noreply@artbookmagic.com>",
       to: [order.user_email],
       subject: `✨ ${rawHeroName}'s storybook has arrived`,
       html: emailHtml,
