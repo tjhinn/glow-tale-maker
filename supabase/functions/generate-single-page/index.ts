@@ -142,11 +142,22 @@ serve(async (req) => {
     let promptText = `Edit this storybook page to create a personalized version:
 
 **IMAGES PROVIDED:**
-- IMAGE 1 (Template Page): The original storybook page with a generic child character
+- IMAGE 1 (Template Page): The original storybook page. It MAY or MAY NOT contain a generic child character and/or a companion animal.
 - IMAGE 2 (Personalized Cover): Shows EXACTLY what the personalized hero and companion look like
 
-**YOUR TASK:**
-Replace the generic hero in the template page with the personalized hero shown in the cover image.
+**STEP 1 — DETECT FIRST (CRITICAL):**
+Before changing anything, carefully inspect IMAGE 1 and decide:
+  (a) Does the template contain a generic child / human character? (yes / no)
+  (b) Does the template contain a companion animal? (yes / no)
+Some pages are intentionally close-ups of objects, hands, scenery, or environments with NO child and NO animal. That is by design.
+**You must NEVER add a child character or an animal that is not already present in the template.** Do not "force" the hero or pet into a scene that doesn't have one.
+
+**STEP 2 — YOUR TASK:**
+- If (a) = yes → replace the generic child with the personalized hero from IMAGE 2.
+- If (a) = no  → leave the scene exactly as in the template. Do NOT insert the hero anywhere.
+- If (b) = yes → replace the existing companion animal with the personalized pet from IMAGE 2.
+- If (b) = no  → do NOT add a pet, even if the user provided a pet name/type.
+If both (a) and (b) are "no", the output should be visually faithful to the template with no inserted figures (subtle color accents per below are still allowed).
 
 **CRITICAL - ILLUSTRATION STYLE (${illustrationStyle}):**
 - Match the EXACT art style of the template page
@@ -154,7 +165,7 @@ Replace the generic hero in the template page with the personalized hero shown i
 - Match: brush strokes, shading, texture, line quality, lighting
 - Blend seamlessly with the existing artwork
 
-**CHARACTER REPLACEMENT:**
+**CHARACTER REPLACEMENT (only if a child character exists in the template):**
 - Find the generic child character in the template page
 - Replace them with ${personalization.heroName} (a ${personalization.gender})
 - The replacement character MUST have the same identity as Image 2:
@@ -162,8 +173,9 @@ Replace the generic hero in the template page with the personalized hero shown i
   - Same ${personalization.favoriteColor || 'colorful'}-themed costume
   - Same body type and proportions for a ${personalization.gender}
 - Keep the character in approximately the same LOCATION in the scene
+- If NO child character exists in the template, SKIP this section entirely.
 
-**EXPRESSION & POSE VARIETY (IMPORTANT):**
+**EXPRESSION & POSE VARIETY (only when a hero is present in the scene):**
 - Give ${personalization.heroName} a NATURAL, CONTEXTUALLY APPROPRIATE facial expression for this scene
 - Vary the expression based on the story moment: curious, happy, surprised, determined, thoughtful, excited, peaceful, etc.
 - Allow natural body pose variation - the character can have different arm positions, head tilts, and gestures
@@ -180,11 +192,12 @@ Replace the generic hero in the template page with the personalized hero shown i
     // Add pet replacement instructions if applicable
     if (personalization.petName && personalization.petType) {
       promptText += `
-**PET COMPANION REPLACEMENT:**
-- Replace any existing companion animal with ${personalization.petName} the ${personalization.petType}
+**PET COMPANION REPLACEMENT (only if a companion animal exists in the template):**
+- IF the template already shows a companion animal, replace it with ${personalization.petName} the ${personalization.petType}
 - The pet must match exactly how it appears in Image 2
 - Keep the same relative position to the hero
 - Match the illustration style perfectly
+- IF the template has no animal, DO NOT add one. Leave the scene as-is.
 `;
     }
 
@@ -204,6 +217,7 @@ Replace the generic hero in the template page with the personalized hero shown i
 - Lighting and atmosphere: Preserve
 - All other elements besides the hero and pet: Leave untouched
 - Any text or story elements: Preserve
+- If the template has no child and no animal, the output must remain visually faithful to the template — no inserted figures.
 
 **OUTPUT REQUIREMENTS:**
 - Same aspect ratio as the input template page
