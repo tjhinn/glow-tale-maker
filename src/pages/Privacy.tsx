@@ -11,7 +11,7 @@ const Privacy = () => {
           <section>
             <h2 className="text-2xl font-heading font-semibold mb-3">1. Who We Are</h2>
             <p>
-              YourFairyTale.ai (“we”, “us”) creates personalized AI-illustrated storybooks for children. Protecting
+              ArtBookMagic (“we”, “us”) creates personalized AI-illustrated storybooks for children. Protecting
               your family’s privacy is fundamental to our service.
             </p>
           </section>
@@ -80,8 +80,8 @@ const Privacy = () => {
             <h2 className="text-2xl font-heading font-semibold mb-3">8. Your Rights</h2>
             <p>
               You may request access to, correction of, or deletion of your personal data at any time by emailing{" "}
-              <a className="text-primary underline" href="mailto:support@yourfairytale.ai">
-                support@yourfairytale.ai
+              <a className="text-primary underline" href="mailto:support@artbookmagic.com">
+                support@artbookmagic.com
               </a>. Depending on where you live, you may have additional rights under GDPR, CCPA, or other privacy laws.
             </p>
           </section>
@@ -114,8 +114,8 @@ const Privacy = () => {
             <h2 className="text-2xl font-heading font-semibold mb-3">12. Contact</h2>
             <p>
               For privacy questions or requests, email{" "}
-              <a className="text-primary underline" href="mailto:support@yourfairytale.ai">
-                support@yourfairytale.ai
+              <a className="text-primary underline" href="mailto:support@artbookmagic.com">
+                support@artbookmagic.com
               </a>.
             </p>
           </section>
