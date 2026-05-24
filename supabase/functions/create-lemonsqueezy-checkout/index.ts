@@ -155,8 +155,8 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       const p = paymentRequest.personalizationData;
       await resend.emails.send({
-        from: "YourFairyTale <onboarding@resend.dev>",
-        to: ["admin@yourfairytale.ai"],
+        from: "ArtBookMagic <noreply@artbookmagic.com>",
+        to: ["tjhinn@gmail.com"],
         subject: `New Order Received - ${order.id}`,
         html: `
           <h2>New Storybook Order</h2>
