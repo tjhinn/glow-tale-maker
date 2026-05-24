@@ -1,42 +1,41 @@
+# Rebrand: YourFairyTale.ai → ArtBookMagic
 
-## Goal
-Move all transactional emails off the shared `onboarding@resend.dev` sandbox (which only delivers to your own inbox) and onto your real domain `artbookmagic.com` so customers and admins actually receive emails in production.
+Swap every **brand** mention to **ArtBookMagic** / **artbookmagic.com**. Keep generic story-genre uses of "fairy tale" (NotFound copy, ThankYou copy, AI illustration prompts) — those describe the product, not the brand.
 
-## Important branding note
-The app currently says "YourFairyTale.ai" everywhere (email subjects, footers, allowed origins, copy). If we send from `@artbookmagic.com`, recipients will see a mismatch ("YourFairyTale.ai" branded email arriving from `noreply@artbookmagic.com`). Recommend a separate small pass later to rebrand the app copy to ArtBookMagic — but that's out of scope for #2. For now we'll just swap the sender.
+## Files to change
 
----
+### 1. SEO / head (`index.html`)
+- `<title>` → `ArtBookMagic - Personalized Children's Storybooks`
+- `meta[name=author]` → `ArtBookMagic`
+- `link[rel=canonical]` → `https://artbookmagic.com`
+- All `og:*` (site_name, title, description, url) → ArtBookMagic + `https://artbookmagic.com`
+- Twitter `site` / `creator` → `@ArtBookMagic` (see open Q below)
+- Titles/descriptions: replace brand only; keep "fairy tale" wording where it describes the product genre.
 
-## Steps
+### 2. UI brand
+- `src/components/layout/PageWrapper.tsx` — header text → `ArtBookMagic`
+- `src/components/layout/SiteFooter.tsx` — footer logo + © line → `ArtBookMagic`
+- `src/pages/Home.tsx:59` — H1 brand → `ArtBookMagic`
+- `src/index.css:13` — comment → `ArtBookMagic`
 
-### Step 1 — Add domain in Resend (you do this, ~5 min)
-1. Go to https://resend.com/domains → **Add Domain** → enter `artbookmagic.com`.
-2. Resend shows ~4 DNS records (MX, SPF TXT, DKIM TXT, optional DMARC).
-3. Add them at your domain registrar (since the domain was bought through Lovable, go to **Project Settings → Domains → ⋯ → Configure → Manage DNS records**).
-4. Back in Resend, click **Verify DNS Records**. Usually verifies in 5–30 min; can take up to 72h.
+### 3. Legal pages (`Privacy.tsx`, `Refund.tsx`, `Terms.tsx`)
+- Replace every `YourFairyTale.ai` brand reference with `ArtBookMagic`.
+- Replace every `support@yourfairytale.ai` mailto + visible text with `support@artbookmagic.com`.
 
-### Step 2 — Code change (I do this in build mode)
-Swap the `from` field in both edge functions:
+### 4. Edge functions
+- `supabase/functions/approve-order/index.ts` — email body brand strings ("The YourFairyTale.ai Team", footer tagline, © line) → ArtBookMagic.
+- `supabase/functions/create-lemonsqueezy-checkout/index.ts` — `ALLOWED_ORIGINS` + `DEFAULT_ORIGIN`: replace `https://yourfairytale.ai` and `https://www.yourfairytale.ai` with `https://artbookmagic.com` and `https://www.artbookmagic.com`. (Keep the `your-fairy-tale.lovable.app` Lovable preview origin for now — flag below.)
 
-**`supabase/functions/approve-order/index.ts`** (customer storybook delivery email)
-- `from: "YourFairyTale.ai <onboarding@resend.dev>"` → `from: "ArtBookMagic <noreply@artbookmagic.com>"`
+### 5. Untouched on purpose
+- `src/pages/NotFound.tsx`, `src/pages/ThankYou.tsx`, `supabase/functions/generate-character-illustration/index.ts`, `supabase/functions/illustrate-hero-photo/index.ts` — uses of "fairy tale" describe the genre, not the brand. Leave as-is.
+- `docs/*` and `.lovable/plan.md` — internal planning docs, not user-facing. Leave unless you want them rewritten too.
+- Sender `from` in edge functions — already swapped to `ArtBookMagic <noreply@artbookmagic.com>` last step.
 
-**`supabase/functions/create-lemonsqueezy-checkout/index.ts`** (admin new-order notification)
-- `from: "YourFairyTale <onboarding@resend.dev>"` → `from: "ArtBookMagic <noreply@artbookmagic.com>"`
-- Also fix the recipient: `to: ["admin@yourfairytale.ai"]` → `to: ["tjhinn@gmail.com"]` (folding checklist #5 in — it's literally one line away). Confirm this is the right inbox.
+## Open questions
 
-That's the entire change. Edge functions auto-deploy.
+1. **Support email** — confirm `support@artbookmagic.com` (used across Privacy/Refund/Terms). I'll need to set this up in Resend or your registrar so it actually receives mail, but the page links can land first.
+2. **Twitter handle** — `@ArtBookMagic` OK, or do you have a different handle? If unknown, I can drop the twitter:site/creator tags rather than point at a non-existent account.
+3. **Lovable preview origin** — keep `https://your-fairy-tale.lovable.app` in the allowed-origins list, or remove it now that artbookmagic.com is the canonical site? (Removing it would break the old preview URL.)
+4. **Docs folder** — also rebrand `/docs/*.md` and `.lovable/plan.md` for internal consistency, or leave?
 
-### Step 3 — Test (after DNS verifies)
-- Place a test order → confirm admin notification arrives at `tjhinn@gmail.com`.
-- Approve the order → confirm customer storybook delivery email arrives at the customer email.
-- Check both don't land in spam (SPF/DKIM passing means they shouldn't).
-
----
-
-## Open questions before I build
-1. **Sender address** — `noreply@artbookmagic.com` OK, or prefer `hello@`, `stories@`, `magic@`?
-2. **Display name** — "ArtBookMagic" OK, or keep "YourFairyTale.ai" for now even though domain is artbookmagic.com (recipients will see this mismatch in their inbox)?
-3. **Admin notification recipient** — confirm `tjhinn@gmail.com` is correct (folding in checklist #5).
-
-Once you answer those, switch to build mode and I'll make the edits.
+Answer those and I'll switch to build mode and ship it in one pass.
