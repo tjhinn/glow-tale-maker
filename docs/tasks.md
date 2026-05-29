@@ -11,6 +11,15 @@
 
 ## 🎯 Recent Updates (2026-05-10)
 
+**LemonSqueezy SHARE20 Dashboard/API Workaround - COMPLETED (2026-05-29):**
+- ✅ Confirmed LemonSqueezy dashboard screenshots hide the product-limit and default-variant controls even though the API can still reject the discount/variant
+- ✅ Updated checkout creation to stop sending `SHARE20` to LemonSqueezy for validation
+- ✅ Applied the 20% share discount via LemonSqueezy `custom_price` instead, keeping checkout at $4.00 when share discount is active
+- ✅ Stored the normalized `SHARE20` discount code and discounted amount on the order record for admin visibility
+- ✅ Added safe checkout diagnostics showing whether a custom price was used without logging secrets or personal data
+
+---
+
 **LemonSqueezy Checkout 401 Fix - COMPLETED (2026-05-11):**
 - ✅ Confirmed Lovable Cloud backend was healthy and checkout function was reachable
 - ✅ Found root cause: `LEMONSQUEEZY_API_KEY` had been replaced with an invalid 52-character value after the expired-key fix
