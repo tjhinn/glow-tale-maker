@@ -273,8 +273,11 @@ const StorySelection = () => {
               // Convert storage path to public URL for cover image
               let coverUrl = story.cover_image_url;
               if (coverUrl && !coverUrl.startsWith('http')) {
-                const { data } = supabase.storage.from('story-images').getPublicUrl(coverUrl);
-                coverUrl = `${data.publicUrl}?t=${new Date(story.updated_at).getTime()}`;
+                const { data } = supabase.storage.from('story-images').getPublicUrl(coverUrl, {
+                  transform: { width: 600, height: 600, resize: 'cover', quality: 75 }
+                });
+                const sep = data.publicUrl.includes('?') ? '&' : '?';
+                coverUrl = `${data.publicUrl}${sep}t=${new Date(story.updated_at).getTime()}`;
               }
 
               return <Card key={story.id} onClick={() => setSelectedStory(story.id)} className={`
@@ -289,6 +292,8 @@ const StorySelection = () => {
                         src={coverUrl} 
                         alt={replaceStoryPlaceholders(story.title)}
                         className="w-full h-full object-cover object-center"
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                   )}
