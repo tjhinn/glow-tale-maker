@@ -151,6 +151,18 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`[Order ${order.id}] Created`);
 
+    // LemonSqueezy's dashboard can show SHARE20 as "All products" while the API
+    // rejects the code for the underlying default variant. To keep the customer
+    // experience stable, apply the share discount as a checkout custom price
+    // instead of sending the discount code to LemonSqueezy for validation.
+    const BASE_PRICE_CENTS = 500;
+    const SHARE_DISCOUNT_CODE = "SHARE20";
+    const SHARE_DISCOUNT_PERCENT = 0.2;
+    const checkoutAmountCents = paymentRequest.discountApplied
+      ? BASE_PRICE_CENTS - Math.round(BASE_PRICE_CENTS * SHARE_DISCOUNT_PERCENT)
+      : BASE_PRICE_CENTS;
+    const normalizedDiscountCode = paymentRequest.discountApplied ? SHARE_DISCOUNT_CODE : undefined;
+
     // Send admin notification email
     try {
       const p = paymentRequest.personalizationData;
@@ -162,7 +174,7 @@ const handler = async (req: Request): Promise<Response> => {
           <h2>New Storybook Order</h2>
           <p><strong>Order ID:</strong> ${order.id}</p>
           <p><strong>Customer Email:</strong> ${escapeHtml(paymentRequest.userEmail)}</p>
-          <p><strong>Amount:</strong> $${(paymentRequest.amount / 100).toFixed(2)} USD</p>
+          <p><strong>Amount:</strong> $${(checkoutAmountCents / 100).toFixed(2)} USD</p>
           <p><strong>Discount Applied:</strong> ${paymentRequest.discountApplied ? "Yes" : "No"}</p>
           <hr>
           <h3>Personalization Details:</h3>
@@ -184,25 +196,30 @@ const handler = async (req: Request): Promise<Response> => {
 
     const siteOrigin = getSiteOrigin(req);
 
+    const checkoutAttributes: Record<string, unknown> = {
+      checkout_data: {
+        email: paymentRequest.userEmail,
+        custom: {
+          order_id: order.id,
+        },
+      },
+      product_options: {
+        redirect_url: `${siteOrigin}/thank-you?order_id=${order.id}`,
+      },
+      checkout_options: {
+        discount: false,
+      },
+    };
+
+    if (paymentRequest.discountApplied) {
+      checkoutAttributes.custom_price = checkoutAmountCents;
+    }
+
     // Create LemonSqueezy checkout session
     const checkoutPayload = {
       data: {
         type: "checkouts",
-        attributes: {
-          checkout_data: {
-            email: paymentRequest.userEmail,
-            discount_code: paymentRequest.discountCode,
-            custom: {
-              order_id: order.id,
-            },
-          },
-          product_options: {
-            redirect_url: `${siteOrigin}/thank-you?order_id=${order.id}`,
-          },
-          checkout_options: {
-            discount: false,
-          },
-        },
+        attributes: checkoutAttributes,
         relationships: {
           store: {
             data: {
@@ -220,7 +237,9 @@ const handler = async (req: Request): Promise<Response> => {
       },
     };
 
-    console.log("Creating LemonSqueezy checkout...");
+    console.log(
+      `[Order ${order.id}] Creating LemonSqueezy checkout with custom_price=${paymentRequest.discountApplied ? checkoutAmountCents : "none"} discount_code_sent=false stored_discount=${normalizedDiscountCode ?? "none"}`,
+    );
     const lemonSqueezyResponse = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
       method: "POST",
       headers: {
