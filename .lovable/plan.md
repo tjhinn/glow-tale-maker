@@ -1,32 +1,21 @@
-## Goal
-Make the `/stories` page load fast by serving small, CDN-cached cover thumbnails instead of the original 5–10 MB PNGs. Original story template files in the `story-images` bucket stay untouched (they're still used for book generation).
+I agree your screenshots contradict the earlier interpretation: the dashboard summary clearly shows SHARE20 as Active, All products, 20%, and your product page shows the product itself as Published.
 
-## Change (single file: `src/pages/StorySelection.tsx`)
+Plan to resolve this without guessing:
 
-1. **Story grid covers** (around line 276) — switch from plain `getPublicUrl()` to the transform variant:
-   ```ts
-   const { data } = supabase.storage.from('story-images').getPublicUrl(coverUrl, {
-     transform: { width: 600, height: 600, resize: 'cover', quality: 75 }
-   });
-   coverUrl = `${data.publicUrl}&t=${new Date(story.updated_at).getTime()}`;
-   ```
-   (Note `&t=` because the transform URL already has query params.)
+1. Re-query LemonSqueezy live API using the configured project secret
+   - Confirm which environment the API key is connected to.
+   - Fetch the store, product 1086894, discount SHARE20, and product variants.
+   - Compare the API fields against what your dashboard screenshots show.
 
-2. **Hero avatar** (line 246) — `personalization.personalizedCoverUrl` is already a personalized cover from `order-images` (smaller), so leave it alone unless we also want to shrink it. Recommendation: skip — it's a single image and already personalized/flattened.
+2. Check the exact checkout payload used by the app
+   - Confirm which variant ID the app sends to LemonSqueezy.
+   - Confirm whether the app passes SHARE20 as a discount code or discount ID.
+   - Confirm the checkout is created under the same store/product/variant as your dashboard.
 
-3. **Lazy/async hints** on the `<img>` tags in the grid (line 288–292):
-   ```tsx
-   <img src={coverUrl} ... loading="lazy" decoding="async" />
-   ```
+3. Explain the dashboard/API mismatch clearly
+   - For variants: LemonSqueezy single-variant products often do not expose a clickable variant URL in the dashboard; the default variant can exist only in the API, so the URL staying at `/products/1086894` is not unusual.
+   - For SHARE20: if the API still rejects the selected variant while the dashboard says All products, then the issue is likely one of these: stale LemonSqueezy saved state, a mismatch between the checkout variant and the visible product, or the app is using a different checkout/discount parameter than expected.
 
-## How it works
-- Each unique `(path, width, quality)` combo is transformed once by Supabase, then served from the global CDN edge cache for every future visitor.
-- Originals in the bucket are never modified — admin/PDF flows keep using full-resolution files.
-- Expected page weight: ~27 MB → under 1 MB.
-
-## Validation
-- Reload `/stories`, check Network tab: cover requests should be ~50–150 KB WebP/JPEG and return from CDN on second load.
-- Confirm admin dashboard and PDF generation still use the original full-size PNGs (they do — they read `cover_image_url` directly, not through the transform).
-
-## Fallback
-If transforms return 400 (image transformation not enabled on the plan), revert this one file and switch to the one-time re-encode script approach.
+4. If needed, prepare a minimal app-side fix
+   - Add temporary safe diagnostics around checkout creation so we can see product ID, variant ID, discount code, store ID, and LemonSqueezy response without logging secrets or personal data.
+   - Remove those diagnostics after the cause is confirmed.
