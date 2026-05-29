@@ -125,6 +125,18 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // LemonSqueezy's dashboard can show SHARE20 as "All products" while the API
+    // rejects the code for the underlying default variant. To keep the customer
+    // experience stable, apply the share discount as a checkout custom price
+    // instead of sending the discount code to LemonSqueezy for validation.
+    const BASE_PRICE_CENTS = 500;
+    const SHARE_DISCOUNT_CODE = "SHARE20";
+    const SHARE_DISCOUNT_PERCENT = 0.2;
+    const checkoutAmountCents = paymentRequest.discountApplied
+      ? BASE_PRICE_CENTS - Math.round(BASE_PRICE_CENTS * SHARE_DISCOUNT_PERCENT)
+      : BASE_PRICE_CENTS;
+    const normalizedDiscountCode = paymentRequest.discountApplied ? SHARE_DISCOUNT_CODE : undefined;
+
     // Create order in database
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -134,9 +146,9 @@ const handler = async (req: Request): Promise<Response> => {
         personalization_data: paymentRequest.personalizationData,
         hero_photo_url: paymentRequest.personalizationData.originalPhotoUrl,
         personalized_cover_url: paymentRequest.personalizationData.personalizedCoverUrl,
-        amount_paid: paymentRequest.amount,
+        amount_paid: checkoutAmountCents,
         discount_applied: paymentRequest.discountApplied,
-        discount_code: paymentRequest.discountCode,
+        discount_code: normalizedDiscountCode,
         currency: "usd",
         status: "pending_payment",
         payment_provider: "lemonsqueezy",
@@ -150,18 +162,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log(`[Order ${order.id}] Created`);
-
-    // LemonSqueezy's dashboard can show SHARE20 as "All products" while the API
-    // rejects the code for the underlying default variant. To keep the customer
-    // experience stable, apply the share discount as a checkout custom price
-    // instead of sending the discount code to LemonSqueezy for validation.
-    const BASE_PRICE_CENTS = 500;
-    const SHARE_DISCOUNT_CODE = "SHARE20";
-    const SHARE_DISCOUNT_PERCENT = 0.2;
-    const checkoutAmountCents = paymentRequest.discountApplied
-      ? BASE_PRICE_CENTS - Math.round(BASE_PRICE_CENTS * SHARE_DISCOUNT_PERCENT)
-      : BASE_PRICE_CENTS;
-    const normalizedDiscountCode = paymentRequest.discountApplied ? SHARE_DISCOUNT_CODE : undefined;
 
     // Send admin notification email
     try {
