@@ -1,41 +1,32 @@
-# Rebrand: YourFairyTale.ai → ArtBookMagic
+## Goal
+Make the `/stories` page load fast by serving small, CDN-cached cover thumbnails instead of the original 5–10 MB PNGs. Original story template files in the `story-images` bucket stay untouched (they're still used for book generation).
 
-Swap every **brand** mention to **ArtBookMagic** / **artbookmagic.com**. Keep generic story-genre uses of "fairy tale" (NotFound copy, ThankYou copy, AI illustration prompts) — those describe the product, not the brand.
+## Change (single file: `src/pages/StorySelection.tsx`)
 
-## Files to change
+1. **Story grid covers** (around line 276) — switch from plain `getPublicUrl()` to the transform variant:
+   ```ts
+   const { data } = supabase.storage.from('story-images').getPublicUrl(coverUrl, {
+     transform: { width: 600, height: 600, resize: 'cover', quality: 75 }
+   });
+   coverUrl = `${data.publicUrl}&t=${new Date(story.updated_at).getTime()}`;
+   ```
+   (Note `&t=` because the transform URL already has query params.)
 
-### 1. SEO / head (`index.html`)
-- `<title>` → `ArtBookMagic - Personalized Children's Storybooks`
-- `meta[name=author]` → `ArtBookMagic`
-- `link[rel=canonical]` → `https://artbookmagic.com`
-- All `og:*` (site_name, title, description, url) → ArtBookMagic + `https://artbookmagic.com`
-- Twitter `site` / `creator` → `@ArtBookMagic` (see open Q below)
-- Titles/descriptions: replace brand only; keep "fairy tale" wording where it describes the product genre.
+2. **Hero avatar** (line 246) — `personalization.personalizedCoverUrl` is already a personalized cover from `order-images` (smaller), so leave it alone unless we also want to shrink it. Recommendation: skip — it's a single image and already personalized/flattened.
 
-### 2. UI brand
-- `src/components/layout/PageWrapper.tsx` — header text → `ArtBookMagic`
-- `src/components/layout/SiteFooter.tsx` — footer logo + © line → `ArtBookMagic`
-- `src/pages/Home.tsx:59` — H1 brand → `ArtBookMagic`
-- `src/index.css:13` — comment → `ArtBookMagic`
+3. **Lazy/async hints** on the `<img>` tags in the grid (line 288–292):
+   ```tsx
+   <img src={coverUrl} ... loading="lazy" decoding="async" />
+   ```
 
-### 3. Legal pages (`Privacy.tsx`, `Refund.tsx`, `Terms.tsx`)
-- Replace every `YourFairyTale.ai` brand reference with `ArtBookMagic`.
-- Replace every `support@yourfairytale.ai` mailto + visible text with `support@artbookmagic.com`.
+## How it works
+- Each unique `(path, width, quality)` combo is transformed once by Supabase, then served from the global CDN edge cache for every future visitor.
+- Originals in the bucket are never modified — admin/PDF flows keep using full-resolution files.
+- Expected page weight: ~27 MB → under 1 MB.
 
-### 4. Edge functions
-- `supabase/functions/approve-order/index.ts` — email body brand strings ("The YourFairyTale.ai Team", footer tagline, © line) → ArtBookMagic.
-- `supabase/functions/create-lemonsqueezy-checkout/index.ts` — `ALLOWED_ORIGINS` + `DEFAULT_ORIGIN`: replace `https://yourfairytale.ai` and `https://www.yourfairytale.ai` with `https://artbookmagic.com` and `https://www.artbookmagic.com`. (Keep the `your-fairy-tale.lovable.app` Lovable preview origin for now — flag below.)
+## Validation
+- Reload `/stories`, check Network tab: cover requests should be ~50–150 KB WebP/JPEG and return from CDN on second load.
+- Confirm admin dashboard and PDF generation still use the original full-size PNGs (they do — they read `cover_image_url` directly, not through the transform).
 
-### 5. Untouched on purpose
-- `src/pages/NotFound.tsx`, `src/pages/ThankYou.tsx`, `supabase/functions/generate-character-illustration/index.ts`, `supabase/functions/illustrate-hero-photo/index.ts` — uses of "fairy tale" describe the genre, not the brand. Leave as-is.
-- `docs/*` and `.lovable/plan.md` — internal planning docs, not user-facing. Leave unless you want them rewritten too.
-- Sender `from` in edge functions — already swapped to `ArtBookMagic <noreply@artbookmagic.com>` last step.
-
-## Open questions
-
-1. **Support email** — confirm `support@artbookmagic.com` (used across Privacy/Refund/Terms). I'll need to set this up in Resend or your registrar so it actually receives mail, but the page links can land first.
-2. **Twitter handle** — `@ArtBookMagic` OK, or do you have a different handle? If unknown, I can drop the twitter:site/creator tags rather than point at a non-existent account.
-3. **Lovable preview origin** — keep `https://your-fairy-tale.lovable.app` in the allowed-origins list, or remove it now that artbookmagic.com is the canonical site? (Removing it would break the old preview URL.)
-4. **Docs folder** — also rebrand `/docs/*.md` and `.lovable/plan.md` for internal consistency, or leave?
-
-Answer those and I'll switch to build mode and ship it in one pass.
+## Fallback
+If transforms return 400 (image transformation not enabled on the plan), revert this one file and switch to the one-time re-encode script approach.
