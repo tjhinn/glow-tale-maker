@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,10 +56,8 @@ serve(async (req) => {
     // Initialize clients
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const resend = new Resend(resendApiKey);
 
     // Parse request
     const { orderId } = await req.json();
@@ -126,124 +123,23 @@ serve(async (req) => {
       order.stories?.title || "Your Magical Storybook"
     );
 
-    console.log(`[Order ${orderId}] Sending approval email`);
+    console.log(`[Order ${orderId}] Enqueuing branded order-ready email`);
 
-    // Send email
-    console.log(`[Order ${orderId}] Dispatching to recipient`);
-    
-    const headingFont = "'Fredoka', 'Trebuchet MS', 'Comic Sans MS', sans-serif";
-    const bodyFont = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${heroName}'s storybook has arrived</title>
-          <link rel="preconnect" href="https://fonts.googleapis.com">
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-        </head>
-        <body style="margin:0;padding:0;background-color:#FFFDF8;font-family:${bodyFont};color:#0A0A0A;line-height:1.6;">
-          <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-            ✨ ${heroName}'s very own fairy tale is ready to read tonight.
-          </div>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFDF8;padding:32px 16px;">
-            <tr>
-              <td align="center">
-                <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 8px 32px rgba(255,139,0,0.12);">
-                  <!-- Header -->
-                  <tr>
-                    <td style="background:linear-gradient(135deg,#FF8B00 0%,#FFB347 50%,#FFE97F 100%);padding:48px 32px;text-align:center;">
-                      <div style="font-size:32px;line-height:1;margin-bottom:12px;">✨ 📖 ✨</div>
-                      <h1 style="margin:0;font-family:${headingFont};font-size:30px;font-weight:600;color:#FFFFFF;letter-spacing:-0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.12);">
-                        ${heroName}'s Story is Ready
-                      </h1>
-                    </td>
-                  </tr>
-
-                  <!-- Body -->
-                  <tr>
-                    <td style="padding:40px 36px 16px 36px;">
-                      <p style="margin:0 0 20px;font-size:18px;font-weight:600;color:#0A0A0A;font-family:${headingFont};">
-                        Hi there 👋
-                      </p>
-                      <p style="margin:0 0 18px;font-size:16px;color:#333;line-height:1.65;">
-                        Something magical just happened. <strong>${heroName}'s</strong> very own fairy tale —
-                        <em style="color:#7A5FFF;">"${storyTitle}"</em> — has been lovingly illustrated, page by page,
-                        and is ready to be read tonight.
-                      </p>
-                      <p style="margin:0 0 28px;font-size:16px;color:#333;line-height:1.65;">
-                        Every sparkle, every brushstroke, every word — made just for ${heroName}.
-                      </p>
-
-                      <!-- Sparkle divider -->
-                      <div style="text-align:center;margin:8px 0 24px;color:#7A5FFF;letter-spacing:8px;font-size:14px;">
-                        ✦ ✦ ✦
-                      </div>
-                      <p style="margin:0 0 28px;text-align:center;font-style:italic;color:#7A5FFF;font-size:15px;">
-                        Turn the page — the magic begins…
-                      </p>
-                    </td>
-                  </tr>
-
-                  <!-- CTA -->
-                  <tr>
-                    <td align="center" style="padding:0 36px 32px;">
-                      <a href="${order.pdf_url}"
-                         style="display:inline-block;background-color:#FF8B00;color:#FFFFFF !important;text-decoration:none;padding:18px 44px;border-radius:50px;font-weight:600;font-size:18px;font-family:${headingFont};box-shadow:0 6px 20px rgba(255,139,0,0.35);">
-                        📖 Open ${heroName}'s Storybook
-                      </a>
-                    </td>
-                  </tr>
-
-                  <!-- Info note -->
-                  <tr>
-                    <td style="padding:0 36px 32px;">
-                      <div style="background-color:#FFF8E1;border-left:4px solid #FFE97F;border-radius:8px;padding:16px 18px;font-size:14px;color:#5C5043;line-height:1.55;">
-                        <strong style="color:#0A0A0A;">📅 Save the magic.</strong>
-                        Your download link will be available for <strong>1 month</strong>.
-                        Save the storybook to your device so ${heroName} can revisit the adventure anytime.
-                      </div>
-                    </td>
-                  </tr>
-
-                  <!-- Sign-off -->
-                  <tr>
-                    <td style="padding:0 36px 40px;">
-                      <p style="margin:0;font-size:16px;color:#333;line-height:1.65;">
-                        With love and a little bit of magic, ✨<br>
-                        <strong style="font-family:${headingFont};color:#0A0A0A;">The ArtBookMagic Team</strong>
-                      </p>
-                    </td>
-                  </tr>
-
-                  <!-- Footer -->
-                  <tr>
-                    <td style="background-color:#FFFDF8;padding:24px 36px;border-top:1px solid #F0E9DC;text-align:center;">
-                      <p style="margin:0 0 6px;font-size:12px;color:#999;font-family:${headingFont};">
-                        ✨ ArtBookMagic — where imagination comes to life ✨
-                      </p>
-                      <p style="margin:0;font-size:11px;color:#B5B5B5;">
-                        © ${new Date().getFullYear()} ArtBookMagic · Sent to ${order.user_email}
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-      </html>
-    `;
-
-    const { error: emailError } = await resend.emails.send({
-      from: "ArtBookMagic <noreply@artbookmagic.com>",
-      to: [order.user_email],
-      subject: `✨ ${rawHeroName}'s storybook has arrived`,
-      html: emailHtml,
-    });
+    const { error: emailError } = await supabase.functions.invoke(
+      "send-transactional-email",
+      {
+        body: {
+          templateName: "order-ready",
+          recipientEmail: order.user_email,
+          idempotencyKey: `order-ready-${orderId}`,
+          templateData: {
+            heroName: rawHeroName,
+            storyTitle,
+            pdfUrl: order.pdf_url,
+          },
+        },
+      }
+    );
 
     if (emailError) {
       console.error("Email send error:", emailError);
@@ -253,7 +149,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Email sent successfully");
+    console.log("Order-ready email enqueued");
 
     // Update order status
     const now = new Date().toISOString();
