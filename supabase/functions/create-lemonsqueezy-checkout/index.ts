@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Resend } from "https://esm.sh/resend@4.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,20 +98,10 @@ const handler = async (req: Request): Promise<Response> => {
     }
     const paymentRequest = parsed.data as unknown as PaymentRequest;
 
-    // TEST MODE — remove this block at launch (delete down to next `// END TEST MODE`)
-    const TEST_MODE =
-      Deno.env.get("LEMONSQUEEZY_TEST_MODE")?.trim().toLowerCase() === "true";
-    const LEMONSQUEEZY_API_KEY =
-      (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_API_KEY")?.trim()) ||
-      Deno.env.get("LEMONSQUEEZY_API_KEY")?.trim();
-    const LEMONSQUEEZY_STORE_ID =
-      (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_STORE_ID")?.trim()) ||
-      Deno.env.get("LEMONSQUEEZY_STORE_ID")?.trim();
-    const LEMONSQUEEZY_VARIANT_ID =
-      (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_VARIANT_ID")?.trim()) ||
-      Deno.env.get("LEMONSQUEEZY_VARIANT_ID")?.trim();
-    console.log(`[LS] mode=${TEST_MODE ? "TEST" : "LIVE"}`);
-    // END TEST MODE
+    // Get environment variables (trim to defend against accidental whitespace/newlines)
+    const LEMONSQUEEZY_API_KEY = Deno.env.get("LEMONSQUEEZY_API_KEY")?.trim();
+    const LEMONSQUEEZY_STORE_ID = Deno.env.get("LEMONSQUEEZY_STORE_ID")?.trim();
+    const LEMONSQUEEZY_VARIANT_ID = Deno.env.get("LEMONSQUEEZY_VARIANT_ID")?.trim();
 
     if (!LEMONSQUEEZY_API_KEY || !LEMONSQUEEZY_STORE_ID || !LEMONSQUEEZY_VARIANT_ID) {
       throw new Error("LemonSqueezy configuration is incomplete");
@@ -173,25 +166,27 @@ const handler = async (req: Request): Promise<Response> => {
     // Send admin notification email
     try {
       const p = paymentRequest.personalizationData;
-      await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "admin-new-order",
-          recipientEmail: "tjhinn@gmail.com",
-          idempotencyKey: `admin-order-${order.id}`,
-          templateData: {
-            orderId: order.id,
-            customerEmail: paymentRequest.userEmail,
-            amount: checkoutAmountCents,
-            discountApplied: paymentRequest.discountApplied,
-            heroName: p.heroName,
-            gender: p.gender,
-            petName: p.petName,
-            petType: p.petType,
-            favoriteColor: p.favoriteColor,
-            favoriteFood: p.favoriteFood,
-            city: p.city,
-          },
-        },
+      await resend.emails.send({
+        from: "ArtBookMagic <noreply@artbookmagic.com>",
+        to: ["tjhinn@gmail.com"],
+        subject: `New Order Received - ${order.id}`,
+        html: `
+          <h2>New Storybook Order</h2>
+          <p><strong>Order ID:</strong> ${order.id}</p>
+          <p><strong>Customer Email:</strong> ${escapeHtml(paymentRequest.userEmail)}</p>
+          <p><strong>Amount:</strong> $${(checkoutAmountCents / 100).toFixed(2)} USD</p>
+          <p><strong>Discount Applied:</strong> ${paymentRequest.discountApplied ? "Yes" : "No"}</p>
+          <hr>
+          <h3>Personalization Details:</h3>
+          <ul>
+            <li><strong>Hero Name:</strong> ${escapeHtml(p.heroName)}</li>
+            <li><strong>Gender:</strong> ${escapeHtml(p.gender)}</li>
+            <li><strong>Pet:</strong> ${escapeHtml(p.petName)} (${escapeHtml(p.petType)})</li>
+            <li><strong>Favorite Color:</strong> ${escapeHtml(p.favoriteColor)}</li>
+            <li><strong>Favorite Food:</strong> ${escapeHtml(p.favoriteFood)}</li>
+            <li><strong>City:</strong> ${escapeHtml(p.city)}</li>
+          </ul>
+        `,
       });
       console.log(`[Order ${order.id}] Admin notification email sent`);
     } catch (emailError) {
@@ -219,10 +214,6 @@ const handler = async (req: Request): Promise<Response> => {
     if (paymentRequest.discountApplied) {
       checkoutAttributes.custom_price = checkoutAmountCents;
     }
-
-    // TEST MODE — remove at launch
-    if (TEST_MODE) checkoutAttributes.test_mode = true;
-    // END TEST MODE
 
     // Create LemonSqueezy checkout session
     const checkoutPayload = {
