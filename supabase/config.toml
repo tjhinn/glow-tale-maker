@@ -1,38 +1,29 @@
 project_id = "aoszitfxsnwxbocthejl"
 
-[functions.create-lemonsqueezy-checkout]
-verify_jwt = false
-
-[functions.lemonsqueezy-webhook]
-verify_jwt = false
-
-
-[functions.approve-order]
-verify_jwt = true
-
-[functions.illustrate-hero-photo]
-verify_jwt = true
-
-[functions.generate-character-illustration]
-verify_jwt = false
-
-[functions.generate-single-page]
-verify_jwt = true
-
-[functions.compile-storybook-pdf]
-verify_jwt = true
-
-[functions.cleanup-orphaned-storage]
-verify_jwt = true
-
-[functions.upload-hero-photo]
-verify_jwt = false
-
-[functions.sign-hero-photo]
-verify_jwt = false
-
-[functions.auto-generate-pages]
-verify_jwt = false
-
-[functions.get-order-cover]
-verify_jwt = false
+[functions]
+  [functions.approve-order]
+    verify_jwt = true
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.auto-generate-pages]
+    verify_jwt = false
+  [functions.cleanup-orphaned-storage]
+    verify_jwt = true
+  [functions.compile-storybook-pdf]
+    verify_jwt = true
+  [functions.create-lemonsqueezy-checkout]
+    verify_jwt = false
+  [functions.generate-character-illustration]
+    verify_jwt = false
+  [functions.generate-single-page]
+    verify_jwt = true
+  [functions.get-order-cover]
+    verify_jwt = false
+  [functions.illustrate-hero-photo]
+    verify_jwt = true
+  [functions.lemonsqueezy-webhook]
+    verify_jwt = false
+  [functions.sign-hero-photo]
+    verify_jwt = false
+  [functions.upload-hero-photo]
+    verify_jwt = false
