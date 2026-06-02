@@ -1,40 +1,45 @@
+## Goal
+Add a single-switch **test mode** to LemonSqueezy checkout, isolated to one edge function so it's trivial to rip out at launch.
 
-# Set up branded email on artbookmagic.com
+## Approach: one env-driven flag
 
-## 1. Configure sender domain
-- Open the email setup dialog to add **artbookmagic.com**.
-- Use subdomain `notify` (so DNS lookups go to `notify.artbookmagic.com`) and enable **"Display From as root domain"** so users see `noreply@artbookmagic.com` in their inbox.
-- Add the NS records Lovable provides at your domain registrar.
-- Email infrastructure (queue, send log, suppression list, unsubscribe tokens, dispatcher cron) is provisioned automatically.
-- DNS can take up to 72 hours to verify. Scaffolding and deploying don't have to wait.
+All test-mode logic lives in `supabase/functions/create-lemonsqueezy-checkout/index.ts`, gated by a single secret `LEMONSQUEEZY_TEST_MODE` (`"true"` / `"false"`). No frontend changes, no DB changes, no new files. Going Live = set the secret to `false` (or delete it) and optionally delete the ~15 lines marked `// TEST MODE`.
 
-## 2. Scaffold branded auth email templates
-- 6 templates (signup, magic link, password recovery, invite, email change, reauthentication).
-- Styled to match ArtBookMagic: Fredoka headings, warm orange (`#FF8B00`) primary CTA, violet accent, paper-white background, sparkle motifs — matching the existing approve-order email aesthetic.
-- Note: the customer-facing app currently has no signup/login UI, so these only fire if/when end-user auth is added. The admin login at `/admin-login` does use Supabase auth and may trigger password reset.
-- Deploy `auth-email-hook`.
+## What changes in the edge function
 
-## 3. Scaffold transactional email infrastructure
-- Creates `send-transactional-email`, `handle-email-unsubscribe`, `handle-email-suppression` edge functions and a template registry.
-- Create a branded `/unsubscribe` page in the app.
+1. Read the flag at the top:
+   ```ts
+   // TEST MODE — remove this block at launch
+   const TEST_MODE = Deno.env.get("LEMONSQUEEZY_TEST_MODE")?.trim().toLowerCase() === "true";
+   ```
 
-## 4. Create two transactional templates
-- **`order-ready`** — the "✨ {heroName}'s storybook has arrived" email currently in `approve-order/index.ts`. Port the existing HTML into a React Email component. Props: `heroName`, `storyTitle`, `pdfUrl`, `recipientEmail`.
-- **`admin-new-order`** — the internal "New Order Received" notification currently in `create-lemonsqueezy-checkout/index.ts`. Props: `orderId`, `customerEmail`, `amount`, `discountApplied`, plus personalization fields.
+2. Allow optional **test-specific** secrets that fall back to the live ones, so the user can either:
+   - Just flip `LEMONSQUEEZY_API_KEY` to a test key (simplest), **or**
+   - Keep live secrets in place and add `LEMONSQUEEZY_TEST_API_KEY`, `LEMONSQUEEZY_TEST_STORE_ID`, `LEMONSQUEEZY_TEST_VARIANT_ID` for parallel use.
+   ```ts
+   const API_KEY = (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_API_KEY")) || Deno.env.get("LEMONSQUEEZY_API_KEY");
+   const STORE_ID = (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_STORE_ID")) || Deno.env.get("LEMONSQUEEZY_STORE_ID");
+   const VARIANT_ID = (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_VARIANT_ID")) || Deno.env.get("LEMONSQUEEZY_VARIANT_ID");
+   ```
 
-## 5. Migrate existing Resend call sites
-- **`supabase/functions/approve-order/index.ts`** — replace the direct `resend.emails.send(...)` block with `supabase.functions.invoke('send-transactional-email', { body: { templateName: 'order-ready', recipientEmail: order.user_email, idempotencyKey: `order-ready-${orderId}`, templateData: { ... } } })`. Remove the Resend import and `RESEND_API_KEY` usage.
-- **`supabase/functions/create-lemonsqueezy-checkout/index.ts`** — replace the admin-notification `resend.emails.send(...)` with an invoke of `send-transactional-email` using `admin-new-order` template, recipient `tjhinn@gmail.com`, idempotency `admin-order-${order.id}`. Remove the Resend import.
-- Deploy both functions.
+3. Set `test_mode: true` on the checkout payload when the flag is on (LemonSqueezy's documented attribute for API-created test checkouts):
+   ```ts
+   if (TEST_MODE) checkoutAttributes.test_mode = true;
+   ```
 
-## 6. Cleanup
-- After both migrations are verified, the `RESEND_API_KEY` secret is no longer used by these flows. I'll flag it but won't delete it until you confirm nothing else depends on it.
+4. Log the mode clearly so it's obvious in edge function logs:
+   `console.log("[LS] mode=" + (TEST_MODE ? "TEST" : "LIVE"))`.
 
-## Technical details
-- Sender subdomain: `notify.artbookmagic.com` (delegated to Lovable nameservers via NS records).
-- Visible From: `noreply@artbookmagic.com` (via display_from_root setting in the setup dialog).
-- All sends route through pgmq with automatic retries, rate-limit backoff, suppression checks, and a system-managed unsubscribe footer. The admin-notification email also gets an unsubscribe footer — that's by design and required.
-- Idempotency keys prevent duplicate sends if the edge function is retried.
+5. Tag the order row with `discount_code` unchanged, but prepend `"[TEST] "` to nothing in DB — instead, just rely on logs + LemonSqueezy's own test-mode marker on the order. (Keeps DB schema untouched.)
 
-## Open question before I start step 5
-The admin notification currently goes to a hardcoded `tjhinn@gmail.com`. Keep that hardcoded, or move it to a secret (e.g. `ADMIN_NOTIFICATION_EMAIL`) so it's easy to change later?
+## Removing it at launch
+
+Search the file for `// TEST MODE` — three small blocks. Delete them, restore the original three direct `Deno.env.get(...)` lines, done. No migrations, no frontend cleanup.
+
+## Action required from you
+
+After I implement, set the secret `LEMONSQUEEZY_TEST_MODE=true` and either:
+- swap `LEMONSQUEEZY_API_KEY` to your test key, **or**
+- add `LEMONSQUEEZY_TEST_API_KEY` (+ test store/variant IDs if different) and leave live keys alone.
+
+I'll prompt for the secret(s) after you approve.
