@@ -95,10 +95,20 @@ const handler = async (req: Request): Promise<Response> => {
     }
     const paymentRequest = parsed.data as unknown as PaymentRequest;
 
-    // Get environment variables (trim to defend against accidental whitespace/newlines)
-    const LEMONSQUEEZY_API_KEY = Deno.env.get("LEMONSQUEEZY_API_KEY")?.trim();
-    const LEMONSQUEEZY_STORE_ID = Deno.env.get("LEMONSQUEEZY_STORE_ID")?.trim();
-    const LEMONSQUEEZY_VARIANT_ID = Deno.env.get("LEMONSQUEEZY_VARIANT_ID")?.trim();
+    // TEST MODE — remove this block at launch (delete down to next `// END TEST MODE`)
+    const TEST_MODE =
+      Deno.env.get("LEMONSQUEEZY_TEST_MODE")?.trim().toLowerCase() === "true";
+    const LEMONSQUEEZY_API_KEY =
+      (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_API_KEY")?.trim()) ||
+      Deno.env.get("LEMONSQUEEZY_API_KEY")?.trim();
+    const LEMONSQUEEZY_STORE_ID =
+      (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_STORE_ID")?.trim()) ||
+      Deno.env.get("LEMONSQUEEZY_STORE_ID")?.trim();
+    const LEMONSQUEEZY_VARIANT_ID =
+      (TEST_MODE && Deno.env.get("LEMONSQUEEZY_TEST_VARIANT_ID")?.trim()) ||
+      Deno.env.get("LEMONSQUEEZY_VARIANT_ID")?.trim();
+    console.log(`[LS] mode=${TEST_MODE ? "TEST" : "LIVE"}`);
+    // END TEST MODE
 
     if (!LEMONSQUEEZY_API_KEY || !LEMONSQUEEZY_STORE_ID || !LEMONSQUEEZY_VARIANT_ID) {
       throw new Error("LemonSqueezy configuration is incomplete");
@@ -209,6 +219,10 @@ const handler = async (req: Request): Promise<Response> => {
     if (paymentRequest.discountApplied) {
       checkoutAttributes.custom_price = checkoutAmountCents;
     }
+
+    // TEST MODE — remove at launch
+    if (TEST_MODE) checkoutAttributes.test_mode = true;
+    // END TEST MODE
 
     // Create LemonSqueezy checkout session
     const checkoutPayload = {
