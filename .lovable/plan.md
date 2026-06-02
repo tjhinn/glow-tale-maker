@@ -1,21 +1,40 @@
-I agree your screenshots contradict the earlier interpretation: the dashboard summary clearly shows SHARE20 as Active, All products, 20%, and your product page shows the product itself as Published.
 
-Plan to resolve this without guessing:
+# Set up branded email on artbookmagic.com
 
-1. Re-query LemonSqueezy live API using the configured project secret
-   - Confirm which environment the API key is connected to.
-   - Fetch the store, product 1086894, discount SHARE20, and product variants.
-   - Compare the API fields against what your dashboard screenshots show.
+## 1. Configure sender domain
+- Open the email setup dialog to add **artbookmagic.com**.
+- Use subdomain `notify` (so DNS lookups go to `notify.artbookmagic.com`) and enable **"Display From as root domain"** so users see `noreply@artbookmagic.com` in their inbox.
+- Add the NS records Lovable provides at your domain registrar.
+- Email infrastructure (queue, send log, suppression list, unsubscribe tokens, dispatcher cron) is provisioned automatically.
+- DNS can take up to 72 hours to verify. Scaffolding and deploying don't have to wait.
 
-2. Check the exact checkout payload used by the app
-   - Confirm which variant ID the app sends to LemonSqueezy.
-   - Confirm whether the app passes SHARE20 as a discount code or discount ID.
-   - Confirm the checkout is created under the same store/product/variant as your dashboard.
+## 2. Scaffold branded auth email templates
+- 6 templates (signup, magic link, password recovery, invite, email change, reauthentication).
+- Styled to match ArtBookMagic: Fredoka headings, warm orange (`#FF8B00`) primary CTA, violet accent, paper-white background, sparkle motifs — matching the existing approve-order email aesthetic.
+- Note: the customer-facing app currently has no signup/login UI, so these only fire if/when end-user auth is added. The admin login at `/admin-login` does use Supabase auth and may trigger password reset.
+- Deploy `auth-email-hook`.
 
-3. Explain the dashboard/API mismatch clearly
-   - For variants: LemonSqueezy single-variant products often do not expose a clickable variant URL in the dashboard; the default variant can exist only in the API, so the URL staying at `/products/1086894` is not unusual.
-   - For SHARE20: if the API still rejects the selected variant while the dashboard says All products, then the issue is likely one of these: stale LemonSqueezy saved state, a mismatch between the checkout variant and the visible product, or the app is using a different checkout/discount parameter than expected.
+## 3. Scaffold transactional email infrastructure
+- Creates `send-transactional-email`, `handle-email-unsubscribe`, `handle-email-suppression` edge functions and a template registry.
+- Create a branded `/unsubscribe` page in the app.
 
-4. If needed, prepare a minimal app-side fix
-   - Add temporary safe diagnostics around checkout creation so we can see product ID, variant ID, discount code, store ID, and LemonSqueezy response without logging secrets or personal data.
-   - Remove those diagnostics after the cause is confirmed.
+## 4. Create two transactional templates
+- **`order-ready`** — the "✨ {heroName}'s storybook has arrived" email currently in `approve-order/index.ts`. Port the existing HTML into a React Email component. Props: `heroName`, `storyTitle`, `pdfUrl`, `recipientEmail`.
+- **`admin-new-order`** — the internal "New Order Received" notification currently in `create-lemonsqueezy-checkout/index.ts`. Props: `orderId`, `customerEmail`, `amount`, `discountApplied`, plus personalization fields.
+
+## 5. Migrate existing Resend call sites
+- **`supabase/functions/approve-order/index.ts`** — replace the direct `resend.emails.send(...)` block with `supabase.functions.invoke('send-transactional-email', { body: { templateName: 'order-ready', recipientEmail: order.user_email, idempotencyKey: `order-ready-${orderId}`, templateData: { ... } } })`. Remove the Resend import and `RESEND_API_KEY` usage.
+- **`supabase/functions/create-lemonsqueezy-checkout/index.ts`** — replace the admin-notification `resend.emails.send(...)` with an invoke of `send-transactional-email` using `admin-new-order` template, recipient `tjhinn@gmail.com`, idempotency `admin-order-${order.id}`. Remove the Resend import.
+- Deploy both functions.
+
+## 6. Cleanup
+- After both migrations are verified, the `RESEND_API_KEY` secret is no longer used by these flows. I'll flag it but won't delete it until you confirm nothing else depends on it.
+
+## Technical details
+- Sender subdomain: `notify.artbookmagic.com` (delegated to Lovable nameservers via NS records).
+- Visible From: `noreply@artbookmagic.com` (via display_from_root setting in the setup dialog).
+- All sends route through pgmq with automatic retries, rate-limit backoff, suppression checks, and a system-managed unsubscribe footer. The admin-notification email also gets an unsubscribe footer — that's by design and required.
+- Idempotency keys prevent duplicate sends if the edge function is retried.
+
+## Open question before I start step 5
+The admin notification currently goes to a hardcoded `tjhinn@gmail.com`. Keep that hardcoded, or move it to a secret (e.g. `ADMIN_NOTIFICATION_EMAIL`) so it's easy to change later?
